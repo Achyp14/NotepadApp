@@ -8,45 +8,48 @@ import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.ListAdapter;
+import android.widget.ListView;
+import android.widget.SimpleAdapter;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
+
+    final String ATTRIBUTE_NAME_TEXT = "title";
+    final String ATTRIBUTE_NAME_DESCRIPTION = "description";
+    final String ATTRIBUTE_NAME_CHECKBOX = "checkbox";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });
-    }
+        List<Map<String,Object>> noteList = new ArrayList<Map<String,Object>>();
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        return true;
-    }
+        String []titles = {"title1","title2","title3"};
+        String []descriptions = {"description1","description2","description3"};
+        Boolean []cheked = {true,false,true};
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
+        Map<String,Object> map;
+        for(int i = 0; i < titles.length; i++) {
+            map = new HashMap<String, Object>();
+            map.put(ATTRIBUTE_NAME_TEXT,titles[i]);
+            map.put(ATTRIBUTE_NAME_DESCRIPTION,descriptions[i]);
+            map.put(ATTRIBUTE_NAME_CHECKBOX,cheked[i]);
+            noteList.add(map);
         }
 
-        return super.onOptionsItemSelected(item);
+        String []from = {ATTRIBUTE_NAME_TEXT,ATTRIBUTE_NAME_DESCRIPTION,ATTRIBUTE_NAME_CHECKBOX};
+        int []to = {R.id.item_title,R.id.item_description,R.id.item_check};
+
+        SimpleAdapter simpleAdapter = new SimpleAdapter(this,noteList,R.layout.item,from,to);
+        ListView listView = (ListView) findViewById(R.id.note_list);
+        listView.setAdapter(simpleAdapter);
+
     }
+
 }
