@@ -1,9 +1,16 @@
 package com.example.achypur.notepadapp;
 
+import android.app.AlertDialog;
 import android.content.Context;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
@@ -27,29 +34,60 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+
         final NoteListAdapter mAdapter = new NoteListAdapter(this);
+        final Button button = (Button) findViewById(R.id.edit_button);
+        final EditText title = (EditText) findViewById(R.id.edit_title);
+        final EditText description = (EditText) findViewById(R.id.edit_description);
+        TextWatcher watcher = new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
 
-        mNotes.add(new Note("1", "2"));
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                if (title.getText().toString().trim().equals("") ||
+                        description.getText().toString().trim().equals("")) {
+                    button.setEnabled(false);
+                } else {
+                    button.setEnabled(true);
+                }
+            }
 
-        Button button = (Button) findViewById(R.id.edit_button);
-        final EditText mTitle = (EditText) findViewById(R.id.edit_title);
-        final EditText mDescription = (EditText) findViewById(R.id.edit_description);
-
+            @Override
+            public void afterTextChanged(Editable s) {
+            }
+        };
+        title.addTextChangedListener(watcher);
+        description.addTextChangedListener(watcher);
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (mTitle.getText().toString().trim().equals("") ||
-                        mDescription.getText().toString().trim().equals("")) {
-                    return;
-                }
-
-                mNotes.add(new Note(mTitle.getText().toString(), mDescription.getText().toString()));
+                mNotes.add(new Note(title.getText().toString(), description.getText().toString()));
                 mAdapter.setList(mNotes);
             }
         });
+
+
         ListView listView = (ListView) findViewById(R.id.note_list);
         mAdapter.setList(mNotes);
         listView.setAdapter(mAdapter);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.action_settings:
+                AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(
+                this);
+
+                // set title
+                alertDialogBuilder.setTitle("Your Title");
+
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
     }
 
     static class NoteListAdapter extends BaseAdapter {
@@ -102,6 +140,4 @@ public class MainActivity extends AppCompatActivity {
             return view;
         }
     }
-
-
 }

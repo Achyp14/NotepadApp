@@ -1,10 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fitsSystemWindows="true"
     android:orientation="vertical"
     android:weightSum="2">
+
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/my_toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="?attr/colorPrimary"
+        android:elevation="4dp"
+        android:theme="@style/ThemeOverlay.AppCompat.ActionBar"
+        app:popupTheme="@style/ThemeOverlay.AppCompat.Light"/>
 
     <ListView
         android:id="@+id/note_list"
@@ -33,9 +43,12 @@
         android:layout_weight="0.25"
         android:layout_height="0dip"
         android:layout_marginLeft="20dp"
+        android:textColor="@android:color/white"
         android:layout_marginRight="20dp"
         android:layout_gravity="center_horizontal"
+        android:enabled="false"
         android:text="Submit"
+        android:background="@drawable/button_effect"
         />
 
 </LinearLayout>
