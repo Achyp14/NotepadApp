@@ -1,17 +1,41 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fitsSystemWindows="true"
-    tools:context="com.example.achypur.notepadapp.MainActivity">
+    android:orientation="vertical"
+    android:weightSum="2">
 
     <ListView
         android:id="@+id/note_list"
+        android:layout_weight="1.25"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
-    </ListView>
+        android:layout_height="0dip"/>
 
+    <EditText
+        android:id="@+id/edit_title"
+        android:layout_weight="0.25"
+        android:layout_width="match_parent"
+        android:layout_height="0dip"
+        android:layout_marginLeft="8dp"
+        android:ems="10"/>
+
+    <EditText
+        android:id="@+id/edit_description"
+        android:layout_weight="0.25"
+        android:layout_width="match_parent"
+        android:layout_marginLeft="8dp"
+        android:layout_height="0dip"
+        android:ems="10"/>
+    <Button
+        android:id="@+id/edit_button"
+        android:layout_width="match_parent"
+        android:layout_weight="0.25"
+        android:layout_height="0dip"
+        android:layout_marginLeft="20dp"
+        android:layout_marginRight="20dp"
+        android:layout_gravity="center_horizontal"
+        android:text="Submit"
+        />
 
 </LinearLayout>

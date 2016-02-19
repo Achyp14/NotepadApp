@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
+
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/linearLayout1"
-    android:layout_height="wrap_content"
     android:layout_width="match_parent"
+    android:layout_height="wrap_content"
     android:orientation="horizontal">
 
     <CheckBox
         android:id="@+id/item_check"
-        android:layout_margin="8dp"
-        android:layout_gravity="center_vertical"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content">
-    </CheckBox>
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical"
+        android:layout_margin="8dp"></CheckBox>
 
     <LinearLayout
         android:id="@+id/linearLayout2"
@@ -26,8 +26,7 @@
             android:layout_marginBottom="8dp"
             android:layout_marginTop="8dp"
             android:textColor="#000000"
-            android:textSize="18dp">
-        </TextView>
+            android:textSize="18dp"></TextView>
 
         <TextView
             android:id="@+id/item_description"

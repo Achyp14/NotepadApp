@@ -18,7 +18,7 @@ public class Note implements Serializable{
         this.text = text;
     }
 
-    public String getText() {
+    public String getDescription() {
         return text;
     }
 
