@@ -1,11 +1,13 @@
 package com.example.achypur.notepadapp;
 
+import android.widget.LinearLayout;
+
 import java.io.Serializable;
 
 /**
  * Created by achypur on 17.02.2016.
  */
-public class Note implements Serializable{
+public class Note{
     private String title;
     private String text;
 
@@ -13,6 +15,8 @@ public class Note implements Serializable{
        this.title = title;
        this.text = text;
    }
+
+
 
     public void setText(String text) {
         this.text = text;
