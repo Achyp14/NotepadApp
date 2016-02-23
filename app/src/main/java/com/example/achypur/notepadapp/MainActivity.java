@@ -1,6 +1,8 @@
 package com.example.achypur.notepadapp;
 
+import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
@@ -27,6 +29,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -38,6 +41,7 @@ public class MainActivity extends AppCompatActivity {
 
     NoteListAdapter mAdapter;
     ListView mListView;
+    User mUser = new User(null, false);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,6 +49,10 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.my_toolbar);
         setSupportActionBar(toolbar);
+        if (!mUser.getLogged()) {
+            Intent i = new Intent(this, LoginActivity.class);
+            startActivityForResult(i, 1);
+        }
 
         final Button button = (Button) findViewById(R.id.edit_button);
         final EditText title = (EditText) findViewById(R.id.edit_title);
@@ -76,7 +84,6 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 mNotes.add(new Note(title.getText().toString(), description.getText().toString()));
                 mAdapter.notifyDataSetChanged();
-                //mAdapter.setList(mNotes);
             }
         });
 
@@ -92,6 +99,16 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == 1) {
+            if (resultCode == Activity.RESULT_OK) {
+                mUser.setLogged(data.getBooleanExtra("logged", false));
+                mUser.setLogin(data.getStringExtra("login"));
+                Log.i("login",mUser.getLogin());
+            }
+        }
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -104,17 +121,17 @@ public class MainActivity extends AppCompatActivity {
         LinearLayout activity_main = (LinearLayout) findViewById(R.id.activity_main);
         switch (item.getItemId()) {
             case R.id.item_delete:
-                    Set<Integer> positions = mAdapter.getCheckedPositions();
-                    for (int i : positions) {
-                        mNotes.remove(i);
-                    }
+                Set<Integer> positions = mAdapter.getCheckedPositions();
+                for (int i : positions) {
+                    mNotes.remove(i);
+                }
 
-                    if (positions.size() > 0) {
-                        mAdapter.clearCheckedPositions();
-                        mAdapter.notifyDataSetChanged();
-                    }
+                if (positions.size() > 0) {
+                    mAdapter.clearCheckedPositions();
+                    mAdapter.notifyDataSetChanged();
+                }
 
-                    return true;
+                return true;
             default: {
                 super.onOptionsItemSelected(item);
             }
@@ -169,8 +186,8 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public View getView(final int position, View convertView, ViewGroup parent) {
-           final ViewHolderItem viewHolderItem;
-            if(convertView == null) {
+            final ViewHolderItem viewHolderItem;
+            if (convertView == null) {
                 convertView = mInflater.inflate(R.layout.item, parent, false);
 
                 viewHolderItem = new ViewHolderItem();
@@ -183,7 +200,6 @@ public class MainActivity extends AppCompatActivity {
             }
 
             convertView.setClickable(true);
-
             Note note = getItem(position);
             viewHolderItem.box.setClickable(false);
             viewHolderItem.box.setChecked(mCheckedPositions.contains(position));
