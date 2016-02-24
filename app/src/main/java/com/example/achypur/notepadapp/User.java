@@ -3,19 +3,13 @@ package com.example.achypur.notepadapp;
 import java.util.Calendar;
 
 public class User {
-    private int id;
+    private long id;
     private String login;
-    private boolean logged;
 
     public User() {}
 
-    public  User(String login, boolean logged) {
+    public  User(String login) {
         this.login = login;
-        this.logged = logged;
-    }
-
-    public void setLogged(boolean logged) {
-        this.logged = logged;
     }
 
     public void setLogin(String login) {
@@ -28,15 +22,11 @@ public class User {
         return login;
     }
 
-    public boolean getLogged() {
-        return logged;
-    }
-
-    public int getId() {
+    public long getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(long id) {
         this.id = id;
     }
 }

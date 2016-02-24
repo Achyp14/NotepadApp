@@ -1,7 +1,9 @@
 package com.example.achypur.notepadapp;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -13,46 +15,50 @@ import android.widget.Button;
 import android.widget.EditText;
 
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 public class LoginActivity extends AppCompatActivity {
-
+    public static final String TAG = "LoginActivity";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
+        final SessionManager mSession;
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-        final ArrayList<String> loginList = new ArrayList<String>();
-        loginList.add("admin");
-        loginList.add("user");
+        mSession = new SessionManager(this);
+        final List<User> userList = MainActivity.fillInDB(this);
+        Log.i(TAG, userList.get(0).getLogin());
+        Log.i(TAG, userList.get(1).getLogin());
+        Log.i(TAG, userList.get(2).getLogin());
+
 
         final EditText editText = (EditText) findViewById(R.id.editText);
         Button button = (Button) findViewById(R.id.login_button);
 
-
-        final Intent intent = new Intent();
+        final Intent intent = new Intent(this, MainActivity.class);
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(checkLogin(editText.getText().toString().trim(), loginList)) {
-                    boolean b = true;
-                    intent.putExtra("logged",b);
-                    intent.putExtra("login",editText.getText().toString());
-                    setResult(Activity.RESULT_OK, intent);
+                if (checkLogin(editText.getText().toString().trim(), userList)) {
+                    mSession.createLoginSession(editText.getText().toString().trim());
+                    startActivity(intent);
                     finish();
                 }
-
             }
         });
     }
 
-    private boolean checkLogin(String login, ArrayList<String> loginList) {
-        for (String item : loginList) {
-            if (login.equals(item)) {
+    private boolean checkLogin(String login, List<User> userList) {
+        for (User someBody : userList) {
+            if (someBody.getLogin().equals(login)) {
                 return true;
             }
         }
-        return  false;
+        return false;
     }
 }
 

@@ -10,6 +10,12 @@
             app:showAsAction="never"
             android:title="Delete">
         </item>
+        <item
+            android:id="@+id/item_logout"
+            android:orderInCategory="1"
+            app:showAsAction="never"
+            android:title="Log out">
+        </item>
 
     </group>
 </menu>

@@ -5,43 +5,38 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
-import android.util.SparseBooleanArray;
-import android.view.ActionMode;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
-import android.widget.Checkable;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
 public class MainActivity extends AppCompatActivity {
-    private static final String TAG = "TEST";
+    private static final String TAG = "MainActivity";
 
     List<Note> mNotes = new ArrayList<Note>();
-
     NoteListAdapter mAdapter;
     ListView mListView;
-    User mUser = new User(null, false);
+    SessionManager mSession;
+    static UserDao mUserDao;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,11 +44,12 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.my_toolbar);
         setSupportActionBar(toolbar);
-        if (!mUser.getLogged()) {
-            Intent i = new Intent(this, LoginActivity.class);
-            startActivityForResult(i, 1);
-        }
 
+        mSession = new SessionManager(this);
+
+        if (mSession.checkLogin()) {
+            finish();
+        }
         final Button button = (Button) findViewById(R.id.edit_button);
         final EditText title = (EditText) findViewById(R.id.edit_title);
         final EditText description = (EditText) findViewById(R.id.edit_description);
@@ -94,20 +90,8 @@ public class MainActivity extends AppCompatActivity {
         mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Log.d(TAG, "onItemClick: " + position);
             }
         });
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == 1) {
-            if (resultCode == Activity.RESULT_OK) {
-                mUser.setLogged(data.getBooleanExtra("logged", false));
-                mUser.setLogin(data.getStringExtra("login"));
-                Log.i("login",mUser.getLogin());
-            }
-        }
     }
 
     @Override
@@ -130,8 +114,9 @@ public class MainActivity extends AppCompatActivity {
                     mAdapter.clearCheckedPositions();
                     mAdapter.notifyDataSetChanged();
                 }
-
                 return true;
+            case R.id.item_logout:
+                mSession.logoutUser();
             default: {
                 super.onOptionsItemSelected(item);
             }
@@ -219,5 +204,18 @@ public class MainActivity extends AppCompatActivity {
 
             return convertView;
         }
+    }
+
+    public static List<User> fillInDB(Context context) {
+        mUserDao = new UserDao(context);
+        try {
+            mUserDao.open();
+            mUserDao.createUser("admin");
+            mUserDao.createUser("user");
+            mUserDao.createUser("somebody");
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+        return mUserDao.getAllUsers();
     }
 }

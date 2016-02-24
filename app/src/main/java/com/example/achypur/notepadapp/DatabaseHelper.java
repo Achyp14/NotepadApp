@@ -12,11 +12,10 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     public static final String TABLE_USER = "users";
     public static final String KEY_ID = "id";
     public static final String KEY_LOGIN = "login";
-    public static final String KEY_LOGGED = "logged";
 
     private static final String CREATE_TABLE_USER = "CREATE TABLE "
             + TABLE_USER + "(" + KEY_ID + " INTEGER PRIMARY KEY AUTOINCREMENT," + KEY_LOGIN
-            + " TEXT NOT NULL," + KEY_LOGGED + " BOOLEAN NOT NULL," + ")";
+            + " TEXT NOT NULL" + ")";
 
     public DataBaseHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
