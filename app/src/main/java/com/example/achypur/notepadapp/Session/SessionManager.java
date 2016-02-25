@@ -1,9 +1,10 @@
-package com.example.achypur.notepadapp;
+package com.example.achypur.notepadapp.Session;
 
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.util.Log;
+
+import com.example.achypur.notepadapp.Activities.LoginActivity;
 
 import java.util.HashMap;
 

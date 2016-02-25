@@ -1,14 +1,11 @@
-package com.example.achypur.notepadapp;
+package com.example.achypur.notepadapp.Activities;
 
-import android.app.Activity;
 import android.content.Context;
-import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -23,6 +20,12 @@ import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.example.achypur.notepadapp.DAO.UserDao;
+import com.example.achypur.notepadapp.Entities.Note;
+import com.example.achypur.notepadapp.Entities.User;
+import com.example.achypur.notepadapp.R;
+import com.example.achypur.notepadapp.Session.SessionManager;
+
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
@@ -36,7 +39,7 @@ public class MainActivity extends AppCompatActivity {
     NoteListAdapter mAdapter;
     ListView mListView;
     SessionManager mSession;
-    static UserDao mUserDao;
+    UserDao mUserDao;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,6 +47,17 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.my_toolbar);
         setSupportActionBar(toolbar);
+
+        mUserDao = new UserDao(this);
+        try {
+            mUserDao.open();
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+
+        if(mUserDao.isEmpty()) {
+            mUserDao.createUser("admin","Andrii","achyp14@gmail.com","admin",null, null);
+        }
 
         mSession = new SessionManager(this);
 
@@ -78,7 +92,7 @@ public class MainActivity extends AppCompatActivity {
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mNotes.add(new Note(title.getText().toString(), description.getText().toString()));
+                //mNotes.add(new Note(title.getText().toString(), description.getText().toString()));
                 mAdapter.notifyDataSetChanged();
             }
         });
@@ -123,7 +137,6 @@ public class MainActivity extends AppCompatActivity {
         }
         return super.onOptionsItemSelected(item);
     }
-
 
     static class NoteListAdapter extends BaseAdapter {
         List<Note> mNoteList;
@@ -199,23 +212,10 @@ public class MainActivity extends AppCompatActivity {
                 }
             });
 
-            viewHolderItem.title.setText(note.getTitle());
-            viewHolderItem.description.setText(note.getDescription());
+//            viewHolderItem.title.setText(note.getTitle());
+//            viewHolderItem.description.setText(note.getDescription());
 
             return convertView;
         }
-    }
-
-    public static List<User> fillInDB(Context context) {
-        mUserDao = new UserDao(context);
-        try {
-            mUserDao.open();
-            mUserDao.createUser("admin");
-            mUserDao.createUser("user");
-            mUserDao.createUser("somebody");
-        } catch (SQLException ex) {
-            ex.printStackTrace();
-        }
-        return mUserDao.getAllUsers();
     }
 }
