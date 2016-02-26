@@ -20,6 +20,7 @@ import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.example.achypur.notepadapp.DAO.NoteDao;
 import com.example.achypur.notepadapp.DAO.UserDao;
 import com.example.achypur.notepadapp.Entities.Note;
 import com.example.achypur.notepadapp.Entities.User;
@@ -40,6 +41,7 @@ public class MainActivity extends AppCompatActivity {
     ListView mListView;
     SessionManager mSession;
     UserDao mUserDao;
+    NoteDao mNoteDao;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,14 +51,16 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
 
         mUserDao = new UserDao(this);
+        mNoteDao = new NoteDao(this);
         try {
             mUserDao.open();
+            mNoteDao.open();
         } catch (SQLException ex) {
             ex.printStackTrace();
         }
 
-        if(mUserDao.isEmpty()) {
-            mUserDao.createUser("admin","Andrii","achyp14@gmail.com","admin",null, null);
+        if (mUserDao.isEmpty()) {
+            mUserDao.createUser("admin", "Andrii", "achyp14@gmail.com", "admin", null, null);
         }
 
         mSession = new SessionManager(this);
@@ -64,6 +68,7 @@ public class MainActivity extends AppCompatActivity {
         if (mSession.checkLogin()) {
             finish();
         }
+
         final Button button = (Button) findViewById(R.id.edit_button);
         final EditText title = (EditText) findViewById(R.id.edit_title);
         final EditText description = (EditText) findViewById(R.id.edit_description);
@@ -114,6 +119,7 @@ public class MainActivity extends AppCompatActivity {
         return true;
     }
 
+
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         LinearLayout activity_main = (LinearLayout) findViewById(R.id.activity_main);
@@ -131,6 +137,7 @@ public class MainActivity extends AppCompatActivity {
                 return true;
             case R.id.item_logout:
                 mSession.logoutUser();
+                finish();
             default: {
                 super.onOptionsItemSelected(item);
             }

@@ -9,7 +9,9 @@ import com.example.achypur.notepadapp.DBHelper.DataBaseHelper;
 import com.example.achypur.notepadapp.Entities.Note;
 
 import java.sql.SQLException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 public class NoteDao {
@@ -104,6 +106,4 @@ public class NoteDao {
         cursor.close();
         return noteList;
     }
-
-
 }

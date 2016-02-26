@@ -12,7 +12,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class UserDao {
+public  class UserDao {
     private SQLiteDatabase mSqLiteDatabase;
     private DataBaseHelper mDataBaseHelper;
     private String[] mColumns = {DataBaseHelper.KEY_ID,
@@ -93,15 +93,14 @@ public class UserDao {
     public List<User> getAllUsers() {
         List<User> userList = new ArrayList<User>();
 
-        Cursor cursor = mSqLiteDatabase.query(mDataBaseHelper.TABLE_USER, mColumns,
-                null, null, null, null, null);
-
-        cursor.moveToFirst();
-
-        while (!cursor.isAfterLast()) {
-            User user = cursorToUser(cursor);
-            userList.add(user);
-            cursor.moveToNext();
+        Cursor cursor = mSqLiteDatabase.rawQuery("Select * from " + mDataBaseHelper.TABLE_USER, null);
+        User user;
+        if (cursor.moveToFirst()) {
+            while (cursor.isAfterLast() == false) {
+                user = cursorToUser(cursor);
+                userList.add(user);
+                cursor.moveToNext();
+            }
         }
         cursor.close();
         return userList;
@@ -109,11 +108,10 @@ public class UserDao {
 
     public boolean isEmpty() {
         Cursor cursor = mSqLiteDatabase.rawQuery("Select * from " + mDataBaseHelper.TABLE_USER, null);
-
-        if(cursor.moveToFirst()) {
-            return  true;
+        if (cursor.moveToFirst()) {
+            return false;
         } else {
-            return  false;
+            return true;
         }
     }
 }

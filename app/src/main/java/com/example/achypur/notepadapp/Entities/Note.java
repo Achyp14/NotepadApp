@@ -7,6 +7,7 @@ public class Note{
     private Long mId;
     private String mTitle;
     private String mContent;
+    private Long mUserId;
     private String mCreatedDate;
     private String mModifiedDate;
     private boolean mPolicyStatus;
@@ -14,10 +15,10 @@ public class Note{
     public Note() {
     }
 
-    public Note(Long mId, String mTitle, String mContent, String mCreatedDate, String mModifiedDate, boolean mPolicyStatus) {
-        this.mId = mId;
+    public Note(String mTitle, String mContent, Long mid, String mCreatedDate, String mModifiedDate, boolean mPolicyStatus) {
         this.mTitle = mTitle;
         this.mContent = mContent;
+        this.mUserId = mId;
         this.mCreatedDate = mCreatedDate;
         this.mModifiedDate = mModifiedDate;
         this.mPolicyStatus = mPolicyStatus;
@@ -69,5 +70,13 @@ public class Note{
 
     public void setmPolicyId(boolean mPolicyStatus) {
         this.mPolicyStatus = mPolicyStatus;
+    }
+
+    public Long getmUserId() {
+        return mUserId;
+    }
+
+    public void setmUserId(Long mUserId) {
+        this.mUserId = mUserId;
     }
 }

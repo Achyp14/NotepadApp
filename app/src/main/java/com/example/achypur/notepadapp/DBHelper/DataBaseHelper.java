@@ -66,8 +66,8 @@ public class DataBaseHelper extends SQLiteOpenHelper {
 
     private  static  final String CREATE_TABLE_NOTE = "create table " + TABLE_NOTE + "(" +
             KEY_ID + " integer primary key autoincrement," + KEY_TITLE + " text not null," +
-            KEY_CONTENT + " text not null," + KEY_CREATED_DATE + " datetime not null," + KEY_MODIFIED_DATE + " datetime not null," +
-            KEY_POLICY_STATUS + " integer not null" + ")";
+            KEY_CONTENT + " text not null,"+ KEY_USER_ID + " integer not null" + KEY_CREATED_DATE + " datetime," + KEY_MODIFIED_DATE + " datetime," +
+            KEY_POLICY_STATUS + " integer" + ")";
 
     private  static  final  String CREATE_TABLE_ROLE = "create table " + TABLE_ROLE + "(" +
             KEY_ID + " integer primary key autoincrement," + KEY_ROLE + " text not null" + ")";

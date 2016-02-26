@@ -59,7 +59,7 @@ public class SessionManager {
         mEditor.clear();
         mEditor.commit();
         Intent i = new Intent(mContext, LoginActivity.class);
-        i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        i.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         mContext.startActivity(i);
     }
