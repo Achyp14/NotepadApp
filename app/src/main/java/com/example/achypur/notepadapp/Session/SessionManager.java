@@ -64,6 +64,7 @@ public class SessionManager {
         mContext.startActivity(i);
     }
 
+
     public boolean isLoggedIn() {
         return mPref.getBoolean(IS_LOGIN, false);
     }

@@ -1,8 +1,5 @@
 package com.example.achypur.notepadapp.Entities;
 
-/**
- * Created by achypur on 17.02.2016.
- */
 public class Note{
     private Long mId;
     private String mTitle;
@@ -15,13 +12,18 @@ public class Note{
     public Note() {
     }
 
-    public Note(String mTitle, String mContent, Long mid, String mCreatedDate, String mModifiedDate, boolean mPolicyStatus) {
+    public Note(Long id, String mTitle, String mContent, Long mUserId, String mCreatedDate, String mModifiedDate, boolean mPolicyStatus) {
+        this.mId = id;
         this.mTitle = mTitle;
         this.mContent = mContent;
-        this.mUserId = mId;
+        this.mUserId = mUserId;
         this.mCreatedDate = mCreatedDate;
         this.mModifiedDate = mModifiedDate;
         this.mPolicyStatus = mPolicyStatus;
+    }
+
+    public Note(String mTitle, String mContent, Long mUserId, String mCreatedDate, String mModifiedDate, boolean mPolicyStatus) {
+       this(null, mTitle, mContent, mUserId, mCreatedDate, mModifiedDate, mPolicyStatus);
     }
 
     public Long getmId() {

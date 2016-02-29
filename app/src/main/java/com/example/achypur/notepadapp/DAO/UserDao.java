@@ -4,6 +4,7 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.util.Log;
 
 import com.example.achypur.notepadapp.Entities.User;
 import com.example.achypur.notepadapp.DBHelper.DataBaseHelper;
@@ -12,7 +13,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-public  class UserDao {
+public class UserDao {
     private SQLiteDatabase mSqLiteDatabase;
     private DataBaseHelper mDataBaseHelper;
     private String[] mColumns = {DataBaseHelper.KEY_ID,
@@ -113,5 +114,11 @@ public  class UserDao {
         } else {
             return true;
         }
+    }
+
+    public Long findUserByLogin(String login) {
+        Cursor cursor = mSqLiteDatabase.rawQuery("Select id from " + mDataBaseHelper.TABLE_USER + " where login = ?", new String[]{login});
+        cursor.moveToFirst();
+        return cursor.getLong(0);
     }
 }

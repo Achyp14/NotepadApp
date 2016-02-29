@@ -1,11 +1,13 @@
 package com.example.achypur.notepadapp.Activities;
 
 import android.content.Context;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -22,6 +24,7 @@ import android.widget.TextView;
 
 import com.example.achypur.notepadapp.DAO.NoteDao;
 import com.example.achypur.notepadapp.DAO.UserDao;
+import com.example.achypur.notepadapp.DBHelper.DataBaseHelper;
 import com.example.achypur.notepadapp.Entities.Note;
 import com.example.achypur.notepadapp.Entities.User;
 import com.example.achypur.notepadapp.R;
@@ -29,6 +32,7 @@ import com.example.achypur.notepadapp.Session.SessionManager;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -36,7 +40,6 @@ import java.util.Set;
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
 
-    List<Note> mNotes = new ArrayList<Note>();
     NoteListAdapter mAdapter;
     ListView mListView;
     SessionManager mSession;
@@ -52,6 +55,7 @@ public class MainActivity extends AppCompatActivity {
 
         mUserDao = new UserDao(this);
         mNoteDao = new NoteDao(this);
+
         try {
             mUserDao.open();
             mNoteDao.open();
@@ -64,9 +68,10 @@ public class MainActivity extends AppCompatActivity {
         }
 
         mSession = new SessionManager(this);
-
+        final HashMap<String, String> currentUser = mSession.getUserDetails();
         if (mSession.checkLogin()) {
             finish();
+            return;
         }
 
         final Button button = (Button) findViewById(R.id.edit_button);
@@ -97,14 +102,33 @@ public class MainActivity extends AppCompatActivity {
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //mNotes.add(new Note(title.getText().toString(), description.getText().toString()));
-                mAdapter.notifyDataSetChanged();
+                mNoteDao.createNote(title.getText().toString().trim(),
+                        description.getText().toString().trim(),
+                        mUserDao.findUserByLogin(currentUser.get(SessionManager.KEY_LOGIN)),
+                        null, null, null);
+                mAdapter.setList(mNoteDao.getNotesByUserId(mUserDao.findUserByLogin
+                        (currentUser.get(SessionManager.KEY_LOGIN))));
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        mAdapter.notifyDataSetChanged();
+                    }
+                });
+
             }
         });
 
         mListView = (ListView) findViewById(R.id.note_list);
         mAdapter = new NoteListAdapter(this);
-        mAdapter.setList(mNotes);
+
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                mAdapter.setList(mNoteDao.getNotesByUserId(mUserDao.findUserByLogin
+                        (currentUser.get(SessionManager.KEY_LOGIN))));
+
+            }
+        });
         mListView.setAdapter(mAdapter);
         mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -122,18 +146,15 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        LinearLayout activity_main = (LinearLayout) findViewById(R.id.activity_main);
         switch (item.getItemId()) {
             case R.id.item_delete:
-                Set<Integer> positions = mAdapter.getCheckedPositions();
+                final Set<Integer> positions = mAdapter.getCheckedPositions();
                 for (int i : positions) {
-                    mNotes.remove(i);
+                    Log.e("Achyp", "155|MainActivity::onOptionsItemSelected: " + i);
+                    mNoteDao.deleteNote(mAdapter.getItem(i));
                 }
-
-                if (positions.size() > 0) {
-                    mAdapter.clearCheckedPositions();
-                    mAdapter.notifyDataSetChanged();
-                }
+                mAdapter.clearCheckedPositions();
+                mAdapter.setList(mNoteDao.getAllNotes());
                 return true;
             case R.id.item_logout:
                 mSession.logoutUser();
@@ -156,7 +177,7 @@ public class MainActivity extends AppCompatActivity {
 
         public void setList(List<Note> list) {
             mNoteList = list;
-            notifyDataSetInvalidated();
+            notifyDataSetChanged();
         }
 
         @Override
@@ -203,7 +224,6 @@ public class MainActivity extends AppCompatActivity {
             } else {
                 viewHolderItem = (ViewHolderItem) convertView.getTag();
             }
-
             convertView.setClickable(true);
             Note note = getItem(position);
             viewHolderItem.box.setClickable(false);
@@ -214,14 +234,13 @@ public class MainActivity extends AppCompatActivity {
                     viewHolderItem.box.setChecked(!viewHolderItem.box.isChecked());
                     if (viewHolderItem.box.isChecked())
                         mCheckedPositions.add(position);
-                    else
+                    else {
                         mCheckedPositions.remove(position);
+                    }
                 }
             });
-
-//            viewHolderItem.title.setText(note.getTitle());
-//            viewHolderItem.description.setText(note.getDescription());
-
+            viewHolderItem.title.setText(note.getmTitle());
+            viewHolderItem.description.setText(note.getmContent());
             return convertView;
         }
     }
