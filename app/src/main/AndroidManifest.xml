@@ -21,10 +21,14 @@
         <activity
             android:name=".Activities.LoginActivity"
             android:label="@string/title_activity_login"
-            android:theme="@style/Theme.AppCompat.Light.NoActionBar"></activity>
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
         <activity
             android:name=".Activities.SignUpActivity"
             android:label="@string/title_activity_register"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
+        <activity
+            android:name=".Activities.NoteActivity"
+            android:label="@string/title_activity_note"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar"></activity>
     </application>
 

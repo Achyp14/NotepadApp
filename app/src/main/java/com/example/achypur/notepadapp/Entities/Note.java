@@ -1,18 +1,21 @@
 package com.example.achypur.notepadapp.Entities;
 
-public class Note{
+import java.util.Collections;
+import java.util.Comparator;
+
+public class Note {
     private Long mId;
     private String mTitle;
     private String mContent;
     private Long mUserId;
     private String mCreatedDate;
     private String mModifiedDate;
-    private boolean mPolicyStatus;
+    private Boolean mPolicyStatus;
 
     public Note() {
     }
 
-    public Note(Long id, String mTitle, String mContent, Long mUserId, String mCreatedDate, String mModifiedDate, boolean mPolicyStatus) {
+    public Note(Long id, String mTitle, String mContent, Long mUserId, String mCreatedDate, String mModifiedDate, Boolean mPolicyStatus) {
         this.mId = id;
         this.mTitle = mTitle;
         this.mContent = mContent;
@@ -22,8 +25,8 @@ public class Note{
         this.mPolicyStatus = mPolicyStatus;
     }
 
-    public Note(String mTitle, String mContent, Long mUserId, String mCreatedDate, String mModifiedDate, boolean mPolicyStatus) {
-       this(null, mTitle, mContent, mUserId, mCreatedDate, mModifiedDate, mPolicyStatus);
+    public Note(String mTitle, String mContent, Long mUserId, String mCreatedDate, String mModifiedDate, Boolean mPolicyStatus) {
+        this(null, mTitle, mContent, mUserId, mCreatedDate, mModifiedDate, mPolicyStatus);
     }
 
     public Long getmId() {
@@ -66,11 +69,11 @@ public class Note{
         this.mModifiedDate = mModifiedDate;
     }
 
-    public boolean getmPolicyStatus() {
+    public Boolean getmPolicyStatus() {
         return mPolicyStatus;
     }
 
-    public void setmPolicyId(boolean mPolicyStatus) {
+    public void setmPolicyId(Boolean mPolicyStatus) {
         this.mPolicyStatus = mPolicyStatus;
     }
 
@@ -81,4 +84,6 @@ public class Note{
     public void setmUserId(Long mUserId) {
         this.mUserId = mUserId;
     }
+
+
 }
