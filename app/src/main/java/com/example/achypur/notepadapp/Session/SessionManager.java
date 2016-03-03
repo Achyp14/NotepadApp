@@ -20,8 +20,11 @@ public class SessionManager {
     private static final String PREF_NAME = "Pref";
 
     private static final String IS_LOGIN = "IsLoggedIn";
+    private static final String IS_PASSWORD = "IsPassword";
+
 
     public static final String KEY_LOGIN = "login";
+    public static final String KEY_PASSWORD = "password";
 
     public static final String KEY_ID = "id";
 
@@ -31,9 +34,11 @@ public class SessionManager {
         mEditor = mPref.edit();
     }
 
-    public void createLoginSession(String login) {
+    public void createLoginSession(String login, String password) {
         mEditor.putBoolean(IS_LOGIN, true);
+        mEditor.putBoolean(IS_PASSWORD, true);
         mEditor.putString(KEY_LOGIN, login);
+        mEditor.putString(KEY_PASSWORD, password);
         mEditor.commit();
     }
 
@@ -51,6 +56,7 @@ public class SessionManager {
     public HashMap<String, String> getUserDetails() {
         HashMap<String, String> user = new HashMap<String, String>();
         user.put(KEY_LOGIN, mPref.getString(KEY_LOGIN, null));
+        user.put(KEY_PASSWORD,mPref.getString(KEY_PASSWORD,null));
         user.put(KEY_ID, String.valueOf(mPref.getLong(KEY_ID, 0)));
         return user;
     }
@@ -66,7 +72,10 @@ public class SessionManager {
 
 
     public boolean isLoggedIn() {
-        return mPref.getBoolean(IS_LOGIN, false);
+        if(mPref.getBoolean(IS_LOGIN,false) && mPref.getBoolean(IS_PASSWORD,false)) {
+            return mPref.getBoolean(IS_LOGIN, false);
+        } else
+            return ( mPref.getBoolean(IS_LOGIN, false));
     }
 }
 

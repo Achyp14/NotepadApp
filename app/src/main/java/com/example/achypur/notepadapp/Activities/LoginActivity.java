@@ -35,17 +35,18 @@ public class LoginActivity extends AppCompatActivity {
         mSession = new SessionManager(this);
         final List<User> userList = userDao.getAllUsers();
 
-        final EditText editText = (EditText) findViewById(R.id.login_login);
+        final EditText login = (EditText) findViewById(R.id.login_login);
+        final EditText password = (EditText) findViewById(R.id.login_password);
         Button logInButton = (Button) findViewById(R.id.login_button);
         Button signUpButton = (Button) findViewById(R.id.sign_up_button);
 
-        final Intent login = new Intent(this, MainActivity.class);
+        final Intent loginPage = new Intent(this, MainActivity.class);
         logInButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (checkLogin(editText.getText().toString().trim(), userList)) {
-                    mSession.createLoginSession(editText.getText().toString().trim());
-                    startActivity(login);
+                if (checkLogin(login.getText().toString().trim(), password.getText().toString().trim(), userList)) {
+                    mSession.createLoginSession(login.getText().toString().trim(), password.getText().toString().trim());
+                    startActivity(loginPage);
                     finish();
                 }
             }
@@ -62,9 +63,9 @@ public class LoginActivity extends AppCompatActivity {
 
     }
 
-    private boolean checkLogin(String login, List<User> userList) {
+    private boolean checkLogin(String login, String password, List<User> userList) {
         for (User someBody : userList) {
-            if (someBody.getLogin().equals(login)) {
+            if (someBody.getLogin().equals(login) && someBody.getPassword().equals(password)) {
                 return true;
             }
         }

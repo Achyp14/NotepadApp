@@ -3,6 +3,7 @@
     android:id="@+id/linearLayout1"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:background="?android:attr/activatedBackgroundIndicator"
     android:orientation="horizontal">
 
     <LinearLayout
@@ -31,12 +32,4 @@
             android:textSize="14dp">
         </TextView>
     </LinearLayout>
-    <CheckBox
-        android:id="@+id/item_check"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_vertical"
-        android:visibility="invisible"
-        android:layout_margin="8dp">
-    </CheckBox>
 </LinearLayout>

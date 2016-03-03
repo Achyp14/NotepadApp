@@ -20,10 +20,10 @@ public class NoteActivity extends AppCompatActivity {
         final EditText content = (EditText) findViewById(R.id.note_edit_content);
         final Long id;
         Button button = (Button) findViewById(R.id.note_button_submit);
+        Button cancel = (Button) findViewById(R.id.note_button_cancel);
 
         Bundle extras = getIntent().getExtras();
-
-        if(extras != null) {
+        if (extras != null) {
             title.setText(extras.getString("Title"));
             content.setText(extras.getString("Content"));
             id = extras.getLong("Id");
@@ -35,11 +35,19 @@ public class NoteActivity extends AppCompatActivity {
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Log.e("Achyp", "34|NoteActivity::onClick: "+ title.getText().toString().trim());
-                intent.putExtra("Title",title.getText().toString().trim());
+                intent.putExtra("Title", title.getText().toString().trim());
                 intent.putExtra("Content", content.getText().toString().trim());
-                intent.putExtra("Id",id);
-                setResult(RESULT_OK,intent);
+                intent.putExtra("Id", id);
+                setResult(RESULT_OK, intent);
+                finish();
+            }
+        });
+
+        final Intent mainActivity = new Intent(this, MainActivity.class);
+        cancel.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(mainActivity);
                 finish();
             }
         });

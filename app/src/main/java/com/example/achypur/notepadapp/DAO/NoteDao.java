@@ -72,15 +72,15 @@ public class NoteDao {
     }
 
     public void deleteNote(long id) {
-        mSqLiteDatabase.delete(mDataBaseHelper.TABLE_NOTE, mDataBaseHelper.KEY_ID + " = " + id + 1, null);
+        mSqLiteDatabase.delete(mDataBaseHelper.TABLE_NOTE, mDataBaseHelper.KEY_ID + " = " + id, null);
     }
 
     public void deleteNote(Note note) {
-        mSqLiteDatabase.delete(mDataBaseHelper.TABLE_NOTE, mDataBaseHelper.KEY_ID + " = " + note.getmId(), null);
+        deleteNote(note.getmId());
     }
 
     public Note getNoteById(Long id) {
-        Log.e("Achyp", "83|NoteDao::getNoteById: "+id);
+        Log.e("Achyp", "83|NoteDao::getNoteById: " + id);
         Cursor cursor = mSqLiteDatabase.rawQuery("Select * from " + mDataBaseHelper.TABLE_NOTE + " where id = ? ", new String[] {String.valueOf(id)});
         cursor.moveToFirst();
         return  cursorToNote(cursor);
