@@ -4,9 +4,8 @@
     android:id="@+id/activity_main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fitsSystemWindows="true"
     android:orientation="vertical"
-    android:background="@drawable/page"
+    android:background="@color/colorPlatinum"
     android:weightSum="2">
 
     <android.support.v7.widget.Toolbar
@@ -16,43 +15,19 @@
         android:background="?attr/colorPrimary"
         android:elevation="4dp"
         android:theme="@style/ThemeOverlay.AppCompat.ActionBar"
-        app:popupTheme="@style/ThemeOverlay.AppCompat.Light"/>
+        app:popupTheme="@style/ThemeOverlay.AppCompat.Light" />
 
     <ListView
         android:id="@+id/note_list"
-        android:layout_weight="1.25"
         android:layout_width="match_parent"
-        android:layout_height="0dip"
-        android:listSelector="@drawable/listview_effect"
-       />
-
-    <EditText
-        android:id="@+id/edit_title"
-        android:layout_weight="0.25"
-        android:layout_width="match_parent"
-        android:layout_height="0dip"
-        android:layout_marginLeft="8dp"
-        android:ems="10"/>
-
-    <EditText
-        android:id="@+id/edit_description"
-        android:layout_weight="0.25"
-        android:layout_width="match_parent"
-        android:layout_marginLeft="8dp"
-        android:layout_height="0dip"
-        android:ems="10"/>
-    <Button
-        android:id="@+id/edit_button"
-        android:layout_width="match_parent"
-        android:layout_weight="0.25"
-        android:layout_height="0dip"
-        android:layout_marginLeft="20dp"
-        android:textColor="@android:color/white"
-        android:layout_marginRight="20dp"
-        android:layout_gravity="center_horizontal"
-        android:enabled="false"
-        android:text="Submit"
-        android:background="@drawable/button_effect"
-        />
-
+        android:layout_height="match_parent"
+        android:layout_marginLeft="3dp"
+        android:layout_marginRight="3dp"
+        android:layout_marginStart="3dp"
+        android:layout_marginEnd="3dp"
+        android:layout_marginTop="3dp"
+        android:dividerHeight="3dp"
+        android:divider="@android:color/transparent"
+        android:background="@color/colorPlatinum"
+        android:listSelector="@drawable/button_selector"/>
 </LinearLayout>

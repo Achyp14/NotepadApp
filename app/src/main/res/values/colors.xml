@@ -6,4 +6,6 @@
     <color name="colorBlack">#000000</color>
     <color name="colorDarkTurquoise">#3B9C9C</color>
     <color name="colorJungleGreen">#347C2C</color>
+    <color name="colorPlatinum">#E5E4E2</color>
+    <color name="colorOceanBlue">#2B65EC</color>
 </resources>

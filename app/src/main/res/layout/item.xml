@@ -1,14 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/linearLayout1"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="?android:attr/activatedBackgroundIndicator"
-    android:orientation="horizontal">
+    android:background="@drawable/listview_effect">
+
 
     <LinearLayout
         android:id="@+id/linearLayout2"
         android:paddingLeft="20dp"
+        android:paddingBottom="25dp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="vertical">
@@ -20,16 +21,18 @@
             android:layout_marginBottom="8dp"
             android:layout_marginTop="8dp"
             android:textColor="#000000"
+            android:singleLine="true"
             android:textSize="18dp">
         </TextView>
-
-        <TextView
-            android:id="@+id/item_description"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="8dp"
-            android:textColor="#D1D0CE"
-            android:textSize="14dp">
-        </TextView>
     </LinearLayout>
-</LinearLayout>
+
+    <TextView
+        android:id="@+id/time"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:gravity="end"
+        android:layout_alignBottom="@+id/linearLayout2"
+        android:layout_marginLeft="250dp"
+        android:text="Hello">
+    </TextView>
+</RelativeLayout>

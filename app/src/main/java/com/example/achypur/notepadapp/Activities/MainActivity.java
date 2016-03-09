@@ -1,21 +1,19 @@
 package com.example.achypur.notepadapp.Activities;
 
-import android.app.ActionBar;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.ShareActionProvider;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.text.format.Time;
 import android.util.Log;
-import android.support.v7.view.ActionMode;
 import android.util.SparseBooleanArray;
-import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
@@ -23,7 +21,6 @@ import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.Button;
-import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -34,14 +31,17 @@ import com.example.achypur.notepadapp.Entities.Note;
 import com.example.achypur.notepadapp.R;
 import com.example.achypur.notepadapp.Session.SessionManager;
 
+
 import java.sql.SQLException;
-import java.util.ArrayList;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.HashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
+import java.util.TimeZone;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -80,49 +80,10 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
-        final Button button = (Button) findViewById(R.id.edit_button);
-        final EditText title = (EditText) findViewById(R.id.edit_title);
-        final EditText description = (EditText) findViewById(R.id.edit_description);
-
-        TextWatcher watcher = new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-            }
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-                if (title.getText().toString().trim().equals("") ||
-                        description.getText().toString().trim().equals("")) {
-                    button.setEnabled(false);
-                } else {
-                    button.setEnabled(true);
-                }
-            }
-
-            @Override
-            public void afterTextChanged(Editable s) {
-            }
-        };
-        title.addTextChangedListener(watcher);
-        description.addTextChangedListener(watcher);
-        button.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                mNoteDao.createNote(title.getText().toString().trim(),
-                        description.getText().toString().trim(),
-                        mUserDao.findUserByLogin(mCurrentUser.get(SessionManager.KEY_LOGIN)),
-                        null, null, null);
-                mAdapter.setList(mNoteDao.getNotesByUserId(mUserDao.findUserByLogin
-                        (mCurrentUser.get(SessionManager.KEY_LOGIN))));
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        mAdapter.notifyDataSetChanged();
-                    }
-                });
-
-            }
-        });
+        Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("GMT + 2:00"));
+        final Date currentLocalTime = calendar.getTime();
+        final DateFormat dateFormat = new SimpleDateFormat("dd/MM/yy");
+        dateFormat.setTimeZone(TimeZone.getTimeZone("GMT + 2:00"));
 
         mListView = (ListView) findViewById(R.id.note_list);
         mAdapter = new NoteListAdapter(this);
@@ -140,11 +101,7 @@ public class MainActivity extends AppCompatActivity {
         mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                TextView title = (TextView) view.findViewById(R.id.item_title);
-                TextView description = (TextView) view.findViewById(R.id.item_description);
                 Note note = mAdapter.getItem(position);
-                intent.putExtra("Title", note.getmTitle());
-                intent.putExtra("Content", note.getmContent());
                 intent.putExtra("Id", note.getmId());
                 startActivityForResult(intent, 1);
             }
@@ -163,6 +120,9 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onItemCheckedStateChanged(android.view.ActionMode mode, int position, long id, boolean checked) {
                 mode.setTitle(mListView.getCheckedItemCount() + " selected");
+                if (mListView.getCheckedItemCount() > 1) {
+
+                }
             }
 
             @Override
@@ -180,7 +140,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public boolean onActionItemClicked(android.view.ActionMode mode, MenuItem item) {
                 switch (item.getItemId()) {
-                    case R.id.item_delete:
+                    case R.id.menu_item_delete:
                         SparseBooleanArray checked = mListView.getCheckedItemPositions();
                         long[] ids = mListView.getCheckedItemIds();
                         Log.e("Achyp", "185|MainActivity::onActionItemClicked: " + ids.length);
@@ -195,6 +155,7 @@ public class MainActivity extends AppCompatActivity {
                                 (mCurrentUser.get(SessionManager.KEY_LOGIN))));
                         mode.finish();
                         return true;
+                    case R.id.menu_item_share:
                 }
                 return false;
             }
@@ -203,7 +164,6 @@ public class MainActivity extends AppCompatActivity {
             public void onDestroyActionMode(android.view.ActionMode mode) {
             }
         });
-
     }
 
     @Override
@@ -215,6 +175,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         List<Note> noteList;
+        Intent intent = new Intent(this, NoteActivity.class);
         switch (item.getItemId()) {
             case (R.id.item_order_by_title):
                 noteList = mNoteDao.getNotesByUserId(mUserDao.findUserByLogin
@@ -226,23 +187,14 @@ public class MainActivity extends AppCompatActivity {
                     }
                 });
                 mAdapter.setList(noteList);
-                mAdapter.notifyDataSetChanged();
                 return true;
-            case R.id.item_order_by_content:
-                noteList = mNoteDao.getNotesByUserId(mUserDao.findUserByLogin
-                        (mCurrentUser.get(SessionManager.KEY_LOGIN)));
-                Collections.sort(noteList, new Comparator<Note>() {
-                    @Override
-                    public int compare(Note note1, Note note2) {
-                        return note1.getmContent().compareTo(note2.getmContent());
-                    }
-                });
-                mAdapter.setList(noteList);
-                mAdapter.notifyDataSetChanged();
+            case R.id.item_add_note:
+                startActivityForResult(intent, 1);
                 return true;
             case R.id.item_logout:
                 mSession.logoutUser();
                 finish();
+                return true;
             default:
                 super.onOptionsItemSelected(item);
         }
@@ -253,14 +205,31 @@ public class MainActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == 1) {
             if (resultCode == RESULT_OK) {
-                if (data.getExtras().containsKey("Title") && data.getExtras().containsKey("Content") && data.getExtras().containsKey("Id")) {
-                    Note note = mNoteDao.getNoteById(data.getLongExtra("Id", 1L));
-                    note.setmTitle(data.getStringExtra("Title"));
-                    note.setmContent(data.getStringExtra("Content"));
-                    mNoteDao.updateNote(note);
-                    mAdapter.setList(mNoteDao.getNotesByUserId(mUserDao.findUserByLogin
-                            (mCurrentUser.get(SessionManager.KEY_LOGIN))));
-                    mAdapter.notifyDataSetChanged();
+                if (data.getExtras().containsKey("Title") && data.getExtras().containsKey("Content")
+                        && data.getExtras().containsKey("Id")
+                        && data.getExtras().containsKey("modifiedDate")) {
+                    if ((data.getLongExtra("Id", 1L) != Long.valueOf(0))) {
+                        Note note = mNoteDao.getNoteById(data.getLongExtra("Id", 1L));
+                        note.setmTitle(data.getStringExtra("Title"));
+                        note.setmContent(data.getStringExtra("Content"));
+                        note.setmModifiedDate(data.getStringExtra("modifiedDate"));
+                        mNoteDao.updateNote(note);
+                    } else {
+                        mNoteDao.createNote(data.getStringExtra("Title"),
+                                data.getStringExtra("Content"),
+                                mUserDao.findUserByLogin
+                                        (mCurrentUser.get(SessionManager.KEY_LOGIN)),
+                                data.getStringExtra("modifiedDate"),
+                                data.getStringExtra("modifiedDate"), null);
+                    }
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            mAdapter.setList(mNoteDao.getNotesByUserId(mUserDao.findUserByLogin
+                                    (mCurrentUser.get(SessionManager.KEY_LOGIN))));
+                        }
+                    });
+
                 }
             }
         }
@@ -269,8 +238,6 @@ public class MainActivity extends AppCompatActivity {
     static class NoteListAdapter extends BaseAdapter {
         List<Note> mNoteList;
         LayoutInflater mInflater;
-        HashMap<Integer, Boolean> mSelection = new HashMap<Integer, Boolean>();
-        List<Long> listId = new ArrayList<Long>();
 
         @Override
         public boolean hasStableIds() {
@@ -280,28 +247,6 @@ public class MainActivity extends AppCompatActivity {
         public NoteListAdapter(Context context) {
             mInflater = LayoutInflater.from(context);
         }
-
-        public void setNewSelection(int position, boolean value) {
-            mSelection.put(position, value);
-            notifyDataSetChanged();
-        }
-
-        public boolean isPositionChecked(int position) {
-            Boolean result = mSelection.get(position);
-            return result == null ? false : result;
-        }
-
-        public void removeSelection(int position) {
-            mSelection.remove(position);
-            notifyDataSetChanged();
-        }
-
-        public void clearSelection() {
-            mSelection = new HashMap<Integer, Boolean>();
-            listId.clear();
-            notifyDataSetChanged();
-        }
-
 
         public void setList(List<Note> list) {
             mNoteList = list;
@@ -326,7 +271,7 @@ public class MainActivity extends AppCompatActivity {
 
         class ViewHolderItem {
             TextView title;
-            TextView description;
+            TextView time;
         }
 
         @Override
@@ -336,14 +281,14 @@ public class MainActivity extends AppCompatActivity {
                 convertView = mInflater.inflate(R.layout.item, parent, false);
                 viewHolderItem = new ViewHolderItem();
                 viewHolderItem.title = (TextView) convertView.findViewById(R.id.item_title);
-                viewHolderItem.description = (TextView) convertView.findViewById(R.id.item_description);
+                viewHolderItem.time = (TextView) convertView.findViewById(R.id.time);
                 convertView.setTag(viewHolderItem);
             } else {
                 viewHolderItem = (ViewHolderItem) convertView.getTag();
             }
             Note note = getItem(position);
             viewHolderItem.title.setText(note.getmTitle());
-            viewHolderItem.description.setText(note.getmContent());
+            viewHolderItem.time.setText(note.getmModifiedDate());
             return convertView;
         }
     }
