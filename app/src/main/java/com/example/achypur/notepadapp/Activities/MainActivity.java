@@ -21,6 +21,7 @@ import android.widget.TextView;
 import com.example.achypur.notepadapp.DAO.NoteDao;
 import com.example.achypur.notepadapp.DAO.UserDao;
 import com.example.achypur.notepadapp.Entities.Note;
+import com.example.achypur.notepadapp.Entities.User;
 import com.example.achypur.notepadapp.R;
 import com.example.achypur.notepadapp.Session.SessionManager;
 
@@ -85,7 +86,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void run() {
                 mAdapter.setList(mNoteDao.getNotesByUserId(mUserDao.findUserByLogin
-                        (mCurrentUser.get(SessionManager.KEY_LOGIN))));
+                        (mCurrentUser.get(SessionManager.KEY_LOGIN)),1));
             }
         });
         mListView.setAdapter(mAdapter);
@@ -144,7 +145,7 @@ public class MainActivity extends AppCompatActivity {
                         }
                         mListView.clearChoices();
                         mAdapter.setList(mNoteDao.getNotesByUserId(mUserDao.findUserByLogin
-                                (mCurrentUser.get(SessionManager.KEY_LOGIN))));
+                                (mCurrentUser.get(SessionManager.KEY_LOGIN)),1));
                         mode.finish();
                         return true;
                     case R.id.menu_item_share:
@@ -170,7 +171,7 @@ public class MainActivity extends AppCompatActivity {
         switch (item.getItemId()) {
             case (R.id.item_order_by_title):
                 noteList = mNoteDao.getNotesByUserId(mUserDao.findUserByLogin
-                        (mCurrentUser.get(SessionManager.KEY_LOGIN)));
+                        (mCurrentUser.get(SessionManager.KEY_LOGIN)),1);
                 Collections.sort(noteList, new Comparator<Note>() {
                     @Override
                     public int compare(Note note1, Note note2) {
@@ -201,7 +202,7 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void run() {
                         mAdapter.setList(mNoteDao.getNotesByUserId(mUserDao.findUserByLogin
-                                (mCurrentUser.get(SessionManager.KEY_LOGIN))));
+                                (mCurrentUser.get(SessionManager.KEY_LOGIN)),1));
                     }
                 });
 
@@ -209,7 +210,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    static class NoteListAdapter extends BaseAdapter {
+      class NoteListAdapter extends BaseAdapter {
         List<Note> mNoteList;
         LayoutInflater mInflater;
 
@@ -246,6 +247,7 @@ public class MainActivity extends AppCompatActivity {
         class ViewHolderItem {
             TextView title;
             TextView time;
+            TextView sharedBy;
         }
 
         @Override
@@ -256,15 +258,26 @@ public class MainActivity extends AppCompatActivity {
                 viewHolderItem = new ViewHolderItem();
                 viewHolderItem.title = (TextView) convertView.findViewById(R.id.item_title);
                 viewHolderItem.time = (TextView) convertView.findViewById(R.id.time);
+                viewHolderItem.sharedBy = (TextView) convertView.findViewById(R.id.item_shared_by);
                 convertView.setTag(viewHolderItem);
             } else {
                 viewHolderItem = (ViewHolderItem) convertView.getTag();
             }
             Note note = getItem(position);
+            User user = mUserDao.findUserById(mUserDao.findUserByLogin
+                    (mCurrentUser.get(SessionManager.KEY_LOGIN)));
+
+
+            if(note.getmUserId() != user.getId()) {
+                viewHolderItem.sharedBy.setVisibility(View.VISIBLE);
+                viewHolderItem.sharedBy.setText("Shared by " +
+                        mUserDao.findUserById(note.getmUserId()).getName());
+            }
             viewHolderItem.title.setText(note.getmTitle());
             viewHolderItem.time.setText(note.getmModifiedDate());
             return convertView;
         }
     }
+
 }
 

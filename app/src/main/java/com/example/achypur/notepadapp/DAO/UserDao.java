@@ -121,4 +121,11 @@ public class UserDao {
         cursor.moveToFirst();
         return cursor.getLong(0);
     }
+
+    public User findUserById(Long id) {
+        Cursor cursor = mSqLiteDatabase.rawQuery("Select * from " + mDataBaseHelper.TABLE_USER + " where id = ?", new String[]{String.valueOf(id)});
+        cursor.moveToFirst();
+        User user = cursorToUser(cursor);
+        return user;
+    }
 }

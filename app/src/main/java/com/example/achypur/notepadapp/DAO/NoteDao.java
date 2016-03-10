@@ -93,11 +93,11 @@ public class NoteDao {
         return addNoteToList(cursor);
     }
 
-
-    public List<Note> getNotesByUserId(Long id) {
-        Cursor cursor = mSqLiteDatabase.rawQuery("Select * from " + mDataBaseHelper.TABLE_NOTE + " where user_id = ?", new String[]{id.toString()});
+    public List<Note> getNotesByUserId(Long id, int status) {
+        Cursor cursor = mSqLiteDatabase.rawQuery("Select * from " + mDataBaseHelper.TABLE_NOTE + " where user_id = ? or policy = ? ", new String[]{id.toString(),String.valueOf(status)});
         return addNoteToList(cursor);
     }
+
 
     public List<Note> addNoteToList(Cursor cursor) {
         List<Note> noteList = new ArrayList<Note>();
