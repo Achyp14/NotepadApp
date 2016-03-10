@@ -3,13 +3,8 @@ package com.example.achypur.notepadapp.Activities;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.ShareActionProvider;
 import android.support.v7.widget.Toolbar;
-import android.text.Editable;
-import android.text.TextWatcher;
-import android.text.format.Time;
 import android.util.Log;
 import android.util.SparseBooleanArray;
 import android.view.LayoutInflater;
@@ -20,8 +15,6 @@ import android.view.ViewGroup;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.BaseAdapter;
-import android.widget.Button;
-import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -95,14 +88,13 @@ public class MainActivity extends AppCompatActivity {
                         (mCurrentUser.get(SessionManager.KEY_LOGIN))));
             }
         });
-        final Intent intent = new Intent(this, NoteActivity.class);
         mListView.setAdapter(mAdapter);
 
         mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Note note = mAdapter.getItem(position);
-                intent.putExtra("Id", note.getmId());
+                Intent intent = NoteActivity.createIntentForEditNote(MainActivity.this, note.getmId());
                 startActivityForResult(intent, 1);
             }
         });
@@ -175,7 +167,6 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         List<Note> noteList;
-        Intent intent = new Intent(this, NoteActivity.class);
         switch (item.getItemId()) {
             case (R.id.item_order_by_title):
                 noteList = mNoteDao.getNotesByUserId(mUserDao.findUserByLogin
@@ -189,6 +180,7 @@ public class MainActivity extends AppCompatActivity {
                 mAdapter.setList(noteList);
                 return true;
             case R.id.item_add_note:
+                Intent intent = NoteActivity.createIntentForAddNote(this);
                 startActivityForResult(intent, 1);
                 return true;
             case R.id.item_logout:
@@ -205,32 +197,14 @@ public class MainActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == 1) {
             if (resultCode == RESULT_OK) {
-                if (data.getExtras().containsKey("Title") && data.getExtras().containsKey("Content")
-                        && data.getExtras().containsKey("Id")
-                        && data.getExtras().containsKey("modifiedDate")) {
-                    if ((data.getLongExtra("Id", 1L) != Long.valueOf(0))) {
-                        Note note = mNoteDao.getNoteById(data.getLongExtra("Id", 1L));
-                        note.setmTitle(data.getStringExtra("Title"));
-                        note.setmContent(data.getStringExtra("Content"));
-                        note.setmModifiedDate(data.getStringExtra("modifiedDate"));
-                        mNoteDao.updateNote(note);
-                    } else {
-                        mNoteDao.createNote(data.getStringExtra("Title"),
-                                data.getStringExtra("Content"),
-                                mUserDao.findUserByLogin
-                                        (mCurrentUser.get(SessionManager.KEY_LOGIN)),
-                                data.getStringExtra("modifiedDate"),
-                                data.getStringExtra("modifiedDate"), null);
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        mAdapter.setList(mNoteDao.getNotesByUserId(mUserDao.findUserByLogin
+                                (mCurrentUser.get(SessionManager.KEY_LOGIN))));
                     }
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            mAdapter.setList(mNoteDao.getNotesByUserId(mUserDao.findUserByLogin
-                                    (mCurrentUser.get(SessionManager.KEY_LOGIN))));
-                        }
-                    });
+                });
 
-                }
             }
         }
     }
@@ -293,3 +267,4 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 }
+

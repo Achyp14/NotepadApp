@@ -62,7 +62,7 @@ public class NoteDao {
                 cursor.getLong(3),
                 cursor.getString(4),
                 cursor.getString(5),
-                cursor.getInt(6) == 0
+                cursor.getInt(6) > 0
         );
     }
 
@@ -80,9 +80,12 @@ public class NoteDao {
     }
 
     public Note getNoteById(Long id) {
-        Cursor cursor = mSqLiteDatabase.rawQuery("Select * from " + mDataBaseHelper.TABLE_NOTE + " where id = ? ", new String[] {String.valueOf(id)});
+        if (id < 0)
+            return null;
+
+        Cursor cursor = mSqLiteDatabase.rawQuery("Select * from " + mDataBaseHelper.TABLE_NOTE + " where id = ? ", new String[]{String.valueOf(id)});
         cursor.moveToFirst();
-        return  cursorToNote(cursor);
+        return cursorToNote(cursor);
     }
 
     public List<Note> getAllNotes() {
