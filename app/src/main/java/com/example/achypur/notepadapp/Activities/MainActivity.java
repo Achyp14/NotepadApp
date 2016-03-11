@@ -5,7 +5,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.util.SparseBooleanArray;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -18,8 +17,10 @@ import android.widget.BaseAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.example.achypur.notepadapp.DAO.CoordinateDao;
 import com.example.achypur.notepadapp.DAO.NoteDao;
 import com.example.achypur.notepadapp.DAO.UserDao;
+import com.example.achypur.notepadapp.Entities.Coordinate;
 import com.example.achypur.notepadapp.Entities.Note;
 import com.example.achypur.notepadapp.Entities.User;
 import com.example.achypur.notepadapp.R;
@@ -44,6 +45,7 @@ public class MainActivity extends AppCompatActivity {
     SessionManager mSession;
     UserDao mUserDao;
     NoteDao mNoteDao;
+    CoordinateDao mCoordinateDao;
     HashMap<String, String> mCurrentUser;
 
     @Override
@@ -55,13 +57,16 @@ public class MainActivity extends AppCompatActivity {
 
         mUserDao = new UserDao(this);
         mNoteDao = new NoteDao(this);
+        mCoordinateDao = new CoordinateDao(this);
 
         try {
             mUserDao.open();
             mNoteDao.open();
+            mCoordinateDao.open();
         } catch (SQLException ex) {
             ex.printStackTrace();
         }
+
 
         if (mUserDao.isEmpty()) {
             mUserDao.createUser("admin", "Andrii", "achyp14@gmail.com", "admin", null, null);
@@ -86,7 +91,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void run() {
                 mAdapter.setList(mNoteDao.getNotesByUserId(mUserDao.findUserByLogin
-                        (mCurrentUser.get(SessionManager.KEY_LOGIN)),1));
+                        (mCurrentUser.get(SessionManager.KEY_LOGIN)), 1));
             }
         });
         mListView.setAdapter(mAdapter);
@@ -136,16 +141,14 @@ public class MainActivity extends AppCompatActivity {
                     case R.id.menu_item_delete:
                         SparseBooleanArray checked = mListView.getCheckedItemPositions();
                         long[] ids = mListView.getCheckedItemIds();
-                        Log.e("Achyp", "185|MainActivity::onActionItemClicked: " + ids.length);
                         if (checked == null)
                             return false;
-
                         for (long id : ids) {
                             mNoteDao.deleteNote(id);
                         }
                         mListView.clearChoices();
                         mAdapter.setList(mNoteDao.getNotesByUserId(mUserDao.findUserByLogin
-                                (mCurrentUser.get(SessionManager.KEY_LOGIN)),1));
+                                (mCurrentUser.get(SessionManager.KEY_LOGIN)), 1));
                         mode.finish();
                         return true;
                     case R.id.menu_item_share:
@@ -157,6 +160,7 @@ public class MainActivity extends AppCompatActivity {
             public void onDestroyActionMode(android.view.ActionMode mode) {
             }
         });
+
     }
 
     @Override
@@ -171,7 +175,7 @@ public class MainActivity extends AppCompatActivity {
         switch (item.getItemId()) {
             case (R.id.item_order_by_title):
                 noteList = mNoteDao.getNotesByUserId(mUserDao.findUserByLogin
-                        (mCurrentUser.get(SessionManager.KEY_LOGIN)),1);
+                        (mCurrentUser.get(SessionManager.KEY_LOGIN)), 1);
                 Collections.sort(noteList, new Comparator<Note>() {
                     @Override
                     public int compare(Note note1, Note note2) {
@@ -202,7 +206,7 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void run() {
                         mAdapter.setList(mNoteDao.getNotesByUserId(mUserDao.findUserByLogin
-                                (mCurrentUser.get(SessionManager.KEY_LOGIN)),1));
+                                (mCurrentUser.get(SessionManager.KEY_LOGIN)), 1));
                     }
                 });
 
@@ -210,7 +214,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-      class NoteListAdapter extends BaseAdapter {
+    class NoteListAdapter extends BaseAdapter {
         List<Note> mNoteList;
         LayoutInflater mInflater;
 
@@ -248,30 +252,39 @@ public class MainActivity extends AppCompatActivity {
             TextView title;
             TextView time;
             TextView sharedBy;
+            View line;
+            TextView location;
         }
 
         @Override
         public View getView(final int position, View convertView, ViewGroup parent) {
             final ViewHolderItem viewHolderItem;
-            if (convertView == null) {
+            Note note = getItem(position);
+            User user = mUserDao.findUserById(mUserDao.findUserByLogin
+                    (mCurrentUser.get(SessionManager.KEY_LOGIN)));
+
+            if (convertView == null || note.getmUserId() != user.getId()) {
                 convertView = mInflater.inflate(R.layout.item, parent, false);
                 viewHolderItem = new ViewHolderItem();
                 viewHolderItem.title = (TextView) convertView.findViewById(R.id.item_title);
                 viewHolderItem.time = (TextView) convertView.findViewById(R.id.time);
                 viewHolderItem.sharedBy = (TextView) convertView.findViewById(R.id.item_shared_by);
+                viewHolderItem.line = (View) convertView.findViewById(R.id.item_line);
+                viewHolderItem.location = (TextView) convertView.findViewById(R.id.item_location);
                 convertView.setTag(viewHolderItem);
             } else {
                 viewHolderItem = (ViewHolderItem) convertView.getTag();
             }
-            Note note = getItem(position);
-            User user = mUserDao.findUserById(mUserDao.findUserByLogin
-                    (mCurrentUser.get(SessionManager.KEY_LOGIN)));
 
-
-            if(note.getmUserId() != user.getId()) {
+            if (note.getmUserId() != user.getId()) {
                 viewHolderItem.sharedBy.setVisibility(View.VISIBLE);
                 viewHolderItem.sharedBy.setText("Shared by " +
                         mUserDao.findUserById(note.getmUserId()).getName());
+            }
+
+            if(note.getmLocation() != null) {
+                viewHolderItem.line.setVisibility(View.VISIBLE);
+                viewHolderItem.location.setVisibility(View.VISIBLE);
             }
             viewHolderItem.title.setText(note.getmTitle());
             viewHolderItem.time.setText(note.getmModifiedDate());

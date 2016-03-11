@@ -1,8 +1,5 @@
 package com.example.achypur.notepadapp.Entities;
 
-import java.util.Collections;
-import java.util.Comparator;
-
 public class Note {
     private Long mId;
     private String mTitle;
@@ -11,11 +8,12 @@ public class Note {
     private String mCreatedDate;
     private String mModifiedDate;
     private Boolean mPolicyStatus;
+    private Long mLocation;
 
     public Note() {
     }
 
-    public Note(Long id, String mTitle, String mContent, Long mUserId, String mCreatedDate, String mModifiedDate, Boolean mPolicyStatus) {
+    public Note(Long id, String mTitle, String mContent, Long mUserId, String mCreatedDate, String mModifiedDate, Boolean mPolicyStatus, Long mLocation) {
         this.mId = id;
         this.mTitle = mTitle;
         this.mContent = mContent;
@@ -23,14 +21,23 @@ public class Note {
         this.mCreatedDate = mCreatedDate;
         this.mModifiedDate = mModifiedDate;
         this.mPolicyStatus = mPolicyStatus;
+        this.mLocation = mLocation;
     }
 
-    public Note(String mTitle, String mContent, Long mUserId, String mCreatedDate, String mModifiedDate, Boolean mPolicyStatus) {
-        this(null, mTitle, mContent, mUserId, mCreatedDate, mModifiedDate, mPolicyStatus);
+    public Note(String mTitle, String mContent, Long mUserId, String mCreatedDate, String mModifiedDate, Boolean mPolicyStatus, Long mLocation) {
+        this(null, mTitle, mContent, mUserId, mCreatedDate, mModifiedDate, mPolicyStatus, mLocation);
     }
 
     public Long getmId() {
         return mId;
+    }
+
+    public Long getmLocation() {
+        return mLocation;
+    }
+
+    public void setmLocation(Long mLocation) {
+        this.mLocation = mLocation;
     }
 
     public void setmId(Long mId) {

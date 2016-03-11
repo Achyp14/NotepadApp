@@ -34,11 +34,7 @@ public class TafOfNotesDao {
 
         Long id = mSqLiteDatabase.insert(DataBaseHelper.TABLE_TAG_NOTES, null, contentValues);
 
-        mSqLiteDatabase.query(DataBaseHelper.CREATE_TAF_OF_NOTES, mColumns,
+        mSqLiteDatabase.query(DataBaseHelper.CREATE_TAG_OF_NOTES, mColumns,
                 DataBaseHelper.KEY_ID + " = " + id, null, null, null, null, null);
     }
-
-
-
-
 }

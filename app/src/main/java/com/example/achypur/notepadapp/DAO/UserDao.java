@@ -117,9 +117,10 @@ public class UserDao {
     }
 
     public Long findUserByLogin(String login) {
-        Cursor cursor = mSqLiteDatabase.rawQuery("Select id from " + mDataBaseHelper.TABLE_USER + " where login = ?", new String[]{login});
+        Cursor cursor = mSqLiteDatabase.rawQuery("Select * from " + mDataBaseHelper.TABLE_USER + " where login = ?", new String[]{login});
         cursor.moveToFirst();
         return cursor.getLong(0);
+
     }
 
     public User findUserById(Long id) {

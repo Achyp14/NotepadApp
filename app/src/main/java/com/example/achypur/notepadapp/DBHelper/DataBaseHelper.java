@@ -7,7 +7,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 public class DataBaseHelper extends SQLiteOpenHelper {
 
     private static final String LOG = "DataBaseHelper";
-    private static final int DATABASE_VERSION = 2;
+    private static final int DATABASE_VERSION = 3;
     private static final String DATABASE_NAME = "notepad.db";
 
     /*
@@ -56,6 +56,15 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     public static final String KEY_NOTE_ID = "note_id";
     public static final String KEY_TAG_ID = "tag_id";
     public static final String KEY_USER_ID = "user_id";
+    public static  final  String KEY_LOCAION = "coordinates_id";
+
+    /*
+        Coordinate - column names
+     */
+
+    public static final String TABLE_COORDINATES = "coordinates";
+    public static final String KEY_LATITUDE = "latitude";
+    public static final String KEY_LONGTITUDE = "longtitude";
 
 
     private static final String CREATE_TABLE_USER = "create table "
@@ -68,7 +77,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             KEY_ID + " integer primary key autoincrement," + KEY_TITLE + " text not null," +
             KEY_CONTENT + " text not null," + KEY_USER + " integer not null," +
             KEY_CREATED_DATE + " datetime," + KEY_MODIFIED_DATE + " datetime," +
-            KEY_POLICY_STATUS + " integer" + ")";
+            KEY_POLICY_STATUS + " integer," + KEY_LOCAION + " integer" + ")";
 
     private static final String CREATE_TABLE_ROLE = "create table " + TABLE_ROLE + "(" +
             KEY_ID + " integer primary key autoincrement," + KEY_ROLE + " text not null" + ")";
@@ -76,11 +85,14 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     private static final String CREATE_TABLE_TAG = "create table " + TABLE_TAG + "(" +
             KEY_ID + " integer primary key autoincrement," + KEY_TAG + " text not null" + ")";
 
-    public static final String CREATE_TAF_OF_NOTES = "create table " + TABLE_TAG_NOTES +
+    public static final String CREATE_TAG_OF_NOTES = "create table " + TABLE_TAG_NOTES +
             "(" + KEY_ID + " integer primary key autoincrement," + KEY_NOTE_ID +
             " integer not null," + KEY_TAG_ID + " integer not null," +
             KEY_USER_ID + " integer not null" + ")";
 
+    public  static  final  String CREATE_TABLE_COORDINATES = "create table " +
+            TABLE_COORDINATES + "(" + KEY_ID + " integer primary key autoincrement," + KEY_LATITUDE +
+            " real not null," + KEY_LONGTITUDE + " real not null" + ")";
 
     public DataBaseHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -92,7 +104,8 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         db.execSQL(CREATE_TABLE_NOTE);
         db.execSQL(CREATE_TABLE_ROLE);
         db.execSQL(CREATE_TABLE_TAG);
-        db.execSQL(CREATE_TAF_OF_NOTES);
+        db.execSQL(CREATE_TAG_OF_NOTES);
+        db.execSQL(CREATE_TABLE_COORDINATES);
     }
 
     @Override
@@ -102,6 +115,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_ROLE);
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_TAG);
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_TAG_NOTES);
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_COORDINATES);
         onCreate(db);
     }
 }

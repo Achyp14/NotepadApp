@@ -1,10 +1,19 @@
 package com.example.achypur.notepadapp.Activities;
 
+import android.Manifest;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.location.Criteria;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
+import android.os.Build;
 import android.os.Bundle;
+import android.provider.Settings;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
@@ -16,9 +25,12 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.example.achypur.notepadapp.DAO.CoordinateDao;
 import com.example.achypur.notepadapp.DAO.NoteDao;
 import com.example.achypur.notepadapp.DAO.UserDao;
+import com.example.achypur.notepadapp.Entities.Coordinate;
 import com.example.achypur.notepadapp.Entities.Note;
 import com.example.achypur.notepadapp.R;
 import com.example.achypur.notepadapp.Session.SessionManager;
@@ -36,9 +48,13 @@ public class NoteActivity extends AppCompatActivity {
 
     NoteDao mNoteDao;
     UserDao mUserDao;
+    CoordinateDao mCoordinateDao;
     Note mNote = null;
     HashMap<String, String> mCurrentUser;
     SessionManager mSession;
+    private LocationManager mLocationManager;
+    private boolean gps_enabled = false;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,12 +66,14 @@ public class NoteActivity extends AppCompatActivity {
 
         mNoteDao = new NoteDao(this);
         mUserDao = new UserDao(this);
+        mCoordinateDao = new CoordinateDao(this);
         mSession = new SessionManager(this);
         mCurrentUser = mSession.getUserDetails();
 
         try {
             mNoteDao.open();
             mUserDao.open();
+            mCoordinateDao.open();
         } catch (SQLException ex) {
             ex.printStackTrace();
         }
@@ -72,7 +90,6 @@ public class NoteActivity extends AppCompatActivity {
         dateFormat.setTimeZone(TimeZone.getTimeZone("GMT + 2:00"));
         time.setText(dateFormat.format(currentLocalTime));
         save.setEnabled(false);
-
 
         TextWatcher watcher = new TextWatcher() {
             @Override
@@ -103,7 +120,6 @@ public class NoteActivity extends AppCompatActivity {
             content.setText(mNote.getmContent());
         }
 
-
         final Intent intent = new Intent();
 
         save.setOnClickListener(new View.OnClickListener() {
@@ -121,7 +137,7 @@ public class NoteActivity extends AppCompatActivity {
                             content.getText().toString().trim(), mUserDao.findUserByLogin
                                     (mCurrentUser.get(SessionManager.KEY_LOGIN)),
                             dateFormat.format(currentLocalTime),
-                            dateFormat.format(currentLocalTime), false);
+                            dateFormat.format(currentLocalTime), false, null);
                     setResult(RESULT_OK, intent);
                     finish();
                 }
@@ -136,13 +152,13 @@ public class NoteActivity extends AppCompatActivity {
                 finish();
             }
         });
-
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.note_menu, menu);
         if (isEditMode()) {
+            menu.findItem(R.id.note_menu_location).setVisible(true);
             menu.findItem(R.id.note_menu_check_shared).setVisible(true).
                     setChecked(mNote.getmPolicyStatus());
         }
@@ -176,10 +192,47 @@ public class NoteActivity extends AppCompatActivity {
                     mNote.setmPolicyId(false);
                     item.setChecked(false);
                 }
+            case R.id.note_menu_location:
+                // Check Android permissions
+                if (Build.VERSION.SDK_INT >= 23 &&
+                        ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION)
+                                != PackageManager.PERMISSION_GRANTED) {
+                    Toast.makeText(this, "Location permissions required", Toast.LENGTH_SHORT).show();
+                }
+                mLocationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
+                Criteria criteria = new Criteria();
+                String provider = mLocationManager.getBestProvider(criteria, false);
+                Location location = null;
+                if (location == null) {
+                    mLocationManager.requestLocationUpdates(provider, 400, 1, new LocationListener() {
+                        @Override
+                        public void onLocationChanged(Location location) {
+                            mNote.setmLocation(mCoordinateDao.createCoordinate(location.getLatitude(),
+                                    location.getLongitude()));
+                            Log.e("Achyp", "212|NoteActivity::onLocationChanged: " + "success");
+                        }
+
+                        @Override
+                        public void onStatusChanged(String provider, int status, Bundle extras) {
+                        }
+
+                        @Override
+                        public void onProviderEnabled(String provider) {
+                        }
+
+                        @Override
+                        public void onProviderDisabled(String provider) {
+                        }
+                    });
+                }
+
+                if (mLocationManager != null) {
+                    location = mLocationManager.getLastKnownLocation(provider);
+                }
+
         }
         return super.onOptionsItemSelected(item);
     }
-
 
     private boolean isEditMode() {
         return mNote != null;

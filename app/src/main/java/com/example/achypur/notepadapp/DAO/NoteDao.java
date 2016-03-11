@@ -40,13 +40,14 @@ public class NoteDao {
         contentValues.put(mDataBaseHelper.KEY_CREATED_DATE, note.getmCreatedDate());
         contentValues.put(mDataBaseHelper.KEY_MODIFIED_DATE, note.getmModifiedDate());
         contentValues.put(mDataBaseHelper.KEY_POLICY_STATUS, note.getmPolicyStatus());
+        contentValues.put(mDataBaseHelper.KEY_LOCAION, note.getmLocation());
 
         return contentValues;
     }
 
     public Note createNote(String title, String content, Long userId, String createdDate, String modifiedDate,
-                           Boolean policyId) {
-        Note note = new Note(title, content, userId, createdDate, modifiedDate, policyId);
+                           Boolean policyId, Long location) {
+        Note note = new Note(title, content, userId, createdDate, modifiedDate, policyId, location);
         Long id = mSqLiteDatabase.insert(DataBaseHelper.TABLE_NOTE, null, getNoteContentValues(note));
 
         note.setmId(id);
@@ -62,12 +63,13 @@ public class NoteDao {
                 cursor.getLong(3),
                 cursor.getString(4),
                 cursor.getString(5),
-                cursor.getInt(6) > 0
+                cursor.getInt(6) > 0,
+                cursor.getLong(7)
         );
     }
 
     public void updateNote(Note note) {
-        long id = mSqLiteDatabase.update(mDataBaseHelper.TABLE_NOTE, getNoteContentValues(note),
+        mSqLiteDatabase.update(mDataBaseHelper.TABLE_NOTE, getNoteContentValues(note),
                 " id= " + note.getmId(), null);
     }
 
@@ -75,9 +77,6 @@ public class NoteDao {
         mSqLiteDatabase.delete(mDataBaseHelper.TABLE_NOTE, mDataBaseHelper.KEY_ID + " = " + id, null);
     }
 
-    public void deleteNote(Note note) {
-        deleteNote(note.getmId());
-    }
 
     public Note getNoteById(Long id) {
         if (id < 0)

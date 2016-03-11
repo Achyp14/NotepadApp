@@ -121,7 +121,7 @@
             <ImageView
                 android:id="@+id/profile_picture"
                 android:layout_width="80dp"
-                android:layout_height="75dp"
+                android:layout_height="60dp"
                 android:adjustViewBounds="true"
                 android:background="@drawable/profile_picture"
                 android:scaleType="fitCenter" />
