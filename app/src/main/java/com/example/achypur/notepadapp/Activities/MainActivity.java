@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.util.SparseBooleanArray;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -276,16 +277,28 @@ public class MainActivity extends AppCompatActivity {
                 viewHolderItem = (ViewHolderItem) convertView.getTag();
             }
 
-            if (note.getmUserId() != user.getId()) {
+            if (note.getmUserId() != user.getId() && note.getmLocation() != 0) {
                 viewHolderItem.sharedBy.setVisibility(View.VISIBLE);
                 viewHolderItem.sharedBy.setText("Shared by " +
                         mUserDao.findUserById(note.getmUserId()).getName());
-            }
-
-            if(note.getmLocation() != null) {
                 viewHolderItem.line.setVisibility(View.VISIBLE);
                 viewHolderItem.location.setVisibility(View.VISIBLE);
+            } else {
+                if (note.getmUserId() != user.getId()) {
+                    viewHolderItem.sharedBy.setVisibility(View.VISIBLE);
+                    viewHolderItem.sharedBy.setText("Shared by " +
+                            mUserDao.findUserById(note.getmUserId()).getName());
+                } else {
+                    if (note.getmLocation() != 0) {
+                        viewHolderItem.location.setVisibility(View.VISIBLE);
+                    } else {
+                        viewHolderItem.sharedBy.setVisibility(View.INVISIBLE);
+                        viewHolderItem.line.setVisibility(View.INVISIBLE);
+                        viewHolderItem.location.setVisibility(View.INVISIBLE);
+                    }
+                }
             }
+
             viewHolderItem.title.setText(note.getmTitle());
             viewHolderItem.time.setText(note.getmModifiedDate());
             return convertView;

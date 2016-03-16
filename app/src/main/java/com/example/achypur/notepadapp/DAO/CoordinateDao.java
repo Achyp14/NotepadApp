@@ -60,13 +60,20 @@ public class CoordinateDao {
 ////        }
 //    }
 //
-//    private Coordinate cursorToCoordinate(Cursor cursor) {
-//        return new Coordinate(
-//                cursor.getLong(0),
-//                cursor.getDouble(1),
-//                cursor.getDouble(2),
-//                cursor.getLong(3)
-//        );
-//    }
+    private Coordinate cursorToCoordinate(Cursor cursor) {
+        return new Coordinate(
+                cursor.getLong(0),
+                cursor.getDouble(1),
+                cursor.getDouble(2)
+        );
+    }
+
+    public Coordinate getCoordinateById(Long id) {
+        Cursor cursor = mSqLiteDatabase.rawQuery("select * from " + mDataBaseHelper.TABLE_COORDINATES
+                + " where id = ? ",new String[]{String.valueOf(id)});
+
+        cursor.moveToFirst();
+        return  cursorToCoordinate(cursor);
+    }
 
 }
