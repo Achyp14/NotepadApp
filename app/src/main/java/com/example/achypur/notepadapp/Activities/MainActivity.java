@@ -118,10 +118,11 @@ public class MainActivity extends AppCompatActivity {
         mListView.setMultiChoiceModeListener(new AbsListView.MultiChoiceModeListener() {
             @Override
             public void onItemCheckedStateChanged(android.view.ActionMode mode, int position, long id, boolean checked) {
-                mode.setTitle(mListView.getCheckedItemCount() + " selected");
-                if (mListView.getCheckedItemCount() > 1) {
-
-                }
+//                Note note = (Note) mListView.getItemAtPosition(position);
+//                if(note.getmUserId() != mUserDao.findUserById(mUserDao.findUserByLogin
+//                        (mCurrentUser.get(SessionManager.KEY_LOGIN))).getId()) {
+//                    mListView.setItemChecked(position, false);
+//                }
             }
 
             @Override

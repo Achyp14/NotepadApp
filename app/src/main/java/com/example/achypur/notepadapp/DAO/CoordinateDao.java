@@ -49,17 +49,6 @@ public class CoordinateDao {
         return contentValues;
     }
 
-//    public Coordinate getCoordinateByNoteId(Long noteId) {
-////        Cursor cursor = mSqLiteDatabase.rawQuery("Select * from " + mDataBaseHelper.TABLE_COORDINATES
-////                + " where note_id = ? ", new String[]{String.valueOf(noteId)});
-////        if (cursor != null) {
-////            cursor.moveToFirst();
-////            return cursorToCoordinate(cursor);
-////        } else {
-////            return null;
-////        }
-//    }
-//
     private Coordinate cursorToCoordinate(Cursor cursor) {
         return new Coordinate(
                 cursor.getLong(0),
@@ -71,7 +60,6 @@ public class CoordinateDao {
     public Coordinate getCoordinateById(Long id) {
         Cursor cursor = mSqLiteDatabase.rawQuery("select * from " + mDataBaseHelper.TABLE_COORDINATES
                 + " where id = ? ",new String[]{String.valueOf(id)});
-
         cursor.moveToFirst();
         return  cursorToCoordinate(cursor);
     }

@@ -2,6 +2,7 @@ package com.example.achypur.notepadapp.Activities;
 
 import android.Manifest;
 import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -13,20 +14,17 @@ import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
-import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -43,7 +41,6 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
@@ -69,6 +66,7 @@ public class NoteActivity extends AppCompatActivity {
     SessionManager mSession;
     LocationManager mLocationManager;
     SupportMapFragment mMapFragment;
+    Menu mMenu;
 
 
     @Override
@@ -106,10 +104,9 @@ public class NoteActivity extends AppCompatActivity {
         final Date currentLocalTime = calendar.getTime();
         final DateFormat dateFormat = new SimpleDateFormat("dd/MM/yy");
         dateFormat.setTimeZone(TimeZone.getTimeZone("GMT + 2:00"));
-
-        getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN);
         time.setText(dateFormat.format(currentLocalTime));
         save.setEnabled(false);
+
         TextWatcher watcher = new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
@@ -198,8 +195,7 @@ public class NoteActivity extends AppCompatActivity {
     }
 
     @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.note_menu, menu);
+    public boolean onPrepareOptionsMenu(Menu menu) {
         if (isEditMode()) {
             menu.findItem(R.id.note_menu_location).setVisible(true);
             menu.findItem(R.id.note_menu_check_shared).setVisible(true).
@@ -210,10 +206,18 @@ public class NoteActivity extends AppCompatActivity {
                 menu.findItem(R.id.note_menu_check_shared).setVisible(false).
                         setChecked(mNote.getmPolicyStatus());
             }
-            if (mNote.getmLocation() != 0) {
-                menu.findItem(R.id.note_menu_location).setTitle("Edit location");
-            }
+//            if (mNote.getmLocation() != 0) {
+//                menu.findItem(R.id.note_menu_location).setTitle("Edit location");
+//            }
         }
+        return super.onPrepareOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.note_menu, menu);
+
+        this.mMenu = menu;
         return true;
     }
 
@@ -246,81 +250,11 @@ public class NoteActivity extends AppCompatActivity {
                     return true;
                 }
             case R.id.note_menu_location:
-                if (Build.VERSION.SDK_INT >= 23 &&
-                        ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION)
-                                != PackageManager.PERMISSION_GRANTED) {
-                    Toast.makeText(this, "Location permissions required", Toast.LENGTH_SHORT).show();
-                }
-                mLocationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-                Criteria criteria = new Criteria();
-
-                String provider = mLocationManager.getBestProvider(criteria, true);
-                Location location = mLocationManager.getLastKnownLocation(provider);
-                if (location != null) {
-                    mNote.setmLocation(mCoordinateDao.createCoordinate(location.getLatitude(),
-                            location.getLongitude()));
-                }
-                mLocationManager.requestLocationUpdates(provider, 0, 0, new LocationListener() {
-                    @Override
-                    public void onLocationChanged(Location location) {
-                        mNote.setmLocation(mCoordinateDao.createCoordinate(location.getLatitude(),
-                                location.getLongitude()));
-                    }
-
-                    @Override
-                    public void onStatusChanged(String provider, int status, Bundle extras) {
-                    }
-
-                    @Override
-                    public void onProviderEnabled(String provider) {
-                    }
-
-                    @Override
-                    public void onProviderDisabled(String provider) {
-                    }
-                });
-                if (!item.isChecked()) {
-                    Coordinate coordinate = mCoordinateDao.getCoordinateById(mNote.getmLocation());
-                    final LatLng currentPosition = new LatLng(coordinate.getLatitude(), coordinate.getLongtitude());
-                    Geocoder geocoder = new Geocoder(NoteActivity.this, Locale.getDefault());
-                    List<Address> address = null;
-                    try {
-                        address = geocoder.getFromLocation(coordinate.getLatitude(), coordinate.getLongtitude(), 100);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                    String city;
-                    if (address.get(0).getLocality() != null) {
-                        city = "Current location: " + address.get(0).getLocality();
-                    } else {
-                        city = "Can't find your current location";
-                    }
-                    aBuilder.setMessage(city).setCancelable(true)
-                            .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    mMapFragment.getView().setVisibility(View.VISIBLE);
-                                    mMapFragment.getMapAsync(new OnMapReadyCallback() {
-                                        @Override
-                                        public void onMapReady(GoogleMap googleMap) {
-                                            googleMap.addMarker(new MarkerOptions().position(currentPosition));
-                                            googleMap.moveCamera(CameraUpdateFactory.newLatLng(currentPosition));
-                                            googleMap.animateCamera(CameraUpdateFactory.zoomTo(8), 2000, null);
-                                        }
-                                    });
-                                }
-                            })
-                            .setNegativeButton("NO", new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                }
-
-                            });
-                    alertDialog = aBuilder.create();
-                    alertDialog.show();
-                    return true;
-                }
-                return true;
+                Location location = findingLocation(this);
+                LatLng latLng = findingCoordinate(location);
+                String city = findingCityName();
+                dialogWindow(this, latLng, city);
+                return  true;
         }
         return super.onOptionsItemSelected(item);
     }
@@ -348,12 +282,142 @@ public class NoteActivity extends AppCompatActivity {
         return intent;
     }
 
-    private void refresh(Context context) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(context);
-        AlertDialog alertDialog;
+    private Location findingLocation(final Context context) {
+        if (ContextCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
+            Toast.makeText(context, "Location permissions required", Toast.LENGTH_SHORT).show();
+            return null;
+        }
 
+        mLocationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        Criteria criteria = new Criteria();
 
+        final String provider = mLocationManager.getBestProvider(criteria, true);
+        final Location location = mLocationManager.getLastKnownLocation(provider);
+
+        mLocationManager.requestLocationUpdates(provider, 0, 0, new LocationListener() {
+            @Override
+            public void onLocationChanged(Location location) {
+            }
+
+            @Override
+            public void onStatusChanged(String provider, int status, Bundle extras) {
+            }
+
+            @Override
+            public void onProviderEnabled(String provider) {
+            }
+
+            @Override
+            public void onProviderDisabled(String provider) {
+            }
+        });
+
+        return location;
     }
 
-}
+    private LatLng findingCoordinate(Location location) {
+        if (location != null) {
+            mNote.setmLocation(mCoordinateDao.createCoordinate(location.getLatitude(),
+                    location.getLongitude()));
+        }
+        Coordinate coordinate = mCoordinateDao.getCoordinateById(mNote.getmLocation());
+        return new LatLng(coordinate.getLatitude(), coordinate.getLongtitude());
+    }
 
+    private String findingCityName() {
+        Coordinate coordinate = mCoordinateDao.getCoordinateById(mNote.getmLocation());
+        Geocoder geocoder = new Geocoder(NoteActivity.this, Locale.getDefault());
+        List<Address> address = null;
+        try {
+            address = geocoder.getFromLocation(coordinate.getLatitude(), coordinate.getLongtitude(), 100);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        if (address.get(0).getLocality() != null) {
+            return "Current location: " + address.get(0).getLocality();
+        } else {
+            return "Can't find your current location";
+        }
+    }
+
+    private void dialogWindow(Context context, final LatLng latLng, String city) {
+        final Dialog dialog = new Dialog(context);
+        dialog.setContentView(R.layout.layout_dialog);
+
+        final DialogHolder dialogHolder = new DialogHolder();
+
+        dialogHolder.title = (TextView) dialog.findViewById(R.id.dialog_text);
+        dialogHolder.ok = (Button) dialog.findViewById(R.id.dialog_ok);
+        dialogHolder.cancel = (Button) dialog.findViewById(R.id.dialog_cancel);
+        dialogHolder.refresh = (Button) dialog.findViewById(R.id.dialog_refresh);
+        dialogHolder.remove = (Button) dialog.findViewById(R.id.dialog_remove);
+
+        dialogHolder.title.setText(city);
+        dialogHolder.ok.setText("OK");
+        dialogHolder.cancel.setText("CANCEL");
+        dialogHolder.remove.setText("Remove");
+
+        dialog.show();
+
+        dialogHolder.ok.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mMapFragment.getView().setVisibility(View.VISIBLE);
+                mMapFragment.getMapAsync(new OnMapReadyCallback() {
+                    @Override
+                    public void onMapReady(GoogleMap googleMap) {
+                        googleMap.addMarker(new MarkerOptions().position(latLng));
+                        googleMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
+                        googleMap.animateCamera(CameraUpdateFactory.zoomTo(10), 2000, null);
+                    }
+                });
+                dialog.dismiss();
+                mMenu.findItem(R.id.note_menu_location).setTitle("Edit Location");
+            }
+        });
+
+        dialogHolder.cancel.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+            }
+        });
+
+        dialogHolder.refresh.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+                Location location = findingLocation(NoteActivity.this);
+                LatLng latLng = findingCoordinate(location);
+                String city = findingCityName();
+                dialogWindow(NoteActivity.this, latLng, city);
+            }
+        });
+
+        dialogHolder.remove.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (mMapFragment.getView().getVisibility() != View.VISIBLE) {
+                    Toast.makeText(NoteActivity.this, "Nothing to remove", Toast.LENGTH_SHORT).show();
+                } else {
+                    mMapFragment.getView().setVisibility(View.INVISIBLE);
+                    mNote.setmLocation(Long.valueOf(0));
+                    mMenu.findItem(R.id.note_menu_location).setTitle("Add Location");
+                    dialog.dismiss();
+                }
+            }
+        });
+    }
+
+    static class DialogHolder {
+        TextView title;
+        Button ok;
+        Button cancel;
+        Button refresh;
+        Button remove;
+
+        public DialogHolder() {
+        }
+    }
+}

@@ -64,7 +64,6 @@
         </LinearLayout>
     </ScrollView>
 
-
     <View
         android:id="@+id/linearLayout"
         android:layout_width="match_parent"
@@ -106,6 +105,7 @@
             android:text="Cancel"
             android:textSize="20dp" />
     </LinearLayout>
+
 
 </LinearLayout>
 
