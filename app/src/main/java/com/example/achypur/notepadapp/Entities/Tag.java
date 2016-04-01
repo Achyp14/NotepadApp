@@ -1,14 +1,19 @@
 package com.example.achypur.notepadapp.Entities;
 
 public class Tag {
-    private  Long mId;
-    private  String mTag;
+    private Long mId;
+    private String mTag;
 
-    public Tag(){}
+    public Tag() {
+    }
 
     public Tag(Long mId, String mTag) {
         this.mId = mId;
         this.mTag = mTag;
+    }
+
+    public Tag(String mTag) {
+        this(null, mTag);
     }
 
     public Long getmId() {

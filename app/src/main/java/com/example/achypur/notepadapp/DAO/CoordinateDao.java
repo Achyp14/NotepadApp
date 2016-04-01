@@ -4,6 +4,7 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.util.Log;
 
 import com.example.achypur.notepadapp.DBHelper.DataBaseHelper;
 import com.example.achypur.notepadapp.Entities.Coordinate;
@@ -58,6 +59,7 @@ public class CoordinateDao {
     }
 
     public Coordinate getCoordinateById(Long id) {
+        Log.e("Achyp", "61|CoordinateDao::getCoordinateById: " + id);
         Cursor cursor = mSqLiteDatabase.rawQuery("select * from " + mDataBaseHelper.TABLE_COORDINATES
                 + " where id = ? ",new String[]{String.valueOf(id)});
         cursor.moveToFirst();

@@ -1,6 +1,5 @@
 package com.example.achypur.notepadapp.Activities;
 
-import android.Manifest;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
@@ -15,7 +14,6 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
-import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -32,11 +30,15 @@ import android.widget.Toast;
 
 import com.example.achypur.notepadapp.DAO.CoordinateDao;
 import com.example.achypur.notepadapp.DAO.NoteDao;
+import com.example.achypur.notepadapp.DAO.TagDao;
+import com.example.achypur.notepadapp.DAO.TagOfNotesDao;
 import com.example.achypur.notepadapp.DAO.UserDao;
 import com.example.achypur.notepadapp.Entities.Coordinate;
 import com.example.achypur.notepadapp.Entities.Note;
+import com.example.achypur.notepadapp.Entities.Tag;
 import com.example.achypur.notepadapp.R;
 import com.example.achypur.notepadapp.Session.SessionManager;
+import com.example.achypur.tagview.TagView;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -48,6 +50,7 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
@@ -60,13 +63,18 @@ public class NoteActivity extends AppCompatActivity {
 
     NoteDao mNoteDao;
     UserDao mUserDao;
+    TagDao mTagDao;
     CoordinateDao mCoordinateDao;
+    TagOfNotesDao mTagOfNotesDao;
     Note mNote = null;
     HashMap<String, String> mCurrentUser;
     SessionManager mSession;
     LocationManager mLocationManager;
     SupportMapFragment mMapFragment;
     Menu mMenu;
+    TagView mTagView;
+    List<Tag> mAddTagsList = new ArrayList<>();
+    List<Tag> mDeleteTagsList = new ArrayList<>();
 
 
     @Override
@@ -76,11 +84,12 @@ public class NoteActivity extends AppCompatActivity {
         setContentView(R.layout.activity_note);
         Toolbar toolbar = (Toolbar) findViewById(R.id.note_toolbar);
         setSupportActionBar(toolbar);
-
-
+        //ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 10);
         mNoteDao = new NoteDao(this);
         mUserDao = new UserDao(this);
         mCoordinateDao = new CoordinateDao(this);
+        mTagDao = new TagDao(this);
+        mTagOfNotesDao = new TagOfNotesDao(this);
         mSession = new SessionManager(this);
         mCurrentUser = mSession.getUserDetails();
 
@@ -88,10 +97,11 @@ public class NoteActivity extends AppCompatActivity {
             mNoteDao.open();
             mUserDao.open();
             mCoordinateDao.open();
+            mTagDao.open();
+            mTagOfNotesDao.open();
         } catch (SQLException ex) {
             ex.printStackTrace();
         }
-
 
         final EditText title = (EditText) findViewById(R.id.note_edit_title);
         final EditText content = (EditText) findViewById(R.id.note_edit_content);
@@ -99,6 +109,8 @@ public class NoteActivity extends AppCompatActivity {
 
         final Button save = (Button) findViewById(R.id.note_button_submit);
         final Button cancel = (Button) findViewById(R.id.note_button_cancel);
+
+        EditText tag = (EditText) findViewById(R.id.tag_text);
 
         Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("GMT + 2:00"));
         final Date currentLocalTime = calendar.getTime();
@@ -143,6 +155,7 @@ public class NoteActivity extends AppCompatActivity {
                 save.setText("OK");
                 title.setTextColor(Color.BLACK);
                 content.setTextColor(Color.BLACK);
+
             }
             if (mNote.getmLocation() != 0) {
                 mMapFragment.getView().setVisibility(View.VISIBLE);
@@ -172,12 +185,12 @@ public class NoteActivity extends AppCompatActivity {
                     setResult(RESULT_OK, intent);
                     finish();
                 } else {
-
                     mNoteDao.createNote(title.getText().toString().trim(),
                             content.getText().toString().trim(), mUserDao.findUserByLogin
                                     (mCurrentUser.get(SessionManager.KEY_LOGIN)),
                             dateFormat.format(currentLocalTime),
                             dateFormat.format(currentLocalTime), false, null);
+
                     setResult(RESULT_OK, intent);
                     finish();
                 }
@@ -192,6 +205,23 @@ public class NoteActivity extends AppCompatActivity {
                 finish();
             }
         });
+
+        mTagView = (TagView) findViewById(R.id.tag_grid);
+
+        mTagView.setListener(new TagView.Listener() {
+            @Override
+            public void onAddingTag(String tag) {
+                mTagView.addTag(tag);
+                mAddTagsList.add(new Tag(tag));
+            }
+
+            @Override
+            public void onRemovingTag(String tag) {
+                mTagView.removeTag(tag);
+                mDeleteTagsList.remove(new Tag(tag));
+            }
+        });
+
     }
 
     @Override
@@ -206,9 +236,10 @@ public class NoteActivity extends AppCompatActivity {
                 menu.findItem(R.id.note_menu_check_shared).setVisible(false).
                         setChecked(mNote.getmPolicyStatus());
             }
-//            if (mNote.getmLocation() != 0) {
-//                menu.findItem(R.id.note_menu_location).setTitle("Edit location");
-//            }
+
+            if (mNote.getmLocation() != 0) {
+                menu.findItem(R.id.note_menu_location).setTitle("Edit Location");
+            }
         }
         return super.onPrepareOptionsMenu(menu);
     }
@@ -254,7 +285,7 @@ public class NoteActivity extends AppCompatActivity {
                 LatLng latLng = findingCoordinate(location);
                 String city = findingCityName();
                 dialogWindow(this, latLng, city);
-                return  true;
+                return true;
         }
         return super.onOptionsItemSelected(item);
     }
@@ -286,7 +317,6 @@ public class NoteActivity extends AppCompatActivity {
         if (ContextCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_FINE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED) {
             Toast.makeText(context, "Location permissions required", Toast.LENGTH_SHORT).show();
-            return null;
         }
 
         mLocationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
@@ -317,6 +347,7 @@ public class NoteActivity extends AppCompatActivity {
     }
 
     private LatLng findingCoordinate(Location location) {
+        Log.e("Achyp", "317|NoteActivity::findingCoordinate: " + mNote.getmId());
         if (location != null) {
             mNote.setmLocation(mCoordinateDao.createCoordinate(location.getLatitude(),
                     location.getLongitude()));
@@ -380,6 +411,7 @@ public class NoteActivity extends AppCompatActivity {
         dialogHolder.cancel.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                mNote.setmLocation(Long.valueOf(0));
                 dialog.dismiss();
             }
         });
@@ -420,4 +452,5 @@ public class NoteActivity extends AppCompatActivity {
         public DialogHolder() {
         }
     }
+
 }

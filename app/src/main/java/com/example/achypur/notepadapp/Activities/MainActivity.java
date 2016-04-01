@@ -5,7 +5,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.util.SparseBooleanArray;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -21,7 +20,6 @@ import android.widget.TextView;
 import com.example.achypur.notepadapp.DAO.CoordinateDao;
 import com.example.achypur.notepadapp.DAO.NoteDao;
 import com.example.achypur.notepadapp.DAO.UserDao;
-import com.example.achypur.notepadapp.Entities.Coordinate;
 import com.example.achypur.notepadapp.Entities.Note;
 import com.example.achypur.notepadapp.Entities.User;
 import com.example.achypur.notepadapp.R;
@@ -118,11 +116,6 @@ public class MainActivity extends AppCompatActivity {
         mListView.setMultiChoiceModeListener(new AbsListView.MultiChoiceModeListener() {
             @Override
             public void onItemCheckedStateChanged(android.view.ActionMode mode, int position, long id, boolean checked) {
-//                Note note = (Note) mListView.getItemAtPosition(position);
-//                if(note.getmUserId() != mUserDao.findUserById(mUserDao.findUserByLogin
-//                        (mCurrentUser.get(SessionManager.KEY_LOGIN))).getId()) {
-//                    mListView.setItemChecked(position, false);
-//                }
             }
 
             @Override
@@ -271,13 +264,13 @@ public class MainActivity extends AppCompatActivity {
                 viewHolderItem.title = (TextView) convertView.findViewById(R.id.item_title);
                 viewHolderItem.time = (TextView) convertView.findViewById(R.id.time);
                 viewHolderItem.sharedBy = (TextView) convertView.findViewById(R.id.item_shared_by);
-                viewHolderItem.line = (View) convertView.findViewById(R.id.item_line);
+                viewHolderItem.line = convertView.findViewById(R.id.item_line);
                 viewHolderItem.location = (TextView) convertView.findViewById(R.id.item_location);
                 convertView.setTag(viewHolderItem);
             } else {
                 viewHolderItem = (ViewHolderItem) convertView.getTag();
             }
-
+            
             if (note.getmUserId() != user.getId() && note.getmLocation() != 0) {
                 viewHolderItem.sharedBy.setVisibility(View.VISIBLE);
                 viewHolderItem.sharedBy.setText("Shared by " +
@@ -299,7 +292,6 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }
             }
-
             viewHolderItem.title.setText(note.getmTitle());
             viewHolderItem.time.setText(note.getmModifiedDate());
             return convertView;

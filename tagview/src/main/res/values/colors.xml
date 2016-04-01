@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <color name="ColorRedDark">#C10005</color>
+    <color name="ColorGray">#8A7273</color>
+
+    <color name="ColorYellow">#FAB564</color>
+    <color name="ColorYellowDark">#F48300</color>
+
+    <color name="ColorGreenLight">#C5EC5f</color>
+    <color name="ColorGreenCont">#A7E700</color>
+
+    <color name="ColorGreenDark">#47AF7A</color>
+    <color name="ColorGreenDarkComp">#00AB54</color>
+
+    <color name="ColorBlue">#4876A2</color>
+    <color name="ColorBlueDark">#04529F</color>
+
+    <color name="ColorViolet">#784CA9</color>
+    <color name="ColorVioletDark">#4E04A6</color>
+
+
+
+    <array name="item_colors">
+        <item>@color/ColorRedDark</item>
+        <item>@color/ColorYellow</item>
+        <item>@color/ColorGreenLight</item>
+        <item>@color/ColorGreenDark</item>
+        <item>@color/ColorBlue</item>
+        <item>@color/ColorViolet</item>
+    </array>
+
+
+    <array name="item_colors_dark">
+        <item>@color/ColorGray</item>
+        <item>@color/ColorYellowDark</item>
+        <item>@color/ColorGreenCont</item>
+        <item>@color/ColorGreenDarkComp</item>
+        <item>@color/ColorBlueDark</item>
+        <item>@color/ColorVioletDark</item>
+    </array>
+</resources>

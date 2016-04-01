@@ -9,11 +9,11 @@ import com.example.achypur.notepadapp.DBHelper.DataBaseHelper;
 import com.example.achypur.notepadapp.Entities.Tag;
 
 import java.sql.SQLException;
+import java.util.List;
 
 public class TagDao {
     private SQLiteDatabase mSqLiteDatabase;
     private DataBaseHelper mDataBaseHelper;
-    private String[] mColumns = {DataBaseHelper.KEY_ID, DataBaseHelper.KEY_TAG};
 
     public TagDao(Context context) {
         mDataBaseHelper = new DataBaseHelper(context);
@@ -28,18 +28,21 @@ public class TagDao {
     }
 
     public Tag createTag(String tag) {
-        ContentValues contentValues = new ContentValues();
-        contentValues.put(DataBaseHelper.KEY_TAG, tag);
-
-        Long id = mSqLiteDatabase.insert(DataBaseHelper.TABLE_TAG, null, contentValues);
-
-        Cursor cursor = mSqLiteDatabase.query(DataBaseHelper.TABLE_TAG, mColumns,
-                DataBaseHelper.KEY_ID + " = " + id, null, null, null, null);
-
-        cursor.moveToFirst();
-        Tag newTag = cursorToTag(cursor);
-        cursor.close();
+        Tag newTag = new Tag(tag);
+        Long id = mSqLiteDatabase.insert(DataBaseHelper.TABLE_TAG, null, getTagContentValues(newTag));
+        newTag.setmId(id);
         return newTag;
+    }
+    public void insertListTag(List<Tag> list) {
+        for (Tag tag : list) {
+            mSqLiteDatabase.insert(DataBaseHelper.TABLE_TAG, null, getTagContentValues(tag));
+        }
+    }
+
+    private ContentValues getTagContentValues(Tag tag) {
+        final ContentValues contentValues = new ContentValues();
+        contentValues.put(DataBaseHelper.KEY_TAG, tag.getmTag());
+        return contentValues;
     }
 
     private Tag cursorToTag(Cursor cursor) {
@@ -47,6 +50,12 @@ public class TagDao {
         tag.setmId(cursor.getLong(0));
         tag.setmTag(cursor.getString(1));
         return tag;
+    }
+
+    public String getTagById(Long id) {
+        Cursor cursor = mSqLiteDatabase.rawQuery("select tag from " + mDataBaseHelper.TABLE_TAG +
+                " where id = ?", new String[] {String.valueOf(id)});
+        return cursor.getString(1);
     }
 
 }

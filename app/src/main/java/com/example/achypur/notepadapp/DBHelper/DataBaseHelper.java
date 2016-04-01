@@ -36,6 +36,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     public static final String KEY_CREATED_DATE = "date_of_creation";
     public static final String KEY_MODIFIED_DATE = "date_of_last_modified";
     public static final String KEY_POLICY_STATUS = "policy";
+    public static final String KEY_LOCAION = "coordinates_id";
 
     /*
         Roles table - column names
@@ -56,12 +57,11 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     public static final String KEY_NOTE_ID = "note_id";
     public static final String KEY_TAG_ID = "tag_id";
     public static final String KEY_USER_ID = "user_id";
-    public static  final  String KEY_LOCAION = "coordinates_id";
+
 
     /*
         Coordinate - column names
      */
-
     public static final String TABLE_COORDINATES = "coordinates";
     public static final String KEY_LATITUDE = "latitude";
     public static final String KEY_LONGTITUDE = "longtitude";
@@ -90,7 +90,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             " integer not null," + KEY_TAG_ID + " integer not null," +
             KEY_USER_ID + " integer not null" + ")";
 
-    public  static  final  String CREATE_TABLE_COORDINATES = "create table " +
+    public static final String CREATE_TABLE_COORDINATES = "create table " +
             TABLE_COORDINATES + "(" + KEY_ID + " integer primary key autoincrement," + KEY_LATITUDE +
             " real not null," + KEY_LONGTITUDE + " real not null" + ")";
 

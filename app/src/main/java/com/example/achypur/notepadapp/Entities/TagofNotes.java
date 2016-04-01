@@ -1,22 +1,27 @@
 package com.example.achypur.notepadapp.Entities;
 
-/**
- * Created by achypur on 25.02.2016.
- */
-public class TagofNotes {
+import android.database.Cursor;
+
+import java.util.List;
+
+public class TagOfNotes {
     private Long mId;
     private Long mNotesId;
     private Long mTagId;
     private Long mUserId;
 
-    public TagofNotes() {
+    public TagOfNotes() {
     }
 
-    public TagofNotes(Long mId, Long mNotesId, Long mTagId, Long mUserId) {
+    public TagOfNotes(Long mId, Long mNotesId, Long mTagId, Long mUserId) {
         this.mId = mId;
         this.mNotesId = mNotesId;
         this.mTagId = mTagId;
         this.mUserId = mUserId;
+    }
+
+    public  TagOfNotes(Long mNotesId, Long mTagId, Long mUserId) {
+        this(null, mNotesId, mTagId, mUserId);
     }
 
     public Long getmId() {
@@ -50,4 +55,5 @@ public class TagofNotes {
     public void setmUserId(Long mUserId) {
         this.mUserId = mUserId;
     }
+
 }
