@@ -31,4 +31,14 @@ public class Tag {
     public void setmTag(String mTag) {
         this.mTag = mTag;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        Tag tag = (Tag) o;
+        if (this.getmTag().equals(tag.getmTag())) {
+            return true;
+        } else {
+            return false;
+        }
+    }
 }

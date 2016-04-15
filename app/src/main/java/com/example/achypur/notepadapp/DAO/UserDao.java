@@ -32,6 +32,21 @@ public class UserDao {
         mDataBaseHelper.close();
     }
 
+    public User createUser(User user) {
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(DataBaseHelper.KEY_LOGIN, user.getLogin());
+        contentValues.put(DataBaseHelper.KEY_NAME, user.getName());
+        contentValues.put(DataBaseHelper.KEY_EMAIL, user.getEmail());
+        contentValues.put(DataBaseHelper.KEY_PASSWORD, user.getPassword());
+        contentValues.put(DataBaseHelper.KEY_USER_ROLE, user.getRole());
+        contentValues.put(DataBaseHelper.KEY_IMAGE, user.getImage());
+
+        Long id = mSqLiteDatabase.insert(DataBaseHelper.TABLE_USER, null, contentValues);
+
+        user.setId(id);
+        return  user;
+    }
+
     public User createUser(String login, String name, String email, String password, String role, byte[] image) {
         ContentValues contentValues = new ContentValues();
         contentValues.put(DataBaseHelper.KEY_LOGIN, login);

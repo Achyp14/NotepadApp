@@ -16,5 +16,12 @@
         android:title="Add location"
         app:showAsAction="never">
     </item>
+    <item
+        android:id="@+id/note_menu_picture"
+        android:orderInCategory="3"
+        android:visible="false"
+        android:title="Add picture"
+        app:showAsAction="never">
+    </item>
 
 </menu>

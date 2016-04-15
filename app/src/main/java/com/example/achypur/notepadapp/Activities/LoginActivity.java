@@ -3,10 +3,14 @@ package com.example.achypur.notepadapp.Activities;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.text.InputType;
+import android.text.SpannableString;
+import android.text.style.UnderlineSpan;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 
 import com.example.achypur.notepadapp.DAO.UserDao;
 import com.example.achypur.notepadapp.Entities.User;
@@ -18,7 +22,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class LoginActivity extends AppCompatActivity {
-    public static final String TAG = "LoginActivity";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,7 +41,11 @@ public class LoginActivity extends AppCompatActivity {
         final EditText login = (EditText) findViewById(R.id.login_login);
         final EditText password = (EditText) findViewById(R.id.login_password);
         Button logInButton = (Button) findViewById(R.id.login_button);
-        Button signUpButton = (Button) findViewById(R.id.sign_up_button);
+        TextView linkToSignUp = (TextView) findViewById(R.id.login_sign_up);
+        SpannableString content = new SpannableString(linkToSignUp.getText());
+        content.setSpan(new UnderlineSpan(), 0, content.length(), 0);
+        linkToSignUp.setText(content);
+        linkToSignUp.setTextSize(20);
 
         final Intent loginPage = new Intent(this, MainActivity.class);
         logInButton.setOnClickListener(new View.OnClickListener() {
@@ -53,7 +60,7 @@ public class LoginActivity extends AppCompatActivity {
         });
 
         final Intent signUp = new Intent(this, SignUpActivity.class);
-        signUpButton.setOnClickListener(new View.OnClickListener() {
+        linkToSignUp.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 startActivity(signUp);
@@ -71,6 +78,7 @@ public class LoginActivity extends AppCompatActivity {
         }
         return false;
     }
+
 }
 
 

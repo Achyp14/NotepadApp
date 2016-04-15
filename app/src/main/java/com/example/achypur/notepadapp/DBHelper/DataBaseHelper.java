@@ -7,7 +7,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 public class DataBaseHelper extends SQLiteOpenHelper {
 
     private static final String LOG = "DataBaseHelper";
-    private static final int DATABASE_VERSION = 3;
+    private static final int DATABASE_VERSION = 6;
     private static final String DATABASE_NAME = "notepad.db";
 
     /*
@@ -66,6 +66,9 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     public static final String KEY_LATITUDE = "latitude";
     public static final String KEY_LONGTITUDE = "longtitude";
 
+    public static final String TABLE_TAG_PICTURE = "pictures";
+    public static final String KEY_PICTURE = "picture";
+
 
     private static final String CREATE_TABLE_USER = "create table "
             + TABLE_USER + "(" + KEY_ID + " integer primary key autoincrement," + KEY_LOGIN
@@ -94,6 +97,12 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             TABLE_COORDINATES + "(" + KEY_ID + " integer primary key autoincrement," + KEY_LATITUDE +
             " real not null," + KEY_LONGTITUDE + " real not null" + ")";
 
+    public static final String CREATE_TABLE_TAG_PICTURE = "create table " +
+            TABLE_TAG_PICTURE + "(" + KEY_ID + " integer primary key autoincrement," + KEY_PICTURE +
+            " blob,"  + KEY_NOTE_ID + " integer not null" + ")";
+
+
+
     public DataBaseHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
@@ -106,6 +115,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         db.execSQL(CREATE_TABLE_TAG);
         db.execSQL(CREATE_TAG_OF_NOTES);
         db.execSQL(CREATE_TABLE_COORDINATES);
+        db.execSQL(CREATE_TABLE_TAG_PICTURE);
     }
 
     @Override
@@ -116,6 +126,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_TAG);
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_TAG_NOTES);
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_COORDINATES);
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_TAG_PICTURE);
         onCreate(db);
     }
 }

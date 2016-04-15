@@ -10,14 +10,14 @@
     android:fitsSystemWindows="true"
     tools:context=".Activities.NoteActivity">
 
-    <android.support.v7.widget.Toolbar
-        android:id="@+id/note_toolbar"
-        android:layout_width="match_parent"
-        android:layout_height="?attr/actionBarSize"
-        android:background="@color/colorPrimary"
-        android:elevation="4dp"
-        android:theme="@style/ThemeOverlay.AppCompat.ActionBar"
-        app:popupTheme="@style/ThemeOverlay.AppCompat.Light" />
+    <!--<android.support.v7.widget.Toolbar-->
+        <!--android:id="@+id/note_toolbar"-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="?attr/actionBarSize"-->
+        <!--android:background="@color/colorPrimary"-->
+        <!--android:elevation="4dp"-->
+        <!--android:theme="@style/ThemeOverlay.AppCompat.ActionBar"-->
+        <!--app:popupTheme="@style/ThemeOverlay.AppCompat.Light" />-->
 
 
     <LinearLayout
@@ -48,7 +48,6 @@
             android:id="@+id/note_layout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_below="@id/note_toolbar"
             android:layout_margin="10dp"
             android:orientation="vertical"
             android:weightSum="2">
@@ -68,6 +67,17 @@
                 android:gravity="top"
                 android:layout_marginBottom="15dp"
                 android:inputType="textNoSuggestions|textMultiLine" />
+
+            <GridView
+                android:stretchMode="columnWidth"
+                android:numColumns="auto_fit"
+                android:columnWidth="100dp"
+                android:id="@+id/note_edit_pictures"
+                android:layout_width="wrap_content"
+                android:horizontalSpacing="10dp"
+                android:verticalSpacing="10dp"
+                android:gravity="center"
+                android:layout_height="wrap_content"/>
 
             <fragment
                 android:id="@+id/note_map"

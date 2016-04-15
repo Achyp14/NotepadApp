@@ -4,6 +4,7 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.util.Log;
 
 import com.example.achypur.notepadapp.DBHelper.DataBaseHelper;
 import com.example.achypur.notepadapp.Entities.TagOfNotes;
@@ -49,18 +50,42 @@ public class TagOfNotesDao {
         return contentValues;
     }
 
-    public List<Long> getTagsByNoteId(Long id) {
+    public List<Long> findTagsId(Long noteId) {
+        Cursor cursor = mSqLiteDatabase.rawQuery("select * from " + mDataBaseHelper.TABLE_TAG_NOTES +
+                " where note_id = ?", new String[]{String.valueOf(noteId)});
+        return addTagOfNotesToCursor(cursor);
+    }
+
+    private List<Long> addTagOfNotesToCursor(Cursor cursor) {
         List<Long> idList = new ArrayList<>();
-        Cursor cursor = mSqLiteDatabase.rawQuery("Select tag_id from " + mDataBaseHelper.TABLE_TAG_NOTES + " where note_id = ?", new String[]{String.valueOf(id)});
+        TagOfNotes tagOfNotes;
 
         if (cursor.moveToFirst()) {
             while (cursor.isAfterLast() == false) {
-                idList.add(cursor.getLong(0));
+                tagOfNotes = cursorToTagOfNotes(cursor);
+                idList.add(tagOfNotes.getmTagId()); // Get tag id
                 cursor.moveToNext();
             }
         }
         cursor.close();
         return idList;
+    }
 
+    private TagOfNotes cursorToTagOfNotes(Cursor cursor) {
+        return new TagOfNotes(
+                cursor.getLong(0),
+                cursor.getLong(1),
+                cursor.getLong(2),
+                cursor.getLong(3)
+        );
+    }
+
+    public void deleteTag(Long noteId, Long tagId) {
+        mSqLiteDatabase.delete(mDataBaseHelper.TABLE_TAG_NOTES
+                , " note_id = ? and tag_id = ?", new String[]{String.valueOf(noteId), String.valueOf(tagId)});
+    }
+
+    public void deleteAll() {
+        mSqLiteDatabase.delete(mDataBaseHelper.TABLE_TAG_NOTES, null, null);
     }
 }

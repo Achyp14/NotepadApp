@@ -168,6 +168,10 @@ public class TagView extends ViewGroup {
         final LinearLayout linearLayout = (LinearLayout) root.findViewById(R.id.linear_layout);
         textView.setText(tag.toLowerCase());
 
+        if(!isEnabled()) {
+            delete.setVisibility(GONE);
+        }
+
         delete.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -184,7 +188,12 @@ public class TagView extends ViewGroup {
         View root = inflate(getContext(), R.layout.edit_layout, null);
         final ImageView imageView = (ImageView) root.findViewById(R.id.plus);
         final EditText editText = (EditText) root.findViewById(R.id.edit_text);
-        imageView.setVisibility(VISIBLE);
+
+        if(isEnabled()) {
+            imageView.setVisibility(VISIBLE);
+        } else {
+            imageView.setVisibility(GONE);
+        }
 
         imageView.setOnClickListener(new View.OnClickListener() {
             @Override

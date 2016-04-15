@@ -1,150 +1,118 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/colorDarkTurquoise"
-    android:fitsSystemWindows="true"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:background="#A7FFEB"
     android:padding="10dp"
-    android:orientation="vertical"
     tools:context=".Activities.SignUpActivity">
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        <!--<com.example.achypur.notepadapp.CustomView.CustomProfilePicture-->
+            <!--android:id="@+id/sign_up_profile_picture"-->
+            <!--android:layout_centerHorizontal="true"-->
+            <!--app:civ_border_width="2dp"-->
+            <!--app:civ_border_color="@android:color/white"-->
+            <!--android:src="@drawable/people"-->
+            <!--android:layout_width="wrap_content"-->
+            <!--android:layout_height="wrap_content" />-->
 
-        <TextView
-            android:id="@+id/sign_up_name"
+        <ImageView
+            android:background="@drawable/circle_picture"
+            android:layout_centerHorizontal="true"
+            android:id="@+id/image"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Name"
-            android:textSize="20dp" />
-
-        <EditText
-            android:id="@+id/sign_up_edit_name"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
-
-        <TextView
-            android:id="@+id/sign_up_login"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Login"
-            android:textSize="20dp" />
-
-        <EditText
-            android:id="@+id/sign_up_edit_login"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
-
-        <TextView
-            android:id="@+id/sign_up_email"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Email"
-            android:textSize="20dp" />
-
-        <EditText
-            android:id="@+id/sign_up_edit_email"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
-
-        <TextView
-            android:id="@+id/sign_up_password"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Password"
-            android:textSize="20dp" />
-
-        <EditText
-            android:id="@+id/sign_up_edit_password"
-            android:layout_width="match_parent"
             android:layout_height="wrap_content" />
 
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-
-        <TextView
-            android:id="@+id/sign_up_conf_password"
+        <Button
+            android:layout_centerHorizontal="true"
+            android:layout_below="@+id/image"
+            android:text="Upload Picture"
+            android:textColor="@color/colorLoginText"
+            android:id="@+id/sign_up_upload_button"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Confirm"
-            android:textSize="20dp" />
-
-        <EditText
-            android:id="@+id/sign_up_edit_conf_password"
-            android:layout_width="match_parent"
             android:layout_height="wrap_content" />
-
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical" >
-
-        <TextView
-            android:id="@+id/sign_up_picture"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Profile picture"
-            android:textSize="20dp"
-            android:layout_marginBottom="10dp"/>
 
         <LinearLayout
+            android:id="@+id/sign_up_edit_text_holder"
+            android:orientation="vertical"
+            android:layout_margin="30dp"
+            android:paddingBottom="10dp"
+            android:layout_below="@+id/sign_up_upload_button"
             android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+                <EditText
+                    android:id="@+id/sign_up_first_name"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="First name"
+                    android:textCursorDrawable="@color/colorLoginText"
+                    android:backgroundTint="@color/colorLoginText"
+                    android:singleLine="true" />
+
+                <EditText
+                    android:id="@+id/sign_up_login"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Login"
+                    android:textCursorDrawable="@color/colorLoginText"
+                    android:backgroundTint="@color/colorLoginText"
+                    android:singleLine="true" />
+
+                <EditText
+                    android:id="@+id/sign_up_email"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Email"
+                    android:textCursorDrawable="@color/colorLoginText"
+                    android:backgroundTint="@color/colorLoginText"
+                    android:singleLine="true" />
+
+                <EditText
+                    android:id="@+id/sign_up_password"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Password"
+                    android:inputType="textPassword"
+                    android:textCursorDrawable="@color/colorLoginText"
+                    android:backgroundTint="@color/colorLoginText"
+                    android:singleLine="true" />
+
+                <EditText
+                    android:id="@+id/sign_up_confirm_password"
+                    android:layout_width="match_parent"
+                    android:inputType="textPassword"
+                    android:layout_height="wrap_content"
+                    android:hint="Confirm password"
+                    android:textCursorDrawable="@color/colorLoginText"
+                    android:backgroundTint="@color/colorLoginText"
+                    android:singleLine="true" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_centerHorizontal="true"
+            android:layout_below="@+id/sign_up_edit_text_holder"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="horizontal">
 
-            <ImageView
-                android:id="@+id/profile_picture"
-                android:layout_width="80dp"
-                android:layout_height="60dp"
-                android:adjustViewBounds="true"
-                android:background="@drawable/profile_picture"
-                android:scaleType="fitCenter" />
+                <Button
+                    android:id="@+id/sign_up_submit_button"
+                    android:layout_width="wrap_content"
+                    android:text="Submit"
+                    android:textSize="16dp"
+                    android:textColor="@color/colorLoginText"
+                    android:layout_height="wrap_content" />
 
-            <Button
-                android:id="@+id/sign_up_download"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginLeft="40dp"
-                android:layout_marginTop="35dp"
-                android:text="Upload picture"/>
+                <Button
+                    android:id="@+id/sign_up_cancel_button"
+                    android:layout_width="wrap_content"
+                    android:text="Cancel"
+                    android:textSize="16dp"
+                    android:textColor="@color/colorLoginText"
+                    android:layout_height="wrap_content" />
+
         </LinearLayout>
-    </LinearLayout>
 
-    <Button
-        android:id="@+id/sign_up_submit"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textSize="20dp"
-        android:text="Submit"
-        android:layout_gravity="center_horizontal"
-        android:enabled="false"
-        android:layout_marginTop="20dp"
-        />
-
-</LinearLayout>
+</RelativeLayout>

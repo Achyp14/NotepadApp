@@ -59,11 +59,17 @@ public class CoordinateDao {
     }
 
     public Coordinate getCoordinateById(Long id) {
-        Log.e("Achyp", "61|CoordinateDao::getCoordinateById: " + id);
         Cursor cursor = mSqLiteDatabase.rawQuery("select * from " + mDataBaseHelper.TABLE_COORDINATES
                 + " where id = ? ",new String[]{String.valueOf(id)});
-        cursor.moveToFirst();
-        return  cursorToCoordinate(cursor);
+        if(cursor.moveToFirst()) {
+            return  cursorToCoordinate(cursor);
+        } else {
+            return  null;
+        }
+    }
+
+    public void deleteCoordinate(Long id) {
+        mSqLiteDatabase.delete(mDataBaseHelper.TABLE_COORDINATES, " id = ? ", new String[] {String.valueOf(id)});
     }
 
 }

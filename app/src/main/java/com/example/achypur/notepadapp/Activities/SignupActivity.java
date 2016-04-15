@@ -1,11 +1,21 @@
 package com.example.achypur.notepadapp.Activities;
 
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.PorterDuff;
+import android.graphics.PorterDuffXfermode;
+import android.graphics.Rect;
+import android.graphics.RectF;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
@@ -20,52 +30,64 @@ import com.example.achypur.notepadapp.DAO.UserDao;
 import com.example.achypur.notepadapp.Entities.User;
 import com.example.achypur.notepadapp.R;
 
+import java.io.ByteArrayOutputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class SignUpActivity extends AppCompatActivity {
 
-    private  final  static  int UPLOAD_KEY = 1;
-    ImageView profilePicture;
+    private final static int UPLOAD_KEY = 1;
+    UserDao mUserDao;
+    User mCurrentUser = new User();
+    ImageView imageView;
+    Bitmap mBitmap;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_signup);
 
-        final UserDao userDao = new UserDao(this);
+        mUserDao = new UserDao(this);
         try {
-            userDao.open();
+            mUserDao.open();
         } catch (SQLException ex) {
             ex.printStackTrace();
         }
 
-        User user;
-        final EditText name = (EditText) findViewById(R.id.sign_up_edit_name);
-        final EditText login = (EditText) findViewById(R.id.sign_up_edit_login);
-        final EditText email = (EditText) findViewById(R.id.sign_up_edit_email);
-        final EditText password = (EditText) findViewById(R.id.sign_up_edit_password);
-        final EditText confirm = (EditText) findViewById(R.id.sign_up_edit_conf_password);
-        final Button submit = (Button) findViewById(R.id.sign_up_submit);
-        final Button upload = (Button) findViewById(R.id.sign_up_download);
-        final Intent intent = new Intent(this, MainActivity.class);
-        profilePicture = (ImageView) findViewById(R.id.profile_picture);
+        final EditText firstNama = (EditText) findViewById(R.id.sign_up_first_name);
+        final EditText login = (EditText) findViewById(R.id.sign_up_login);
+        final EditText email = (EditText) findViewById(R.id.sign_up_email);
+        final EditText password = (EditText) findViewById(R.id.sign_up_password);
+        final EditText confirmPassword = (EditText) findViewById(R.id.sign_up_confirm_password);
+        Button submit = (Button) findViewById(R.id.sign_up_submit_button);
+        Button cancel = (Button) findViewById(R.id.sign_up_cancel_button);
+        Button upload = (Button) findViewById(R.id.sign_up_upload_button);
+        imageView = (ImageView) findViewById(R.id.image);
+        mBitmap = BitmapFactory.decodeResource(getResources(),
+                R.drawable.people);
+        imageView.setImageBitmap(getCircleBitmap(mBitmap));
 
-        TextWatcher textWatcher = new TextWatcher() {
+
+        final List<User> userList = mUserDao.getAllUsers();
+        final Intent intent = new Intent(this, MainActivity.class);
+
+        final TextWatcher textWatcher = new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
             }
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                if (name.getText().toString().trim().equals("") ||
-                        login.getText().toString().trim().equals("") ||
-                        email.getText().toString().trim().equals("") ||
-                        password.getText().toString().trim().equals("") ||
-                        confirm.getText().toString().trim().equals("") ||
-                        !password.getText().toString().trim().equals(confirm.getText().toString().trim())) {
-                } else {
-                    submit.setEnabled(true);
+                if(login.getText().toString().trim().equals("") |
+                        firstNama.getText().toString().trim().equals("") |
+                        password.getText().toString().trim().equals("") |
+                        confirmPassword.getText().toString().trim().equals("")) {
+                    alertBuilder(Check.CHECK_INPUT);
                 }
             }
 
@@ -74,17 +96,37 @@ public class SignUpActivity extends AppCompatActivity {
             }
         };
 
-        name.addTextChangedListener(textWatcher);
-        login.addTextChangedListener(textWatcher);
-        email.addTextChangedListener(textWatcher);
-        password.addTextChangedListener(textWatcher);
-        confirm.addTextChangedListener(textWatcher);
-
         submit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                userDao.createUser(login.getText().toString(), name.getText().toString(), email.getText().toString(), password.getText().toString(), null, null);
-                startActivity(intent);
+                login.addTextChangedListener(textWatcher);
+                firstNama.addTextChangedListener(textWatcher);
+                password.addTextChangedListener(textWatcher);
+                confirmPassword.addTextChangedListener(textWatcher);
+                if (!checkPassword(password.getText().toString().trim(), confirmPassword.getText().toString().trim())) {
+                    alertBuilder(Check.CHECK_PASSWORD);
+                } else {
+                    mCurrentUser = createUser(firstNama.getText().toString().trim(),
+                            login.getText().toString().trim(),
+                            email.getText().toString().trim(),
+                            password.getText().toString().trim());
+
+                    if (checkUserInDb(mCurrentUser, userList)) {
+                        alertBuilder(Check.CHECK_USER);
+                    } else {
+                        createUserInDb(mCurrentUser);
+                        startActivity(intent);
+                        finish();
+                    }
+                }
+            }
+        });
+
+        final Intent back = new Intent(this, LoginActivity.class);
+        cancel.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(back);
                 finish();
             }
         });
@@ -92,21 +134,131 @@ public class SignUpActivity extends AppCompatActivity {
         upload.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-                startActivityForResult(intent, UPLOAD_KEY);
+                Intent getIntent = new Intent(Intent.ACTION_GET_CONTENT);
+                getIntent.setType("image/*");
 
+                Intent pickIntent = new Intent(Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+                pickIntent.setType("image/*");
+
+                Intent chooserIntent = Intent.createChooser(getIntent, "Select Image");
+                chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, new Intent[]{pickIntent});
+                startActivityForResult(chooserIntent, UPLOAD_KEY);
             }
         });
+
+
+
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode,resultCode,data);
+        super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == UPLOAD_KEY && data != null && resultCode == RESULT_OK) {
             Uri selectedImage = data.getData();
-            profilePicture.setImageURI(selectedImage);
 
+            try {
+                InputStream iStream = getContentResolver().openInputStream(selectedImage);
+                mBitmap = getImage(getBytes(iStream));
+                mCurrentUser.setImage(getBytes(iStream));
+                imageView.setImageBitmap(getCircleBitmap(mBitmap));
+            } catch (FileNotFoundException ex) {
+                ex.printStackTrace();
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
         }
+    }
+
+    private Bitmap getCircleBitmap(Bitmap bitmap) {
+        final Bitmap output = Bitmap.createBitmap(bitmap.getWidth(),
+                bitmap.getHeight(), Bitmap.Config.ARGB_8888);
+        final Canvas canvas = new Canvas(output);
+
+        final int color = Color.RED;
+        final Paint paint = new Paint();
+        final Rect rect = new Rect(0, 0, bitmap.getWidth(), bitmap.getHeight());
+        final RectF rectF = new RectF(rect);
+
+        paint.setAntiAlias(true);
+        canvas.drawARGB(0, 0, 0, 0);
+        paint.setColor(color);
+        canvas.drawOval(rectF, paint);
+
+        paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_IN));
+        canvas.drawBitmap(bitmap, rect, rect, paint);
+
+        bitmap.recycle();
+
+        return output;
+    }
+
+    public byte[] getBytes(InputStream inputStream) throws IOException {
+        ByteArrayOutputStream byteBuffer = new ByteArrayOutputStream();
+        int bufferSize = 1024;
+        byte[] buffer = new byte[bufferSize];
+
+        int len;
+        while ((len = inputStream.read(buffer)) != -1) {
+            byteBuffer.write(buffer, 0, len);
+        }
+        return byteBuffer.toByteArray();
+    }
+
+    public Bitmap getImage(byte[] image) {
+        return BitmapFactory.decodeByteArray(image, 0, image.length);
+    }
+
+    public enum Check {
+        CHECK_PASSWORD, CHECK_USER, CHECK_INPUT
+    }
+
+    public void alertBuilder(Check check) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        AlertDialog alertDialog;
+
+        if (check == Check.CHECK_INPUT) {
+            builder.setMessage("Please input all field").setPositiveButton("OK", null);
+            alertDialog = builder.create();
+            alertDialog.show();
+        }
+
+        if (check == Check.CHECK_PASSWORD) {
+            builder.setMessage("Password is incorrect").setPositiveButton("OK", null);
+            alertDialog = builder.create();
+            alertDialog.show();
+        }
+
+        if (check == Check.CHECK_USER) {
+            builder.setMessage("User is already exist").setPositiveButton("OK", null);
+            alertDialog = builder.create();
+            alertDialog.show();
+        }
+    }
+
+    public boolean checkPassword(String password, String confirmPassword) {
+        if (password.equals(confirmPassword)) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    public boolean checkUserInDb(User user, List<User> userList) {
+        for (User human : userList) {
+            if (human.getLogin().equals(user.getLogin())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public User createUser(String name, String login, String email, String password) {
+        return new User(login, name, email, password, null, null);
+    }
+
+    public User createUserInDb(User user) {
+        User currentUser = mUserDao.createUser(user);
+        return currentUser;
     }
 }
 

@@ -2,7 +2,9 @@ package com.example.achypur.notepadapp.Activities;
 
 import android.content.Context;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
+import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.SparseBooleanArray;
@@ -10,6 +12,8 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentActivity;
 import android.view.ViewGroup;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
@@ -19,9 +23,11 @@ import android.widget.TextView;
 
 import com.example.achypur.notepadapp.DAO.CoordinateDao;
 import com.example.achypur.notepadapp.DAO.NoteDao;
+import com.example.achypur.notepadapp.DAO.PictureDao;
 import com.example.achypur.notepadapp.DAO.UserDao;
 import com.example.achypur.notepadapp.Entities.Note;
 import com.example.achypur.notepadapp.Entities.User;
+import com.example.achypur.notepadapp.NavigataionDrawer;
 import com.example.achypur.notepadapp.R;
 import com.example.achypur.notepadapp.Session.SessionManager;
 
@@ -37,7 +43,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.TimeZone;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends BaseActivity {
 
     NoteListAdapter mAdapter;
     ListView mListView;
@@ -46,22 +52,25 @@ public class MainActivity extends AppCompatActivity {
     NoteDao mNoteDao;
     CoordinateDao mCoordinateDao;
     HashMap<String, String> mCurrentUser;
+    PictureDao mPictureDao;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        final Toolbar toolbar = (Toolbar) findViewById(R.id.my_toolbar);
-        setSupportActionBar(toolbar);
+//        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
 
         mUserDao = new UserDao(this);
         mNoteDao = new NoteDao(this);
         mCoordinateDao = new CoordinateDao(this);
+        mPictureDao = new PictureDao(this);
+
 
         try {
             mUserDao.open();
             mNoteDao.open();
             mCoordinateDao.open();
+            mPictureDao.open();
         } catch (SQLException ex) {
             ex.printStackTrace();
         }
@@ -139,6 +148,9 @@ public class MainActivity extends AppCompatActivity {
                         if (checked == null)
                             return false;
                         for (long id : ids) {
+                            Note note = mNoteDao.getNoteById(id);
+                            mCoordinateDao.deleteCoordinate(note.getmLocation());
+                            //mPictureDao.deletePicture(note.getmId());
                             mNoteDao.deleteNote(id);
                         }
                         mListView.clearChoices();
