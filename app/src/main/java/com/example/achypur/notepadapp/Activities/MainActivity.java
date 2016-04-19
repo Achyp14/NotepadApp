@@ -2,11 +2,14 @@ package com.example.achypur.notepadapp.Activities;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.util.SparseBooleanArray;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -27,11 +30,14 @@ import com.example.achypur.notepadapp.DAO.PictureDao;
 import com.example.achypur.notepadapp.DAO.UserDao;
 import com.example.achypur.notepadapp.Entities.Note;
 import com.example.achypur.notepadapp.Entities.User;
-import com.example.achypur.notepadapp.NavigataionDrawer;
 import com.example.achypur.notepadapp.R;
 import com.example.achypur.notepadapp.Session.SessionManager;
 
 
+import java.io.ByteArrayOutputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
 import java.sql.SQLException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -45,6 +51,8 @@ import java.util.TimeZone;
 
 public class MainActivity extends BaseActivity {
 
+    private final static int UPLOAD_KEY = 1;
+
     NoteListAdapter mAdapter;
     ListView mListView;
     SessionManager mSession;
@@ -53,12 +61,12 @@ public class MainActivity extends BaseActivity {
     CoordinateDao mCoordinateDao;
     HashMap<String, String> mCurrentUser;
     PictureDao mPictureDao;
+    private Bitmap mBitmap;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-//        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
 
         mUserDao = new UserDao(this);
         mNoteDao = new NoteDao(this);
@@ -120,6 +128,13 @@ public class MainActivity extends BaseActivity {
                 return false;
             }
         });
+        User user = mUserDao.findUserById(mUserDao.
+                findUserByLogin(mCurrentUser.get(SessionManager.KEY_LOGIN)));
+        if(user.getImage()!=null) {
+            BaseActivity baseActivity = new BaseActivity();
+            baseActivity.mProfilePicture.setImageBitmap(getImage(user.getImage()));
+        }
+
 
         mListView.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE_MODAL);
         mListView.setMultiChoiceModeListener(new AbsListView.MultiChoiceModeListener() {
@@ -150,7 +165,6 @@ public class MainActivity extends BaseActivity {
                         for (long id : ids) {
                             Note note = mNoteDao.getNoteById(id);
                             mCoordinateDao.deleteCoordinate(note.getmLocation());
-                            //mPictureDao.deletePicture(note.getmId());
                             mNoteDao.deleteNote(id);
                         }
                         mListView.clearChoices();
@@ -195,10 +209,6 @@ public class MainActivity extends BaseActivity {
                 Intent intent = NoteActivity.createIntentForAddNote(this);
                 startActivityForResult(intent, 1);
                 return true;
-            case R.id.item_logout:
-                mSession.logoutUser();
-                finish();
-                return true;
             default:
                 super.onOptionsItemSelected(item);
         }
@@ -216,6 +226,7 @@ public class MainActivity extends BaseActivity {
                                 (mCurrentUser.get(SessionManager.KEY_LOGIN)), 1));
                     }
                 });
+
 
             }
         }
@@ -310,5 +321,8 @@ public class MainActivity extends BaseActivity {
         }
     }
 
+    public Bitmap getImage(byte[] image) {
+        return BitmapFactory.decodeByteArray(image, 0, image.length);
+    }
 }
 

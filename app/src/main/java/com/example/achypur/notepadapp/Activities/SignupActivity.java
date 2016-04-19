@@ -3,6 +3,7 @@ package com.example.achypur.notepadapp.Activities;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.BitmapShader;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -10,22 +11,19 @@ import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
 import android.graphics.Rect;
 import android.graphics.RectF;
+import android.graphics.Shader;
 import android.net.Uri;
 import android.os.Bundle;
-import android.provider.MediaStore;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 
+import com.example.achypur.notepadapp.CustomView.ProfilePicture;
 import com.example.achypur.notepadapp.DAO.UserDao;
 import com.example.achypur.notepadapp.Entities.User;
 import com.example.achypur.notepadapp.R;
@@ -34,9 +32,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URI;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.List;
 
 public class SignUpActivity extends AppCompatActivity {
@@ -44,7 +40,7 @@ public class SignUpActivity extends AppCompatActivity {
     private final static int UPLOAD_KEY = 1;
     UserDao mUserDao;
     User mCurrentUser = new User();
-    ImageView imageView;
+    ProfilePicture mProfilePicture;
     Bitmap mBitmap;
 
     @Override
@@ -59,7 +55,7 @@ public class SignUpActivity extends AppCompatActivity {
             ex.printStackTrace();
         }
 
-        final EditText firstNama = (EditText) findViewById(R.id.sign_up_first_name);
+        final EditText firstName = (EditText) findViewById(R.id.sign_up_first_name);
         final EditText login = (EditText) findViewById(R.id.sign_up_login);
         final EditText email = (EditText) findViewById(R.id.sign_up_email);
         final EditText password = (EditText) findViewById(R.id.sign_up_password);
@@ -67,10 +63,12 @@ public class SignUpActivity extends AppCompatActivity {
         Button submit = (Button) findViewById(R.id.sign_up_submit_button);
         Button cancel = (Button) findViewById(R.id.sign_up_cancel_button);
         Button upload = (Button) findViewById(R.id.sign_up_upload_button);
-        imageView = (ImageView) findViewById(R.id.image);
+        //mImageView = (ImageView) findViewById(R.id.image);
+        mProfilePicture = (ProfilePicture) findViewById(R.id.sign_up_image);
         mBitmap = BitmapFactory.decodeResource(getResources(),
                 R.drawable.people);
-        imageView.setImageBitmap(getCircleBitmap(mBitmap));
+        mProfilePicture.setImageBitmap(mBitmap);
+        //mImageView.setImageBitmap(getCircularBitmapWithWhiteBorder(mBitmap,15));
 
 
         final List<User> userList = mUserDao.getAllUsers();
@@ -84,7 +82,7 @@ public class SignUpActivity extends AppCompatActivity {
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 if(login.getText().toString().trim().equals("") |
-                        firstNama.getText().toString().trim().equals("") |
+                        firstName.getText().toString().trim().equals("") |
                         password.getText().toString().trim().equals("") |
                         confirmPassword.getText().toString().trim().equals("")) {
                     alertBuilder(Check.CHECK_INPUT);
@@ -100,13 +98,13 @@ public class SignUpActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 login.addTextChangedListener(textWatcher);
-                firstNama.addTextChangedListener(textWatcher);
+                firstName.addTextChangedListener(textWatcher);
                 password.addTextChangedListener(textWatcher);
                 confirmPassword.addTextChangedListener(textWatcher);
                 if (!checkPassword(password.getText().toString().trim(), confirmPassword.getText().toString().trim())) {
                     alertBuilder(Check.CHECK_PASSWORD);
                 } else {
-                    mCurrentUser = createUser(firstNama.getText().toString().trim(),
+                    mCurrentUser = createUser(firstName.getText().toString().trim(),
                             login.getText().toString().trim(),
                             email.getText().toString().trim(),
                             password.getText().toString().trim());
@@ -160,7 +158,7 @@ public class SignUpActivity extends AppCompatActivity {
                 InputStream iStream = getContentResolver().openInputStream(selectedImage);
                 mBitmap = getImage(getBytes(iStream));
                 mCurrentUser.setImage(getBytes(iStream));
-                imageView.setImageBitmap(getCircleBitmap(mBitmap));
+                mProfilePicture.setImageBitmap(mBitmap);
             } catch (FileNotFoundException ex) {
                 ex.printStackTrace();
             } catch (IOException ex) {
@@ -169,28 +167,32 @@ public class SignUpActivity extends AppCompatActivity {
         }
     }
 
-    private Bitmap getCircleBitmap(Bitmap bitmap) {
-        final Bitmap output = Bitmap.createBitmap(bitmap.getWidth(),
-                bitmap.getHeight(), Bitmap.Config.ARGB_8888);
-        final Canvas canvas = new Canvas(output);
+    public static Bitmap getCircularBitmapWithWhiteBorder(Bitmap bitmap,
+                                                          int borderWidth) {
+        if (bitmap == null || bitmap.isRecycled()) {
+            return null;
+        }
 
-        final int color = Color.RED;
-        final Paint paint = new Paint();
-        final Rect rect = new Rect(0, 0, bitmap.getWidth(), bitmap.getHeight());
-        final RectF rectF = new RectF(rect);
+        final int width = bitmap.getWidth() + borderWidth;
+        final int height = bitmap.getHeight() + borderWidth;
 
+        Bitmap canvasBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+        BitmapShader shader = new BitmapShader(bitmap, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP);
+        Paint paint = new Paint();
         paint.setAntiAlias(true);
-        canvas.drawARGB(0, 0, 0, 0);
-        paint.setColor(color);
-        canvas.drawOval(rectF, paint);
+        paint.setShader(shader);
 
-        paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_IN));
-        canvas.drawBitmap(bitmap, rect, rect, paint);
-
-        bitmap.recycle();
-
-        return output;
+        Canvas canvas = new Canvas(canvasBitmap);
+        float radius = width > height ? ((float) height) / 2f : ((float) width) / 2f;
+        canvas.drawCircle(width / 2, height / 2, radius, paint);
+        paint.setShader(null);
+        paint.setStyle(Paint.Style.STROKE);
+        paint.setColor(Color.WHITE);
+        paint.setStrokeWidth(borderWidth);
+        canvas.drawCircle(width / 2, height / 2, radius - borderWidth / 2, paint);
+        return canvasBitmap;
     }
+
 
     public byte[] getBytes(InputStream inputStream) throws IOException {
         ByteArrayOutputStream byteBuffer = new ByteArrayOutputStream();

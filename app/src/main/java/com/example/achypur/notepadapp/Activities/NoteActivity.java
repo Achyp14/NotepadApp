@@ -109,8 +109,6 @@ public class NoteActivity extends BaseActivity {
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_note);
-//        Toolbar toolbar = (Toolbar) findViewById(R.id.note_toolbar);
-//        setSupportActionBar(toolbar);
         //ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, MAP_PERMISSION);
         mNoteDao = new NoteDao(this);
         mUserDao = new UserDao(this);

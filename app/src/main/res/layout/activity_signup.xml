@@ -3,30 +3,22 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:background="#A7FFEB"
     android:padding="10dp"
     tools:context=".Activities.SignUpActivity">
 
-        <!--<com.example.achypur.notepadapp.CustomView.CustomProfilePicture-->
-            <!--android:id="@+id/sign_up_profile_picture"-->
-            <!--android:layout_centerHorizontal="true"-->
-            <!--app:civ_border_width="2dp"-->
-            <!--app:civ_border_color="@android:color/white"-->
-            <!--android:src="@drawable/people"-->
-            <!--android:layout_width="wrap_content"-->
-            <!--android:layout_height="wrap_content" />-->
-
-        <ImageView
-            android:background="@drawable/circle_picture"
+        <com.example.achypur.notepadapp.CustomView.ProfilePicture
+            xmlns:customNS="http://schemas.android.com/apk/res/com.example.achypur.notepadapp"
             android:layout_centerHorizontal="true"
-            android:id="@+id/image"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
+            android:id="@+id/sign_up_image"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            customNS:borderSize="5dp"
+            android:scaleType="fitXY"/>
 
         <Button
             android:layout_centerHorizontal="true"
-            android:layout_below="@+id/image"
+            android:layout_below="@+id/sign_up_image"
             android:text="Upload Picture"
             android:textColor="@color/colorLoginText"
             android:id="@+id/sign_up_upload_button"

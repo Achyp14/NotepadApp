@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/ColorViolet"
+    android:gravity="center_vertical|center_horizontal"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+
+    <com.example.achypur.notepadapp.CustomView.ProfilePicture
+        xmlns:customNS="http://schemas.android.com/apk/res/com.example.achypur.notepadapp"
+        android:id="@+id/hamburger_header_profile_picture"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        customNS:borderSize="5dp"
+        android:scaleType="fitXY" />
+
+    <!--<Button-->
+    <!--android:id="@+id/hamburger_header_upload_button"-->
+    <!--android:layout_width="wrap_content"-->
+    <!--android:layout_height="wrap_content"-->
+    <!--android:text="Upload"/>-->
+
+    <!--<TextView-->
+    <!--android:id="@+id/hamburger_header"-->
+    <!--android:layout_width="wrap_content"-->
+    <!--android:layout_height="wrap_content"-->
+    <!--android:text="Hello"-->
+    <!--android:textColor="@android:color/white" />-->
+
+</LinearLayout>
