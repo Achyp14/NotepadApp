@@ -13,13 +13,18 @@ public class User {
     public User() {
     }
 
-    public User(String login, String name, String email, String password, String role, byte[] image) {
+    public User(Long id, String login, String name, String email, String password, String role, byte[] image) {
+        mId = id;
         mLogin = login;
         mName = name;
         mEmail = email;
         mPassword = password;
         mRole =  role;
         mImage = image;
+    }
+
+    public User(String login, String name, String email, String password, String role, byte[] image) {
+       this(null, login, name, email, password, role, image);
     }
 
     public void setLogin(String login) {

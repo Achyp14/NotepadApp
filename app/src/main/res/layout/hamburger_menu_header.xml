@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:layout_height="wrap_content"
     android:background="@color/ColorViolet"
-    android:gravity="center_vertical|center_horizontal"
+    android:gravity="center_horizontal"
     android:orientation="vertical"
     android:padding="16dp">
 
@@ -13,20 +13,27 @@
         android:id="@+id/hamburger_header_profile_picture"
         android:layout_width="100dp"
         android:layout_height="100dp"
-        customNS:borderSize="5dp"
-        android:scaleType="fitXY" />
+        android:scaleType="fitXY"
+        android:layout_centerHorizontal="true"
+        customNS:borderSize="5dp" />
 
-    <!--<Button-->
-    <!--android:id="@+id/hamburger_header_upload_button"-->
-    <!--android:layout_width="wrap_content"-->
-    <!--android:layout_height="wrap_content"-->
-    <!--android:text="Upload"/>-->
+    <LinearLayout
+        android:layout_alignParentBottom="true"
+        android:layout_width="match_parent"
+        android:orientation="vertical"
+        android:layout_below="@+id/hamburger_header_profile_picture"
+        android:layout_height="wrap_content">
 
-    <!--<TextView-->
-    <!--android:id="@+id/hamburger_header"-->
-    <!--android:layout_width="wrap_content"-->
-    <!--android:layout_height="wrap_content"-->
-    <!--android:text="Hello"-->
-    <!--android:textColor="@android:color/white" />-->
+    <TextView
+        android:id="@+id/hamburger_header_login"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="@android:color/white" />
 
-</LinearLayout>
+        <TextView
+            android:id="@+id/hamburger_header_email"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@android:color/white" />
+    </LinearLayout>
+</RelativeLayout>

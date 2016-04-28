@@ -3,30 +3,22 @@ package com.example.achypur.notepadapp.Activities;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.BitmapShader;
-import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.Paint;
-import android.graphics.PorterDuff;
-import android.graphics.PorterDuffXfermode;
-import android.graphics.Rect;
-import android.graphics.RectF;
-import android.graphics.Shader;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ImageView;
 
 import com.example.achypur.notepadapp.CustomView.ProfilePicture;
 import com.example.achypur.notepadapp.DAO.UserDao;
 import com.example.achypur.notepadapp.Entities.User;
 import com.example.achypur.notepadapp.R;
+import com.example.achypur.notepadapp.Session.SessionManager;
 
 import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
@@ -42,6 +34,7 @@ public class SignUpActivity extends AppCompatActivity {
     User mCurrentUser = new User();
     ProfilePicture mProfilePicture;
     Bitmap mBitmap;
+    SessionManager mSession;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,30 +42,28 @@ public class SignUpActivity extends AppCompatActivity {
         setContentView(R.layout.activity_signup);
 
         mUserDao = new UserDao(this);
+        mSession = new SessionManager(this);
         try {
             mUserDao.open();
         } catch (SQLException ex) {
             ex.printStackTrace();
         }
 
-        final EditText firstName = (EditText) findViewById(R.id.sign_up_first_name);
-        final EditText login = (EditText) findViewById(R.id.sign_up_login);
-        final EditText email = (EditText) findViewById(R.id.sign_up_email);
+        final EditText firstName = (EditText) findViewById(R.id.profile_first_name);
+        final EditText login = (EditText) findViewById(R.id.profile_login);
+        final EditText email = (EditText) findViewById(R.id.profile_email);
         final EditText password = (EditText) findViewById(R.id.sign_up_password);
-        final EditText confirmPassword = (EditText) findViewById(R.id.sign_up_confirm_password);
-        Button submit = (Button) findViewById(R.id.sign_up_submit_button);
-        Button cancel = (Button) findViewById(R.id.sign_up_cancel_button);
-        Button upload = (Button) findViewById(R.id.sign_up_upload_button);
-        //mImageView = (ImageView) findViewById(R.id.image);
+        final EditText confirmPassword = (EditText) findViewById(R.id.profile_confirm_password);
+        final Button submit = (Button) findViewById(R.id.profile_submit_button);
+        final Button cancel = (Button) findViewById(R.id.profile_cancel_button);
+        final Button upload = (Button) findViewById(R.id.sign_up_upload_button);
         mProfilePicture = (ProfilePicture) findViewById(R.id.sign_up_image);
         mBitmap = BitmapFactory.decodeResource(getResources(),
                 R.drawable.people);
         mProfilePicture.setImageBitmap(mBitmap);
-        //mImageView.setImageBitmap(getCircularBitmapWithWhiteBorder(mBitmap,15));
-
 
         final List<User> userList = mUserDao.getAllUsers();
-        final Intent intent = new Intent(this, MainActivity.class);
+        final Intent intentMain = new Intent(this, MainActivity.class);
 
         final TextWatcher textWatcher = new TextWatcher() {
             @Override
@@ -94,6 +85,7 @@ public class SignUpActivity extends AppCompatActivity {
             }
         };
 
+        if (submit != null)
         submit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -107,13 +99,15 @@ public class SignUpActivity extends AppCompatActivity {
                     mCurrentUser = createUser(firstName.getText().toString().trim(),
                             login.getText().toString().trim(),
                             email.getText().toString().trim(),
-                            password.getText().toString().trim());
+                            password.getText().toString().trim(), mCurrentUser.getImage());
 
                     if (checkUserInDb(mCurrentUser, userList)) {
                         alertBuilder(Check.CHECK_USER);
                     } else {
-                        createUserInDb(mCurrentUser);
-                        startActivity(intent);
+                        User user = createUserInDb(mCurrentUser);
+                        mSession.createLoginSession(user.getLogin(), user.getPassword());
+                        intentMain.putExtra("userId", user.getId());
+                        startActivity(intentMain);
                         finish();
                     }
                 }
@@ -121,6 +115,7 @@ public class SignUpActivity extends AppCompatActivity {
         });
 
         final Intent back = new Intent(this, LoginActivity.class);
+        if (cancel != null)
         cancel.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -156,8 +151,9 @@ public class SignUpActivity extends AppCompatActivity {
 
             try {
                 InputStream iStream = getContentResolver().openInputStream(selectedImage);
-                mBitmap = getImage(getBytes(iStream));
-                mCurrentUser.setImage(getBytes(iStream));
+                byte[] image = getBytes(iStream);
+                mBitmap = byteToBitMap(image);
+                mCurrentUser.setImage(image);
                 mProfilePicture.setImageBitmap(mBitmap);
             } catch (FileNotFoundException ex) {
                 ex.printStackTrace();
@@ -165,32 +161,6 @@ public class SignUpActivity extends AppCompatActivity {
                 ex.printStackTrace();
             }
         }
-    }
-
-    public static Bitmap getCircularBitmapWithWhiteBorder(Bitmap bitmap,
-                                                          int borderWidth) {
-        if (bitmap == null || bitmap.isRecycled()) {
-            return null;
-        }
-
-        final int width = bitmap.getWidth() + borderWidth;
-        final int height = bitmap.getHeight() + borderWidth;
-
-        Bitmap canvasBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
-        BitmapShader shader = new BitmapShader(bitmap, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP);
-        Paint paint = new Paint();
-        paint.setAntiAlias(true);
-        paint.setShader(shader);
-
-        Canvas canvas = new Canvas(canvasBitmap);
-        float radius = width > height ? ((float) height) / 2f : ((float) width) / 2f;
-        canvas.drawCircle(width / 2, height / 2, radius, paint);
-        paint.setShader(null);
-        paint.setStyle(Paint.Style.STROKE);
-        paint.setColor(Color.WHITE);
-        paint.setStrokeWidth(borderWidth);
-        canvas.drawCircle(width / 2, height / 2, radius - borderWidth / 2, paint);
-        return canvasBitmap;
     }
 
 
@@ -206,9 +176,10 @@ public class SignUpActivity extends AppCompatActivity {
         return byteBuffer.toByteArray();
     }
 
-    public Bitmap getImage(byte[] image) {
+    public Bitmap byteToBitMap(byte[] image) {
         return BitmapFactory.decodeByteArray(image, 0, image.length);
     }
+
 
     public enum Check {
         CHECK_PASSWORD, CHECK_USER, CHECK_INPUT
@@ -254,13 +225,19 @@ public class SignUpActivity extends AppCompatActivity {
         return false;
     }
 
-    public User createUser(String name, String login, String email, String password) {
-        return new User(login, name, email, password, null, null);
+    public User createUser(String name, String login, String email, String password, byte[] image) {
+        return new User(login, name, email, password, null, image);
     }
 
     public User createUserInDb(User user) {
         User currentUser = mUserDao.createUser(user);
         return currentUser;
+    }
+
+    @Override
+    public void onBackPressed() {
+        startActivity(new Intent(this, LoginActivity.class));
+        super.onBackPressed();
     }
 }
 

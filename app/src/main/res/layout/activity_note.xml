@@ -1,43 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
+    android:id="@+id/note_parent_layout"
     android:layout_height="match_parent"
     android:layout_centerHorizontal="true"
     android:orientation="vertical"
     android:background="#D1D0CE"
-    android:fitsSystemWindows="true"
     tools:context=".Activities.NoteActivity">
-
-    <!--<android.support.v7.widget.Toolbar-->
-        <!--android:id="@+id/note_toolbar"-->
-        <!--android:layout_width="match_parent"-->
-        <!--android:layout_height="?attr/actionBarSize"-->
-        <!--android:background="@color/colorPrimary"-->
-        <!--android:elevation="4dp"-->
-        <!--android:theme="@style/ThemeOverlay.AppCompat.ActionBar"-->
-        <!--app:popupTheme="@style/ThemeOverlay.AppCompat.Light" />-->
-
-
-    <LinearLayout
-        android:layout_margin="10dp"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical">
-
-        <TextView
-            android:id="@+id/note_edit_time"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:gravity="center"
-            android:textSize="20dp" />
-    </LinearLayout>
-
-    <com.example.achypur.tagview.TagView
-        android:id="@+id/tag_grid"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
 
     <ScrollView
         android:layout_weight="1"
@@ -52,11 +22,24 @@
             android:orientation="vertical"
             android:weightSum="2">
 
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:hint="Note"
+                android:textSize="20dp"/>
+            <View
+                android:layout_marginTop="5dp"
+                android:layout_marginBottom="5dp"
+                android:layout_width="match_parent"
+                android:layout_height="2dp"
+                android:background="@android:color/black" />
+
             <EditText
                 android:id="@+id/note_edit_title"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:inputType="textNoSuggestions"
+                android:hint="Title"
+
                 android:singleLine="true" />
 
             <EditText
@@ -65,8 +48,16 @@
                 android:layout_height="wrap_content"
                 android:background="@null"
                 android:gravity="top"
+                android:hint="Content"
                 android:layout_marginBottom="15dp"
-                android:inputType="textNoSuggestions|textMultiLine" />
+                android:inputType="textMultiLine" />
+
+
+            <com.example.achypur.tagview.TagView
+                android:id="@+id/tag_grid"
+                android:layout_width="match_parent"
+                android:visibility="visible"
+                android:layout_height="wrap_content" />
 
             <GridView
                 android:stretchMode="columnWidth"
@@ -77,16 +68,25 @@
                 android:horizontalSpacing="10dp"
                 android:verticalSpacing="10dp"
                 android:gravity="center"
-                android:layout_height="wrap_content"/>
+                android:layout_height="wrap_content"
+                android:layout_margin="7dp"/>
 
             <fragment
                 android:id="@+id/note_map"
                 android:name="com.google.android.gms.maps.SupportMapFragment"
                 android:layout_width="match_parent"
-                android:layout_height="300dp" />
+                android:layout_height="250dp" />
+
+
         </LinearLayout>
     </ScrollView>
 
+    <TextView
+        android:id="@+id/note_edit_time"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:textSize="20dp" />
     <View
         android:id="@+id/linearLayout"
         android:layout_width="match_parent"

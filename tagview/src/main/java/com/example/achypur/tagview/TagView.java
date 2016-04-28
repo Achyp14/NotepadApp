@@ -15,6 +15,7 @@ import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -28,6 +29,7 @@ public class TagView extends ViewGroup {
     List<String> mList = new ArrayList<>();
     int mDeviceWidth;
     Listener mListener;
+    boolean isFocused = false;
 
     public void setListener(Listener listener) {
         mListener = listener;
@@ -42,7 +44,6 @@ public class TagView extends ViewGroup {
             colorGenerator(R.drawable.item_effect, R.id.shape, R.array.item_colors, i);
             addView(createTagView(tag));
             i++;
-
             if (i > 5) {
                 i = 0;
             }
@@ -168,7 +169,7 @@ public class TagView extends ViewGroup {
         final LinearLayout linearLayout = (LinearLayout) root.findViewById(R.id.linear_layout);
         textView.setText(tag.toLowerCase());
 
-        if(!isEnabled()) {
+        if (!isEnabled()) {
             delete.setVisibility(GONE);
         }
 
@@ -189,11 +190,12 @@ public class TagView extends ViewGroup {
         final ImageView imageView = (ImageView) root.findViewById(R.id.plus);
         final EditText editText = (EditText) root.findViewById(R.id.edit_text);
 
-        if(isEnabled()) {
+        if (isEnabled()) {
             imageView.setVisibility(VISIBLE);
         } else {
             imageView.setVisibility(GONE);
         }
+
 
         imageView.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -201,6 +203,8 @@ public class TagView extends ViewGroup {
                 imageView.setVisibility(GONE);
                 editText.setVisibility(VISIBLE);
                 editText.requestFocus();
+                InputMethodManager imm = (InputMethodManager) getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+                imm.showSoftInput(editText, InputMethodManager.SHOW_IMPLICIT);
             }
         });
 
@@ -210,10 +214,10 @@ public class TagView extends ViewGroup {
                 if (keyCode == KeyEvent.KEYCODE_ENTER && event.getAction() == KeyEvent.ACTION_UP) {
                     if (mListener != null) {
                         String item = editText.getText().toString();
-                        editText.setText("");
-                        editText.clearFocus();
                         mListener.onAddingTag(item);
+                        editText.setText("");
                         setList(mList);
+                        isFocused = true;
                         return true;
                     }
                 }
@@ -224,7 +228,9 @@ public class TagView extends ViewGroup {
         editText.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
             public void onFocusChange(View v, boolean hasFocus) {
+                Log.e("Achyp", "231|TagView::onFocusChange: " + hasFocus);
                 if (!hasFocus) {
+                    isFocused = false;
                     editText.setVisibility(GONE);
                     editText.setText("");
                     editText.clearFocus();
@@ -232,7 +238,6 @@ public class TagView extends ViewGroup {
                 }
             }
         });
-
         return root;
     }
 

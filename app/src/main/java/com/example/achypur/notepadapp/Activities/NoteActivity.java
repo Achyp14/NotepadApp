@@ -1,6 +1,5 @@
 package com.example.achypur.notepadapp.Activities;
 
-import android.Manifest;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
@@ -14,17 +13,12 @@ import android.location.Address;
 import android.location.Criteria;
 import android.location.Geocoder;
 import android.location.Location;
-import android.location.LocationListener;
 import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Bundle;
-import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -36,6 +30,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.GridView;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -47,8 +42,8 @@ import com.example.achypur.notepadapp.DAO.TagOfNotesDao;
 import com.example.achypur.notepadapp.DAO.UserDao;
 import com.example.achypur.notepadapp.Entities.Coordinate;
 import com.example.achypur.notepadapp.Entities.Note;
-import com.example.achypur.notepadapp.Entities.Picture;
 import com.example.achypur.notepadapp.Entities.Tag;
+import com.example.achypur.notepadapp.Entities.User;
 import com.example.achypur.notepadapp.R;
 import com.example.achypur.notepadapp.Session.SessionManager;
 import com.example.achypur.notepadapp.Util.DataBaseUtil;
@@ -77,9 +72,10 @@ import java.util.TimeZone;
 
 public class NoteActivity extends BaseActivity {
     private final static String NOTE_ID_KEY = "id";
+    private final static String REVISE_MODE = "MODE";
     private final static int UPLOAD_KEY = 1;
-    private final static int PICTURE_PERMISSION = 20;
     private final static int MAP_PERMISSION = 10;
+
 
     NoteDao mNoteDao;
     UserDao mUserDao;
@@ -93,23 +89,25 @@ public class NoteActivity extends BaseActivity {
     SupportMapFragment mMapFragment;
     Menu mMenu;
     TagView mTagView;
+    Long mLocation = null;
     List<Tag> mCurrentAddTagsList = new ArrayList<>();
     List<Tag> mTagsList = new ArrayList<>();
     List<Tag> mCurrentRemoveTagsList = new ArrayList<>();
     DataBaseUtil mDataBaseUtil;
     List<byte[]> mUriList = new ArrayList<>();
-    List<byte[]> mCurrentAddPIctures = new ArrayList<>();
+    List<byte[]> mCurrentAddPictures = new ArrayList<>();
     List<byte[]> mCurrentRemovePictures = new ArrayList<>();
     GridViewAdapter mGridViewAdapter;
     PictureDao mPictureDao;
     GridView mGridView;
+    User mLoggedUser;
+    boolean mReviseMode = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_note);
-        //ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, MAP_PERMISSION);
+
         mNoteDao = new NoteDao(this);
         mUserDao = new UserDao(this);
         mCoordinateDao = new CoordinateDao(this);
@@ -117,9 +115,7 @@ public class NoteActivity extends BaseActivity {
         mTagOfNotesDao = new TagOfNotesDao(this);
         mSession = new SessionManager(this);
         mPictureDao = new PictureDao(this);
-        mCurrentUser = mSession.getUserDetails();
-        mTagView = (TagView) findViewById(R.id.tag_grid);
-        mGridViewAdapter = new GridViewAdapter(this);
+
         try {
             mNoteDao.open();
             mUserDao.open();
@@ -131,21 +127,28 @@ public class NoteActivity extends BaseActivity {
             ex.printStackTrace();
         }
 
+        mCurrentUser = mSession.getUserDetails();
+        mLoggedUser = mUserDao.findUserById(mUserDao.findUserByLogin(mCurrentUser.get(SessionManager.KEY_LOGIN)));
+        setContentView(R.layout.activity_note);
+
+        mTagView = (TagView) findViewById(R.id.tag_grid);
+        mGridViewAdapter = new GridViewAdapter(this);
+
+        LinearLayout linearLayout = (LinearLayout) findViewById(R.id.note_parent_layout);
 
         final EditText title = (EditText) findViewById(R.id.note_edit_title);
         final EditText content = (EditText) findViewById(R.id.note_edit_content);
         final TextView time = (TextView) findViewById(R.id.note_edit_time);
-
         final Button save = (Button) findViewById(R.id.note_button_submit);
         final Button cancel = (Button) findViewById(R.id.note_button_cancel);
-
         Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("GMT + 2:00"));
         final Date currentLocalTime = calendar.getTime();
         final DateFormat dateFormat = new SimpleDateFormat("dd/MM/yy");
         dateFormat.setTimeZone(TimeZone.getTimeZone("GMT + 2:00"));
-        time.setText(dateFormat.format(currentLocalTime));
+        time.setText("Created at " + dateFormat.format(currentLocalTime));
         save.setEnabled(false);
-
+        mGridView = (GridView) findViewById(R.id.note_edit_pictures);
+        mDataBaseUtil = new DataBaseUtil(mTagOfNotesDao, mTagView, mTagDao, mNote);
         TextWatcher watcher = new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
@@ -165,21 +168,25 @@ public class NoteActivity extends BaseActivity {
             public void afterTextChanged(Editable s) {
             }
         };
-        title.addTextChangedListener(watcher);
-        content.addTextChangedListener(watcher);
+
+        if (title != null && content != null) {
+            title.addTextChangedListener(watcher);
+            content.addTextChangedListener(watcher);
+        }
         mMapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.note_map);
-        mMapFragment.getView().setVisibility(View.INVISIBLE);
+        mMapFragment.getView().setVisibility(View.GONE);
+        title.requestFocus();
 
         initParamsFromIntent(getIntent());
-        mDataBaseUtil = new DataBaseUtil(mTagOfNotesDao, mTagView, mTagDao, mNote);
-        mGridView = (GridView) findViewById(R.id.note_edit_pictures);
+
 
         if (isEditMode()) {
+            time.setText("Last modified at " + dateFormat.format(currentLocalTime));
             title.setText(mNote.getmTitle());
             content.setText(mNote.getmContent());
-            if (mNote.getmUserId() != mUserDao.findUserById(mUserDao.findUserByLogin
-                    (mCurrentUser.get(SessionManager.KEY_LOGIN))).getId()) {
+
+            if (isReviseMode() || mNote.getmUserId() != mLoggedUser.getId()) {
                 title.setEnabled(false);
                 content.setEnabled(false);
                 save.setText("OK");
@@ -187,27 +194,25 @@ public class NoteActivity extends BaseActivity {
                 content.setTextColor(Color.BLACK);
                 mTagView.setEnabled(false);
                 mGridView.setEnabled(false);
-
-            }
-            if (mNote.getmLocation() != 0) {
-                mMapFragment.getView().setVisibility(View.VISIBLE);
-                mMapFragment.getMapAsync(new OnMapReadyCallback() {
-                    @Override
-                    public void onMapReady(GoogleMap googleMap) {
-                        Coordinate coordinate = mCoordinateDao.getCoordinateById(mNote.getmLocation());
-                        final LatLng currentPosition = new LatLng(coordinate.getLatitude(), coordinate.getLongtitude());
-                        googleMap.addMarker(new MarkerOptions().position(currentPosition));
-                        googleMap.moveCamera(CameraUpdateFactory.newLatLng(currentPosition));
-                        googleMap.animateCamera(CameraUpdateFactory.zoomTo(8), 2000, null);
-                    }
-                });
+            } else {
+                if (mNote.getmLocation() != 0) {
+                    mMapFragment.getView().setVisibility(View.VISIBLE);
+                    mMapFragment.getMapAsync(new OnMapReadyCallback() {
+                        @Override
+                        public void onMapReady(GoogleMap googleMap) {
+                            Coordinate coordinate = mCoordinateDao.getCoordinateById(mNote.getmLocation());
+                            final LatLng currentPosition = new LatLng(coordinate.getLatitude(), coordinate.getLongtitude());
+                            googleMap.addMarker(new MarkerOptions().position(currentPosition));
+                            googleMap.moveCamera(CameraUpdateFactory.newLatLng(currentPosition));
+                            googleMap.animateCamera(CameraUpdateFactory.zoomTo(8), 2000, null);
+                        }
+                    });
+                }
             }
             mUriList = mPictureDao.getAllPicture(mNote.getmId());
             mGridViewAdapter.setList(mUriList);
             mTagsList = mDataBaseUtil.showAllTags(mNote.getmId(), mTagsList);
             mGridView.setAdapter(mGridViewAdapter);
-        } else {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, PICTURE_PERMISSION);
         }
 
         mGridView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
@@ -233,7 +238,7 @@ public class NoteActivity extends BaseActivity {
         mGridView.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
             public void onFocusChange(View v, boolean hasFocus) {
-                if(!hasFocus) {
+                if (!hasFocus) {
                     mGridView.setAdapter(mGridViewAdapter);
                     mGridViewAdapter.notifyDataSetChanged();
                 }
@@ -256,12 +261,12 @@ public class NoteActivity extends BaseActivity {
                             content.getText().toString().trim(), mUserDao.findUserByLogin
                                     (mCurrentUser.get(SessionManager.KEY_LOGIN)),
                             dateFormat.format(currentLocalTime),
-                            dateFormat.format(currentLocalTime), false, null);
-
+                            dateFormat.format(currentLocalTime), false, mLocation);
                     setResult(RESULT_OK, intent);
                     finish();
                 }
 
+                mDataBaseUtil.setmNote(mNote);
                 if (!mCurrentAddTagsList.isEmpty()) {
                     mDataBaseUtil.createTagInDb(mCurrentAddTagsList);
                 }
@@ -270,9 +275,9 @@ public class NoteActivity extends BaseActivity {
                     mDataBaseUtil.deleteTagFromDb(mCurrentRemoveTagsList);
                 }
 
-                if (!mCurrentAddPIctures.isEmpty()) {
-                    for (int i = 0; i < mCurrentAddPIctures.size(); i++) {
-                        mPictureDao.createPicture(mCurrentAddPIctures.get(i), mNote.getmId());
+                if (!mCurrentAddPictures.isEmpty()) {
+                    for (int i = 0; i < mCurrentAddPictures.size(); i++) {
+                        mPictureDao.createPicture(mCurrentAddPictures.get(i), mNote.getmId());
                     }
                 }
 
@@ -282,17 +287,32 @@ public class NoteActivity extends BaseActivity {
                         mPictureDao.deletePicture(id, mNote.getmId());
                     }
                 }
+                mNoteDao.close();
+                mPictureDao.close();
+                mTagDao.close();
+                mTagOfNotesDao.close();
+                mCoordinateDao.close();
+                mUserDao.close();
             }
         });
 
         final Intent mainActivity = new Intent(this, MainActivity.class);
-        cancel.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startActivity(mainActivity);
-                finish();
-            }
-        });
+        if (cancel != null) {
+            cancel.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    startActivity(mainActivity);
+                    mNoteDao.close();
+                    mPictureDao.close();
+                    mTagDao.close();
+                    mTagOfNotesDao.close();
+                    mCoordinateDao.close();
+                    mUserDao.close();
+                    finish();
+                }
+            });
+        }
+
         mTagView.setListener(new TagView.Listener() {
             @Override
             public void onAddingTag(String tag) {
@@ -339,8 +359,8 @@ public class NoteActivity extends BaseActivity {
             menu.findItem(R.id.note_menu_picture).setVisible(true);
             menu.findItem(R.id.note_menu_check_shared).setVisible(true).
                     setChecked(mNote.getmPolicyStatus());
-            if (mNote.getmUserId() != mUserDao.findUserById(mUserDao.findUserByLogin
-                    (mCurrentUser.get(SessionManager.KEY_LOGIN))).getId()) {
+
+            if (mNote.getmUserId() != mLoggedUser.getId() || isReviseMode()) {
                 menu.findItem(R.id.note_menu_location).setVisible(false);
                 menu.findItem(R.id.note_menu_check_shared).setVisible(false).
                         setChecked(mNote.getmPolicyStatus());
@@ -391,10 +411,16 @@ public class NoteActivity extends BaseActivity {
                 }
             case R.id.note_menu_location:
                 Location location = findingLocation(this);
-                LatLng latLng = findingCoordinate(location);
-                String city = findingCityName();
-                dialogWindow(this, latLng, city);
-                return true;
+                if (location != null) {
+                    LatLng latLng = findingCoordinate(location);
+                    String city = findingCityName();
+                    dialogWindow(this, latLng, city);
+                    return true;
+                } else {
+                    Toast.makeText(this, "Location not found", Toast.LENGTH_SHORT).show();
+                    return true;
+                }
+
             case R.id.note_menu_picture:
                 Intent getIntent = new Intent(Intent.ACTION_GET_CONTENT);
                 getIntent.setType("image/*");
@@ -413,16 +439,35 @@ public class NoteActivity extends BaseActivity {
         return mNote != null;
     }
 
+    private boolean isReviseMode() {
+        return mReviseMode;
+    }
+
     private void initParamsFromIntent(Intent intent) {
         mNote = null;
+
+        if (intent != null && intent.getExtras() != null && intent.getExtras().containsKey(NOTE_ID_KEY) &&
+                intent.getExtras().containsKey(REVISE_MODE)) {
+            mNote = mNoteDao.getNoteById(intent.getLongExtra(NOTE_ID_KEY, -1));
+            mReviseMode = true;
+            return;
+        }
+
         if (intent != null && intent.getExtras() != null && intent.getExtras().containsKey(NOTE_ID_KEY)) {
             mNote = mNoteDao.getNoteById(intent.getLongExtra(NOTE_ID_KEY, -1));
-
         }
+
     }
 
     public static Intent createIntentForAddNote(Context context) {
         Intent intent = new Intent(context, NoteActivity.class);
+        return intent;
+    }
+
+    public static Intent createIntentForReviseNote(Context context, Long id, boolean reviseMode) {
+        Intent intent = new Intent(context, NoteActivity.class);
+        intent.putExtra(NOTE_ID_KEY, id);
+        intent.putExtra(REVISE_MODE, reviseMode);
         return intent;
     }
 
@@ -442,35 +487,27 @@ public class NoteActivity extends BaseActivity {
         Criteria criteria = new Criteria();
 
         final String provider = mLocationManager.getBestProvider(criteria, true);
-        final Location location = mLocationManager.getLastKnownLocation(provider);
-
-        mLocationManager.requestLocationUpdates(provider, 0, 0, new LocationListener() {
-            @Override
-            public void onLocationChanged(Location location) {
-            }
-
-            @Override
-            public void onStatusChanged(String provider, int status, Bundle extras) {
-            }
-
-            @Override
-            public void onProviderEnabled(String provider) {
-            }
-
-            @Override
-            public void onProviderDisabled(String provider) {
-            }
-        });
+        Location location = mLocationManager.getLastKnownLocation(provider);
         return location;
     }
 
     private LatLng findingCoordinate(Location location) {
         if (location != null) {
-            mNote.setmLocation(mCoordinateDao.createCoordinate(location.getLatitude(),
-                    location.getLongitude()));
+            if (mNote != null) {
+                mNote.setmLocation(mCoordinateDao.createCoordinate(location.getLatitude(),
+                        location.getLongitude()));
+            } else {
+                mLocation = mCoordinateDao.createCoordinate(location.getLatitude(),
+                        location.getLongitude());
+            }
         }
         try {
-            Coordinate coordinate = mCoordinateDao.getCoordinateById(mNote.getmLocation());
+            Coordinate coordinate;
+            if (mNote != null) {
+                coordinate = mCoordinateDao.getCoordinateById(mNote.getmLocation());
+            } else {
+                coordinate = mCoordinateDao.getCoordinateById(mLocation);
+            }
             return new LatLng(coordinate.getLatitude(), coordinate.getLongtitude());
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -480,7 +517,12 @@ public class NoteActivity extends BaseActivity {
     }
 
     private String findingCityName() {
-        Coordinate coordinate = mCoordinateDao.getCoordinateById(mNote.getmLocation());
+        Coordinate coordinate;
+        if (mNote != null) {
+            coordinate = mCoordinateDao.getCoordinateById(mNote.getmLocation());
+        } else {
+            coordinate = mCoordinateDao.getCoordinateById(mLocation);
+        }
         Geocoder geocoder = new Geocoder(NoteActivity.this, Locale.getDefault());
         List<Address> address = null;
         try {
@@ -595,7 +637,7 @@ public class NoteActivity extends BaseActivity {
                 InputStream iStream = getContentResolver().openInputStream(selectedImage);
                 byte[] inputData = getBytes(iStream);
                 mUriList.add(inputData);
-                mCurrentAddPIctures.add(inputData);
+                mCurrentAddPictures.add(inputData);
                 mGridViewAdapter.setList(mUriList);
                 mGridViewAdapter.notifyDataSetChanged();
             } catch (FileNotFoundException ex) {
@@ -668,6 +710,16 @@ public class NoteActivity extends BaseActivity {
 
     public Bitmap getImage(byte[] image) {
         return BitmapFactory.decodeByteArray(image, 0, image.length);
+    }
+
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+    }
+
+    private void disabledView(View view) {
+
     }
 
 }

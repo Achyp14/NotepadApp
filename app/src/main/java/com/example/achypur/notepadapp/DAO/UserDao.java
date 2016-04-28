@@ -40,9 +40,7 @@ public class UserDao {
         contentValues.put(DataBaseHelper.KEY_PASSWORD, user.getPassword());
         contentValues.put(DataBaseHelper.KEY_USER_ROLE, user.getRole());
         contentValues.put(DataBaseHelper.KEY_IMAGE, user.getImage());
-
         Long id = mSqLiteDatabase.insert(DataBaseHelper.TABLE_USER, null, contentValues);
-
         user.setId(id);
         return  user;
     }
@@ -67,7 +65,8 @@ public class UserDao {
         return newUser;
     }
 
-    public User updateUser(User user) {
+    public void updateUser(User user) {
+        Log.e("Achyp", "70|UserDao::updateUser: " + user.getName());
         ContentValues contentValues = new ContentValues();
         contentValues.put(mDataBaseHelper.KEY_LOGIN, user.getLogin());
         contentValues.put(mDataBaseHelper.KEY_NAME, user.getName());
@@ -76,16 +75,13 @@ public class UserDao {
         contentValues.put(mDataBaseHelper.KEY_USER_ROLE, user.getRole());
         contentValues.put(mDataBaseHelper.KEY_IMAGE, user.getImage());
 
-        long id = mSqLiteDatabase.update(mDataBaseHelper.TABLE_USER, contentValues,
-                " id=" + user.getId(), null);
+        int status = mSqLiteDatabase.update(mDataBaseHelper.TABLE_USER, contentValues,
+                " id = ? " , new String[] {String.valueOf(user.getId())});
+        Log.e("Achyp", "81|UserDao::updateUser:  " + status);
 
-        Cursor cursor = mSqLiteDatabase.query(DataBaseHelper.TABLE_USER, mColumns,
-                DataBaseHelper.KEY_ID + " = " + id, null, null, null, null);
+        User  newUser = findUserById(user.getId());
+        Log.e("Achyp", "84|UserDao::updateUser: " + newUser.getName());
 
-        cursor.moveToFirst();
-        user = cursorToUser(cursor);
-        cursor.close();
-        return user;
     }
 
     private User cursorToUser(Cursor cursor) {
@@ -103,6 +99,13 @@ public class UserDao {
     public void deleteUser(User user) {
         long id = user.getId();
         mSqLiteDatabase.delete(mDataBaseHelper.TABLE_USER, mDataBaseHelper.KEY_ID + " = " + id, null);
+    }
+
+
+    public void deleteAll() {
+        for(User user: getAllUsers()) {
+            mSqLiteDatabase.delete(mDataBaseHelper.TABLE_USER, mDataBaseHelper.KEY_ID + " = " + user.getId(), null);
+        }
     }
 
 
@@ -131,11 +134,12 @@ public class UserDao {
         }
     }
 
+
     public Long findUserByLogin(String login) {
+        Log.e("Achyp", "128|UserDao::findUserByLogin: " + login);
         Cursor cursor = mSqLiteDatabase.rawQuery("Select * from " + mDataBaseHelper.TABLE_USER + " where login = ?", new String[]{login});
         cursor.moveToFirst();
         return cursor.getLong(0);
-
     }
 
     public User findUserById(Long id) {

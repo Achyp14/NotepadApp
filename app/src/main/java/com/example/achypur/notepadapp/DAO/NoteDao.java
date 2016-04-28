@@ -37,10 +37,10 @@ public class NoteDao {
         contentValues.put(DataBaseHelper.KEY_TITLE, note.getmTitle());
         contentValues.put(DataBaseHelper.KEY_CONTENT, note.getmContent());
         contentValues.put(DataBaseHelper.KEY_USER, note.getmUserId());
-        contentValues.put(mDataBaseHelper.KEY_CREATED_DATE, note.getmCreatedDate());
-        contentValues.put(mDataBaseHelper.KEY_MODIFIED_DATE, note.getmModifiedDate());
-        contentValues.put(mDataBaseHelper.KEY_POLICY_STATUS, note.getmPolicyStatus());
-        contentValues.put(mDataBaseHelper.KEY_LOCAION, note.getmLocation());
+        contentValues.put(DataBaseHelper.KEY_CREATED_DATE, note.getmCreatedDate());
+        contentValues.put(DataBaseHelper.KEY_MODIFIED_DATE, note.getmModifiedDate());
+        contentValues.put(DataBaseHelper.KEY_POLICY_STATUS, note.getmPolicyStatus());
+        contentValues.put(DataBaseHelper.KEY_LOCAION, note.getmLocation());
 
         return contentValues;
     }

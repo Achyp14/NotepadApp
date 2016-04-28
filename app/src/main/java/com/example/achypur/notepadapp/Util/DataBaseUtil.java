@@ -25,6 +25,38 @@ public class DataBaseUtil {
         mNote = note;
     }
 
+    public TagOfNotesDao getmTagOfNotesDao() {
+        return mTagOfNotesDao;
+    }
+
+    public void setmTagOfNotesDao(TagOfNotesDao mTagOfNotesDao) {
+        this.mTagOfNotesDao = mTagOfNotesDao;
+    }
+
+    public TagView getmTagView() {
+        return mTagView;
+    }
+
+    public void setmTagView(TagView mTagView) {
+        this.mTagView = mTagView;
+    }
+
+    public TagDao getmTagDao() {
+        return mTagDao;
+    }
+
+    public void setmTagDao(TagDao mTagDao) {
+        this.mTagDao = mTagDao;
+    }
+
+    public Note getmNote() {
+        return mNote;
+    }
+
+    public void setmNote(Note mNote) {
+        this.mNote = mNote;
+    }
+
     public List<Tag> showAllTags(Long noteId, List<Tag> list) {
         List<Long> idList = mTagOfNotesDao.findTagsId(noteId);
         list = mTagDao.findTagsById(idList);
@@ -46,6 +78,7 @@ public class DataBaseUtil {
             if (item != null) {
                 mTagOfNotesDao.createTagOfNotes(mNote.getmId(), item.getmId(), mNote.getmUserId());
             } else {
+                Log.e("Achyp", "49|DataBaseUtil::createTagInDb: "  + mNote.getmId());
                 item = mTagDao.createTag(tag.getmTag());
                 mTagOfNotesDao.createTagOfNotes(mNote.getmId(), item.getmId(), mNote.getmUserId());
             }

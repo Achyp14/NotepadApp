@@ -36,8 +36,8 @@ public class PictureDao {
 
     private ContentValues getPictureContentValues(Picture picture) {
         final ContentValues contentValues = new ContentValues();
-        contentValues.put(mDataBaseHelper.KEY_PICTURE, picture.getByteArray());
-        contentValues.put(mDataBaseHelper.KEY_NOTE_ID, picture.getmTagId());
+        contentValues.put(DataBaseHelper.KEY_PICTURE, picture.getByteArray());
+        contentValues.put(DataBaseHelper.KEY_NOTE_ID, picture.getmTagId());
         return contentValues;
     }
 
@@ -47,14 +47,14 @@ public class PictureDao {
 
     public Picture createPicture(byte[] bytes, Long noteId) {
         Picture picture = new Picture(bytes, noteId);
-        Long id = mSqLiteDatabase.insert(mDataBaseHelper.TABLE_TAG_PICTURE, null, getPictureContentValues(picture));
+        Long id = mSqLiteDatabase.insert(DataBaseHelper.TABLE_TAG_PICTURE, null, getPictureContentValues(picture));
         picture.setmId(id);
         return picture;
     }
 
     public List<byte[]> getAllPicture(Long id) {
         Cursor cursor = mSqLiteDatabase.rawQuery("select * from " +
-                mDataBaseHelper.TABLE_TAG_PICTURE + " where note_id = ? ", new String[]{String.valueOf(id)});
+                DataBaseHelper.TABLE_TAG_PICTURE + " where note_id = ? ", new String[]{String.valueOf(id)});
         return addPictureToList(cursor);
     }
 

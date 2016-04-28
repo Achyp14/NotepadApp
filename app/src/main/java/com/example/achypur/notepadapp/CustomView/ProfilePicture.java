@@ -7,12 +7,9 @@ import android.graphics.BitmapShader;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
-import android.graphics.Path;
-import android.graphics.Point;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
 import android.graphics.Rect;
-import android.graphics.RectF;
 import android.graphics.Shader;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
@@ -26,6 +23,15 @@ import com.example.achypur.notepadapp.R;
 public class ProfilePicture extends ImageView {
 
     private int mBorderSize;
+    Listener mListener;
+
+    public interface Listener {
+        void onChangeProfile();
+    }
+
+    public void setListener(Listener mListener) {
+        this.mListener = mListener;
+    }
 
     public int getBorderSize() {
         return mBorderSize;
@@ -69,10 +75,11 @@ public class ProfilePicture extends ImageView {
             return;
         }
 
-        Bitmap b = null;
+        Bitmap b;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP
                 && drawable instanceof VectorDrawable) {
             ((VectorDrawable) drawable).draw(canvas);
+
             b = Bitmap.createBitmap(canvas.getWidth(), canvas.getHeight(), Bitmap.Config.ARGB_8888);
             Canvas c = new Canvas();
             c.setBitmap(b);
@@ -82,9 +89,9 @@ public class ProfilePicture extends ImageView {
             b = ((BitmapDrawable) drawable).getBitmap();
         }
 
-        Bitmap bitmap = b.copy(Bitmap.Config.ARGB_8888, true);
+       Bitmap bitmap = b.copy(Bitmap.Config.ARGB_8888, true);
 
-        int w = getWidth(), h = getHeight();
+        int w = getWidth();
 
         Bitmap roundBitmap =  getCircularBitmapWithWhiteBorder(bitmap);
         canvas.drawBitmap(getCroppedBitmap(roundBitmap,w), 0,0, null);
@@ -144,5 +151,4 @@ public class ProfilePicture extends ImageView {
 
         return output;
     }
-
 }
