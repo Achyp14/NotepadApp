@@ -13,6 +13,7 @@
         android:id="@+id/hamburger_header_profile_picture"
         android:layout_width="100dp"
         android:layout_height="100dp"
+        android:adjustViewBounds="true"
         android:scaleType="fitXY"
         android:layout_centerHorizontal="true"
         customNS:borderSize="5dp" />

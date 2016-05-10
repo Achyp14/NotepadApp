@@ -18,7 +18,15 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
 import android.text.Editable;
+import android.text.Spannable;
+import android.text.SpannableString;
+import android.text.SpannableStringBuilder;
+import android.text.Spanned;
 import android.text.TextWatcher;
+import android.text.method.LinkMovementMethod;
+import android.text.style.ClickableSpan;
+import android.util.Log;
+import android.util.Patterns;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -40,12 +48,15 @@ import com.example.achypur.notepadapp.DAO.PictureDao;
 import com.example.achypur.notepadapp.DAO.TagDao;
 import com.example.achypur.notepadapp.DAO.TagOfNotesDao;
 import com.example.achypur.notepadapp.DAO.UserDao;
+import com.example.achypur.notepadapp.Spannable.EmailClickableSpan;
 import com.example.achypur.notepadapp.Entities.Coordinate;
 import com.example.achypur.notepadapp.Entities.Note;
 import com.example.achypur.notepadapp.Entities.Tag;
 import com.example.achypur.notepadapp.Entities.User;
 import com.example.achypur.notepadapp.R;
 import com.example.achypur.notepadapp.Session.SessionManager;
+import com.example.achypur.notepadapp.Spannable.PhoneCLickableSpan;
+import com.example.achypur.notepadapp.Spannable.UrlClickableSpan;
 import com.example.achypur.notepadapp.Util.DataBaseUtil;
 import com.example.achypur.tagview.TagView;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -59,6 +70,9 @@ import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.Reader;
+import java.io.StreamTokenizer;
+import java.io.StringReader;
 import java.sql.SQLException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -89,7 +103,6 @@ public class NoteActivity extends BaseActivity {
     SupportMapFragment mMapFragment;
     Menu mMenu;
     TagView mTagView;
-    Long mLocation = null;
     List<Tag> mCurrentAddTagsList = new ArrayList<>();
     List<Tag> mTagsList = new ArrayList<>();
     List<Tag> mCurrentRemoveTagsList = new ArrayList<>();
@@ -102,6 +115,8 @@ public class NoteActivity extends BaseActivity {
     GridView mGridView;
     User mLoggedUser;
     boolean mReviseMode = false;
+    Long mLocation;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -133,9 +148,6 @@ public class NoteActivity extends BaseActivity {
 
         mTagView = (TagView) findViewById(R.id.tag_grid);
         mGridViewAdapter = new GridViewAdapter(this);
-
-        LinearLayout linearLayout = (LinearLayout) findViewById(R.id.note_parent_layout);
-
         final EditText title = (EditText) findViewById(R.id.note_edit_title);
         final EditText content = (EditText) findViewById(R.id.note_edit_content);
         final TextView time = (TextView) findViewById(R.id.note_edit_time);
@@ -143,10 +155,12 @@ public class NoteActivity extends BaseActivity {
         final Button cancel = (Button) findViewById(R.id.note_button_cancel);
         Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("GMT + 2:00"));
         final Date currentLocalTime = calendar.getTime();
-        final DateFormat dateFormat = new SimpleDateFormat("dd/MM/yy");
+        View line = findViewById(R.id.line);
+        final DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
         dateFormat.setTimeZone(TimeZone.getTimeZone("GMT + 2:00"));
         time.setText("Created at " + dateFormat.format(currentLocalTime));
         save.setEnabled(false);
+        LinearLayout buttonLayout = (LinearLayout) findViewById(R.id.buttons);
         mGridView = (GridView) findViewById(R.id.note_edit_pictures);
         mDataBaseUtil = new DataBaseUtil(mTagOfNotesDao, mTagView, mTagDao, mNote);
         TextWatcher watcher = new TextWatcher() {
@@ -179,36 +193,97 @@ public class NoteActivity extends BaseActivity {
         title.requestFocus();
 
         initParamsFromIntent(getIntent());
-
-
+        title.requestFocus();
+        title.setSelection(title.getText().length());
         if (isEditMode()) {
-            time.setText("Last modified at " + dateFormat.format(currentLocalTime));
-            title.setText(mNote.getmTitle());
-            content.setText(mNote.getmContent());
+            time.setText("Last modified at " + mNote.getmModifiedDate());
 
+            Reader reader = new StringReader(mNote.getmContent());
+            StreamTokenizer streamTokenizer = new StreamTokenizer(reader);
+            streamTokenizer.wordChars('@', '@');
+            streamTokenizer.wordChars('/', '/');
+            streamTokenizer.wordChars(':', ':');
+            streamTokenizer.ordinaryChar(' ');
+
+
+            SpannableStringBuilder builder = new SpannableStringBuilder("");
+
+            try {
+                while (streamTokenizer.nextToken() != StreamTokenizer.TT_EOF) {
+                    if (content == null)
+                        continue;
+                    Spannable sp;
+                    switch (streamTokenizer.ttype) {
+                        case StreamTokenizer.TT_WORD:
+                            String word = streamTokenizer.sval;
+                            if (Patterns.EMAIL_ADDRESS.matcher(word).matches()) {
+                                sp = new SpannableString(word);
+                                sp.setSpan(new EmailClickableSpan(this, word), 0, word.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                                builder.append(sp);
+                            } else if (Patterns.WEB_URL.matcher(word).matches()) {
+                                sp = new SpannableString(word);
+                                sp.setSpan(new UrlClickableSpan(this, word), 0, word.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                                builder.append(sp);
+                            } else {
+                                sp = new SpannableString(word);
+                                sp.setSpan(null, 0, 0, 0);
+                                builder.append(sp);
+                            }
+                            break;
+                        case StreamTokenizer.TT_NUMBER:
+                            Double number = streamTokenizer.nval;
+                            Integer integer = number.intValue();
+                            if (Patterns.PHONE.matcher(integer.toString()).matches()) {
+                                sp = new SpannableString(integer.toString());
+                                sp.setSpan(new PhoneCLickableSpan(this, integer.toString()), 0, 9, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                                builder.append(sp);
+                            } else {
+                                sp = new SpannableString(String.valueOf(integer));
+                                sp.setSpan(null, 0, 0, 0);
+                                builder.append(sp);
+                            }
+                            break;
+                        default:
+                            char[] chars = Character.toChars(streamTokenizer.ttype);
+                            sp = new SpannableString(String.valueOf(chars[0]));
+                            sp.setSpan(null, 0, 0, 0);
+                            builder.append(sp);
+                            break;
+                    }
+                    content.setText(builder);
+                    content.setMovementMethod(LinkMovementMethod.getInstance());
+                }
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+
+            title.setText(mNote.getmTitle());
+
+            if (mNote.getmLocation() != 0) {
+                mMapFragment.getView().setVisibility(View.VISIBLE);
+                mMapFragment.getMapAsync(new OnMapReadyCallback() {
+                    @Override
+                    public void onMapReady(GoogleMap googleMap) {
+                        Coordinate coordinate = mCoordinateDao.getCoordinateById(mNote.getmLocation());
+                        final LatLng currentPosition = new LatLng(coordinate.getLatitude(), coordinate.getLongtitude());
+                        googleMap.addMarker(new MarkerOptions().position(currentPosition));
+                        googleMap.moveCamera(CameraUpdateFactory.newLatLng(currentPosition));
+                        googleMap.animateCamera(CameraUpdateFactory.zoomTo(8), 2000, null);
+                    }
+                });
+            }
             if (isReviseMode() || mNote.getmUserId() != mLoggedUser.getId()) {
                 title.setEnabled(false);
-                content.setEnabled(false);
+                content.setFocusable(false);
                 save.setText("OK");
                 title.setTextColor(Color.BLACK);
                 content.setTextColor(Color.BLACK);
                 mTagView.setEnabled(false);
                 mGridView.setEnabled(false);
-            } else {
-                if (mNote.getmLocation() != 0) {
-                    mMapFragment.getView().setVisibility(View.VISIBLE);
-                    mMapFragment.getMapAsync(new OnMapReadyCallback() {
-                        @Override
-                        public void onMapReady(GoogleMap googleMap) {
-                            Coordinate coordinate = mCoordinateDao.getCoordinateById(mNote.getmLocation());
-                            final LatLng currentPosition = new LatLng(coordinate.getLatitude(), coordinate.getLongtitude());
-                            googleMap.addMarker(new MarkerOptions().position(currentPosition));
-                            googleMap.moveCamera(CameraUpdateFactory.newLatLng(currentPosition));
-                            googleMap.animateCamera(CameraUpdateFactory.zoomTo(8), 2000, null);
-                        }
-                    });
-                }
+                buttonLayout.setVisibility(View.GONE);
+                line.setVisibility(View.GONE);
             }
+
             mUriList = mPictureDao.getAllPicture(mNote.getmId());
             mGridViewAdapter.setList(mUriList);
             mTagsList = mDataBaseUtil.showAllTags(mNote.getmId(), mTagsList);
@@ -245,7 +320,7 @@ public class NoteActivity extends BaseActivity {
             }
         });
 
-        final Intent intent = new Intent();
+        final Intent intent = new Intent(this, MainActivity.class);
         save.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -254,7 +329,7 @@ public class NoteActivity extends BaseActivity {
                     mNote.setmContent(content.getText().toString().trim());
                     mNote.setmModifiedDate(dateFormat.format(currentLocalTime));
                     mNoteDao.updateNote(mNote);
-                    setResult(RESULT_OK, intent);
+                    startActivity(intent);
                     finish();
                 } else {
                     mNote = mNoteDao.createNote(title.getText().toString().trim(),
@@ -262,7 +337,7 @@ public class NoteActivity extends BaseActivity {
                                     (mCurrentUser.get(SessionManager.KEY_LOGIN)),
                             dateFormat.format(currentLocalTime),
                             dateFormat.format(currentLocalTime), false, mLocation);
-                    setResult(RESULT_OK, intent);
+                    startActivity(intent);
                     finish();
                 }
 
@@ -296,19 +371,24 @@ public class NoteActivity extends BaseActivity {
             }
         });
 
-        final Intent mainActivity = new Intent(this, MainActivity.class);
         if (cancel != null) {
             cancel.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    startActivity(mainActivity);
                     mNoteDao.close();
                     mPictureDao.close();
                     mTagDao.close();
                     mTagOfNotesDao.close();
                     mCoordinateDao.close();
                     mUserDao.close();
-                    finish();
+                    if (!isEditMode()) {
+                        startActivity(new Intent(NoteActivity.this, MainActivity.class));
+                        finish();
+                    } else {
+                        startActivity(createIntentForReviseNote(NoteActivity.this, mNote.getmId(), true));
+                        finish();
+                    }
+
                 }
             });
         }
@@ -355,21 +435,38 @@ public class NoteActivity extends BaseActivity {
     @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
         if (isEditMode()) {
-            menu.findItem(R.id.note_menu_location).setVisible(true);
-            menu.findItem(R.id.note_menu_picture).setVisible(true);
-            menu.findItem(R.id.note_menu_check_shared).setVisible(true).
-                    setChecked(mNote.getmPolicyStatus());
+            menu.findItem(R.id.note_menu_edit).setVisible(false);
+            if (mNote.getmLocation() != 0) {
+                menu.findItem(R.id.note_menu_location).setTitle("Edit location");
+            } else {
+                menu.findItem(R.id.note_menu_location).setTitle("Add location");
+            }
+            if (mNote.getmPolicyStatus()) {
+                menu.findItem(R.id.note_menu_check_shared).setChecked(true);
+            }
+        }
 
-            if (mNote.getmUserId() != mLoggedUser.getId() || isReviseMode()) {
+        if (isReviseMode()) {
+            menu.findItem(R.id.note_menu_location).setVisible(false);
+            menu.findItem(R.id.note_menu_check_shared).setVisible(false).
+                    setChecked(mNote.getmPolicyStatus());
+            menu.findItem(R.id.note_menu_picture).setVisible(false);
+            menu.findItem(R.id.note_menu_edit).setVisible(true);
+
+            if (mNote.getmUserId() != mLoggedUser.getId()) {
                 menu.findItem(R.id.note_menu_location).setVisible(false);
                 menu.findItem(R.id.note_menu_check_shared).setVisible(false).
                         setChecked(mNote.getmPolicyStatus());
+                menu.findItem(R.id.note_menu_edit).setVisible(false);
                 menu.findItem(R.id.note_menu_picture).setVisible(false);
             }
+        }
 
-            if (mNote.getmLocation() != 0) {
-                menu.findItem(R.id.note_menu_location).setTitle("Edit Location");
-            }
+        if (!isReviseMode() && !isEditMode()) {
+            menu.findItem(R.id.note_menu_location).setVisible(true);
+            menu.findItem(R.id.note_menu_edit).setVisible(false);
+            menu.findItem(R.id.note_menu_check_shared).setVisible(false);
+            menu.findItem(R.id.note_menu_picture).setVisible(false);
         }
         return super.onPrepareOptionsMenu(menu);
     }
@@ -392,7 +489,7 @@ public class NoteActivity extends BaseActivity {
                             .setPositiveButton("YES", new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
-                                    mNote.setmPolicyId(true);
+                                    mNote.setmPolicyStatus(true);
                                     item.setChecked(true);
                                 }
                             })
@@ -405,7 +502,7 @@ public class NoteActivity extends BaseActivity {
                     alertDialog.show();
                     return true;
                 } else {
-                    mNote.setmPolicyId(false);
+                    mNote.setmPolicyStatus(false);
                     item.setChecked(false);
                     return true;
                 }
@@ -431,6 +528,11 @@ public class NoteActivity extends BaseActivity {
                 Intent chooserIntent = Intent.createChooser(getIntent, "Select Image");
                 chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, new Intent[]{pickIntent});
                 startActivityForResult(chooserIntent, UPLOAD_KEY);
+                return true;
+            case R.id.note_menu_edit:
+                startActivity(createIntentForEditNote(this, mNote.getmId()));
+                item.setVisible(false);
+                finish();
         }
         return super.onOptionsItemSelected(item);
     }
@@ -494,8 +596,9 @@ public class NoteActivity extends BaseActivity {
     private LatLng findingCoordinate(Location location) {
         if (location != null) {
             if (mNote != null) {
-                mNote.setmLocation(mCoordinateDao.createCoordinate(location.getLatitude(),
-                        location.getLongitude()));
+                mLocation = mCoordinateDao.createCoordinate(location.getLatitude(),
+                        location.getLongitude());
+                mNote.setmLocation(mLocation);
             } else {
                 mLocation = mCoordinateDao.createCoordinate(location.getLatitude(),
                         location.getLongitude());
@@ -694,6 +797,7 @@ public class NoteActivity extends BaseActivity {
             imageView.setAdjustViewBounds(true);
             return convertView;
         }
+
     }
 
     public byte[] getBytes(InputStream inputStream) throws IOException {

@@ -72,7 +72,7 @@ public class SignUpActivity extends AppCompatActivity {
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                if(login.getText().toString().trim().equals("") |
+                if (login.getText().toString().trim().equals("") |
                         firstName.getText().toString().trim().equals("") |
                         password.getText().toString().trim().equals("") |
                         confirmPassword.getText().toString().trim().equals("")) {
@@ -86,43 +86,43 @@ public class SignUpActivity extends AppCompatActivity {
         };
 
         if (submit != null)
-        submit.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                login.addTextChangedListener(textWatcher);
-                firstName.addTextChangedListener(textWatcher);
-                password.addTextChangedListener(textWatcher);
-                confirmPassword.addTextChangedListener(textWatcher);
-                if (!checkPassword(password.getText().toString().trim(), confirmPassword.getText().toString().trim())) {
-                    alertBuilder(Check.CHECK_PASSWORD);
-                } else {
-                    mCurrentUser = createUser(firstName.getText().toString().trim(),
-                            login.getText().toString().trim(),
-                            email.getText().toString().trim(),
-                            password.getText().toString().trim(), mCurrentUser.getImage());
-
-                    if (checkUserInDb(mCurrentUser, userList)) {
-                        alertBuilder(Check.CHECK_USER);
+            submit.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    login.addTextChangedListener(textWatcher);
+                    firstName.addTextChangedListener(textWatcher);
+                    password.addTextChangedListener(textWatcher);
+                    confirmPassword.addTextChangedListener(textWatcher);
+                    if (!checkPassword(password.getText().toString().trim(), confirmPassword.getText().toString().trim())) {
+                        alertBuilder(Check.CHECK_PASSWORD);
                     } else {
-                        User user = createUserInDb(mCurrentUser);
-                        mSession.createLoginSession(user.getLogin(), user.getPassword());
-                        intentMain.putExtra("userId", user.getId());
-                        startActivity(intentMain);
-                        finish();
+                        mCurrentUser = createUser(firstName.getText().toString().trim(),
+                                login.getText().toString().trim(),
+                                email.getText().toString().trim(),
+                                password.getText().toString().trim(), mCurrentUser.getImage());
+
+                        if (checkUserInDb(mCurrentUser, userList)) {
+                            alertBuilder(Check.CHECK_USER);
+                        } else {
+                            User user = createUserInDb(mCurrentUser);
+                            mSession.createLoginSession(user.getLogin(), user.getPassword());
+                            intentMain.putExtra("userId", user.getId());
+                            startActivity(intentMain);
+                            finish();
+                        }
                     }
                 }
-            }
-        });
+            });
 
         final Intent back = new Intent(this, LoginActivity.class);
         if (cancel != null)
-        cancel.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startActivity(back);
-                finish();
-            }
-        });
+            cancel.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    startActivity(back);
+                    finish();
+                }
+            });
 
         upload.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -138,7 +138,6 @@ public class SignUpActivity extends AppCompatActivity {
                 startActivityForResult(chooserIntent, UPLOAD_KEY);
             }
         });
-
 
 
     }

@@ -80,7 +80,7 @@ public class Note {
         return mPolicyStatus;
     }
 
-    public void setmPolicyId(Boolean mPolicyStatus) {
+    public void setmPolicyStatus(Boolean mPolicyStatus) {
         this.mPolicyStatus = mPolicyStatus;
     }
 

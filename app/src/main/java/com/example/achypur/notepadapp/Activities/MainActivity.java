@@ -1,6 +1,8 @@
 package com.example.achypur.notepadapp.Activities;
 
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
@@ -30,6 +32,7 @@ import com.example.achypur.notepadapp.Session.SessionManager;
 import java.sql.SQLException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
@@ -40,7 +43,7 @@ import java.util.TimeZone;
 
 public class MainActivity extends BaseActivity {
 
-    NoteListAdapter mAdapter;
+    NoteListAdapter mNoteAdapter;
     ListView mListView;
     SessionManager mSession;
     UserDao mUserDao;
@@ -82,78 +85,100 @@ public class MainActivity extends BaseActivity {
 
         setContentView(R.layout.activity_main);
 
-        Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("GMT + 2:00"));
-        final Date currentLocalTime = calendar.getTime();
-        final DateFormat dateFormat = new SimpleDateFormat("dd/MM/yy");
-        dateFormat.setTimeZone(TimeZone.getTimeZone("GMT + 2:00"));
-
         mListView = (ListView) findViewById(R.id.note_list);
-        mAdapter = new NoteListAdapter(this);
+        mNoteAdapter = new NoteListAdapter(this);
 
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                mAdapter.setList(mNoteDao.getNotesByUserId(mLoggedUser.getId(), 1));
-                for(Note note : mNoteDao.getNotesByUserId(mLoggedUser.getId(), 1)) {
-                    Log.e("Achyp", "98|MainActivity::run: " + note.getmId());
-                }
+                mNoteAdapter.setList(mNoteDao.getNotesByUserId(mLoggedUser.getId(), 1));
             }
         });
-        mListView.setAdapter(mAdapter);
+        mListView.setAdapter(mNoteAdapter);
 
         mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Note note = mAdapter.getItem(position);
+                Note note = mNoteAdapter.getItem(position);
                 Intent intent = NoteActivity.createIntentForReviseNote(MainActivity.this, note.getmId(), true);
                 startActivityForResult(intent, 1);
             }
         });
 
-        mListView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
-            @Override
-            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
-                mListView.setItemChecked(position,true);
-                return false;
-            }
-        });
-
         mListView.setChoiceMode(AbsListView.CHOICE_MODE_MULTIPLE_MODAL);
         mListView.setMultiChoiceModeListener(new AbsListView.MultiChoiceModeListener() {
+            int pos = -1;
+            SparseBooleanArray selectedItems = new SparseBooleanArray();
+            List<Integer> positionList = new ArrayList<>();
+
             @Override
             public void onItemCheckedStateChanged(android.view.ActionMode mode, int position, long id, boolean checked) {
+                pos = position;
+
+                if (checked) {
+                    selectedItems.append(position, checked);
+                    positionList.add(pos);
+                } else {
+                    selectedItems.delete(position);
+                    positionList.remove(positionList.indexOf(pos));
+                }
+
+                if (selectedItems.size() > 1) {
+                    mode.getMenu().findItem(R.id.menu_item_edit).setVisible(false);
+                } else {
+                    mode.getMenu().findItem(R.id.menu_item_edit).setVisible(true);
+                }
             }
 
             @Override
             public boolean onCreateActionMode(android.view.ActionMode mode, Menu menu) {
-                mAdapter.setMultiChoice(true);
+                mNoteAdapter.setMultiChoice(true);
                 mode.getMenuInflater().inflate(R.menu.action_menu, menu);
                 return true;
             }
 
             @Override
             public boolean onPrepareActionMode(android.view.ActionMode mode, Menu menu) {
-                return true;
+                return false;
             }
 
 
             @Override
             public boolean onActionItemClicked(android.view.ActionMode mode, MenuItem item) {
+                Note note;
                 switch (item.getItemId()) {
+                    case R.id.menu_item_share:
+                        List<Note> noteList = new ArrayList<>();
+                        for (Integer position: positionList) {
+                            noteList.add(mNoteAdapter.getItem(position));
+                        }
+                        alertForSharing(noteList);
+                        mode.finish();
+                        return  true;
+
+                    case R.id.menu_item_edit:
+                        note = mNoteAdapter.getItem(pos);
+                        if (mLoggedUser.getId() != note.getmUserId()) {
+                            Toast.makeText(MainActivity.this, "You can't modify this note", Toast.LENGTH_SHORT).show();
+                            return false;
+                        } else {
+                            Intent intent = NoteActivity.createIntentForEditNote(MainActivity.this, note.getmId());
+                            startActivityForResult(intent, 1);
+                            return true;
+                        }
                     case R.id.menu_item_delete:
-                        SparseBooleanArray checked = mListView.getCheckedItemPositions();
-                        long[] ids = new long[checked.size()];
-                        for (int i = 0; i < checked.size(); i++) {
-                            int key = checked.keyAt(i);
-                            if(checked.get(key)) {
+                        long[] ids = new long[selectedItems.size()];
+                        for (int i = 0; i < selectedItems.size(); i++) {
+                            int key = selectedItems.keyAt(i);
+                            if (selectedItems.get(key)) {
                                 ids[i] = mListView.getItemIdAtPosition(key);
                             }
                         }
-                        if (checked.size() == 0)
+                        if (selectedItems.size() == 0)
                             return false;
                         for (long id : ids) {
-                            if(id != 0) {
-                                Note note = mNoteDao.getNoteById(id);
+                            if (id != 0) {
+                                note = mNoteDao.getNoteById(id);
                                 mCoordinateDao.deleteCoordinate(note.getmLocation());
                                 mNoteDao.deleteNote(id);
                             } else {
@@ -165,7 +190,7 @@ public class MainActivity extends BaseActivity {
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                mAdapter.setList(mNoteDao.getNotesByUserId(mLoggedUser.getId(), 1));
+                                mNoteAdapter.setList(mNoteDao.getNotesByUserId(mLoggedUser.getId(), 1));
                             }
                         });
                         mode.finish();
@@ -176,9 +201,33 @@ public class MainActivity extends BaseActivity {
 
             @Override
             public void onDestroyActionMode(android.view.ActionMode mode) {
-                mAdapter.setMultiChoice(false);
+                mNoteAdapter.setMultiChoice(false);
             }
         });
+    }
+
+    public void alertForSharing(final List<Note> list) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        AlertDialog alertDialog;
+        String message;
+        if (!list.isEmpty()) {
+            if(list.size() == 1) {
+                message= "Share this note?";
+            } else {
+                message = "Share picked notes?";
+            }
+
+            alertDialog = builder.setTitle(message).setPositiveButton("YES", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    for(Note note : list) {
+                        note.setmPolicyStatus(true);
+                        mNoteDao.updateNote(note);
+                    }
+                }
+            }).setNegativeButton("NO", null).create();
+            alertDialog.show();
+        }
     }
 
     @Override
@@ -199,7 +248,7 @@ public class MainActivity extends BaseActivity {
                         return note1.getmTitle().compareTo(note2.getmTitle());
                     }
                 });
-                mAdapter.setList(noteList);
+                mNoteAdapter.setList(noteList);
                 return true;
             case R.id.item_add_note:
                 Intent intent = NoteActivity.createIntentForAddNote(this);
@@ -218,7 +267,7 @@ public class MainActivity extends BaseActivity {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        mAdapter.setList(mNoteDao.getNotesByUserId(mLoggedUser.getId(), 1));
+                        mNoteAdapter.setList(mNoteDao.getNotesByUserId(mLoggedUser.getId(), 1));
                     }
                 });
             }
@@ -254,7 +303,6 @@ public class MainActivity extends BaseActivity {
         public boolean isEnabled(int position) {
             if (!multiChoice)
                 return true;
-
 
             boolean enabled = getItem(position).getmUserId() == mLoggedUser.getId();
             if (!enabled) {
@@ -323,7 +371,6 @@ public class MainActivity extends BaseActivity {
             }
 
             bind(viewHolderItem, note);
-
 
 
             return convertView;

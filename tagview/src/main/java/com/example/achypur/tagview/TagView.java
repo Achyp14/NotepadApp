@@ -190,6 +190,7 @@ public class TagView extends ViewGroup {
         final ImageView imageView = (ImageView) root.findViewById(R.id.plus);
         final EditText editText = (EditText) root.findViewById(R.id.edit_text);
 
+
         if (isEnabled()) {
             imageView.setVisibility(VISIBLE);
         } else {

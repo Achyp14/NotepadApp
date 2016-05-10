@@ -10,12 +10,12 @@ import android.graphics.Paint;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
 import android.graphics.Rect;
+import android.graphics.RectF;
 import android.graphics.Shader;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
-import android.graphics.drawable.VectorDrawable;
-import android.os.Build;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.widget.ImageView;
 
 import com.example.achypur.notepadapp.R;
@@ -23,15 +23,6 @@ import com.example.achypur.notepadapp.R;
 public class ProfilePicture extends ImageView {
 
     private int mBorderSize;
-    Listener mListener;
-
-    public interface Listener {
-        void onChangeProfile();
-    }
-
-    public void setListener(Listener mListener) {
-        this.mListener = mListener;
-    }
 
     public int getBorderSize() {
         return mBorderSize;
@@ -64,7 +55,7 @@ public class ProfilePicture extends ImageView {
 
     @Override
     protected void onDraw(Canvas canvas) {
-
+        super.onDraw(canvas);
         Drawable drawable = getDrawable();
 
         if (drawable == null) {
@@ -75,80 +66,59 @@ public class ProfilePicture extends ImageView {
             return;
         }
 
-        Bitmap b;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP
-                && drawable instanceof VectorDrawable) {
-            ((VectorDrawable) drawable).draw(canvas);
+        Bitmap bitmap = ((BitmapDrawable) drawable).getBitmap();
 
-            b = Bitmap.createBitmap(canvas.getWidth(), canvas.getHeight(), Bitmap.Config.ARGB_8888);
-            Canvas c = new Canvas();
-            c.setBitmap(b);
-            drawable.draw(c);
-        }
-        else {
-            b = ((BitmapDrawable) drawable).getBitmap();
-        }
 
-       Bitmap bitmap = b.copy(Bitmap.Config.ARGB_8888, true);
-
-        int w = getWidth();
-
-        Bitmap roundBitmap =  getCircularBitmapWithWhiteBorder(bitmap);
-        canvas.drawBitmap(getCroppedBitmap(roundBitmap,w), 0,0, null);
+        Paint paint = new Paint();
+        paint.setStyle(Paint.Style.STROKE);
+        paint.setColor(Color.WHITE);
+        paint.setStrokeWidth(getBorderSize());
+        canvas.drawCircle(getWidth() / 2, getHeight() / 2, getWidth() / 2 - getBorderSize() / 2, paint);
 
     }
 
-    public Bitmap getCircularBitmapWithWhiteBorder(Bitmap bitmap) {
+    @Override
+    public void setImageBitmap(Bitmap bm) {
+        Bitmap roundBorderedBitmap = bm.copy(Bitmap.Config.ARGB_8888, true);
+        Bitmap result = rectangleToSquare(roundBorderedBitmap);
+        result = drawCroppedImage(result);
+        super.setImageBitmap(result);
+    }
 
-        if (bitmap == null || bitmap.isRecycled()) {
-            return null;
+    public Bitmap rectangleToSquare(Bitmap bitmap) {
+        Bitmap currentBitmap;
+        if (bitmap.getWidth() < bitmap.getHeight()) {
+            currentBitmap = Bitmap.createBitmap(bitmap, 0, bitmap.getWidth() / 4, bitmap.getWidth(), bitmap.getWidth());
+        } else if (bitmap.getWidth() > bitmap.getHeight()) {
+            currentBitmap = Bitmap.createBitmap(bitmap, bitmap.getHeight() / 4, 0, bitmap.getHeight(), bitmap.getHeight());
+        } else {
+            currentBitmap = bitmap.copy(Bitmap.Config.ARGB_8888, true);
         }
+        return currentBitmap;
+    }
 
-        final int width = bitmap.getWidth() + getBorderSize();
-        final int height = bitmap.getHeight() + getBorderSize();
 
+    public Bitmap drawBorder(Bitmap bitmap, int borderSize) {
+        Bitmap currentBitMap = bitmap.copy(Bitmap.Config.ARGB_8888, true);
+        Paint paint = new Paint();
+        Canvas canvas = new Canvas(currentBitMap);
+        paint.setStyle(Paint.Style.STROKE);
+        paint.setColor(Color.WHITE);
+        paint.setStrokeWidth(getBorderSize());
+        canvas.drawCircle(currentBitMap.getWidth() / 2, currentBitMap.getHeight() / 2, currentBitMap.getWidth() / 2 - getBorderSize() / 2, paint);
 
+        return currentBitMap;
+    }
+
+    public Bitmap drawCroppedImage(Bitmap bitmap) {
         BitmapShader shader = new BitmapShader(bitmap, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP);
         Paint paint = new Paint();
         paint.setAntiAlias(true);
         paint.setShader(shader);
-        Bitmap canvasBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
-        Canvas canvas = new Canvas(canvasBitmap);
-        float radius = width > height ? ((float) height) / 2f : ((float) width) / 2f;
-        canvas.drawCircle(width / 2, height / 2, radius, paint);
-        paint.setShader(null);
-        paint.setStyle(Paint.Style.STROKE);
-        paint.setColor(Color.WHITE);
-        paint.setStrokeWidth(getBorderSize());
-        canvas.drawCircle(width / 2, height / 2, radius - getBorderSize() / 2, paint);
-        return canvasBitmap;
-    }
+        Bitmap roundedBorderedBitMap = Bitmap.createBitmap(bitmap.getWidth(), bitmap.getHeight(), Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(roundedBorderedBitMap);
+        canvas.drawCircle(bitmap.getWidth() / 2, bitmap.getHeight() / 2, bitmap.getHeight() / 2, paint);
 
-    public static Bitmap getCroppedBitmap(Bitmap bmp, int radius) {
-        Bitmap sbmp;
-        if(bmp.getWidth() != radius || bmp.getHeight() != radius) {
-            sbmp = Bitmap.createScaledBitmap(bmp, radius, radius, false);
-        } else {
-            sbmp = bmp;
-        }
-        Bitmap output = Bitmap.createBitmap(sbmp.getWidth(),
-                sbmp.getHeight(), Bitmap.Config.ARGB_8888);
-        Canvas canvas = new Canvas(output);
-
-        final Paint paint = new Paint();
-        final Rect rect = new Rect(0, 0, sbmp.getWidth(), sbmp.getHeight());
-
-        paint.setAntiAlias(true);
-        paint.setFilterBitmap(true);
-        paint.setDither(true);
-        canvas.drawARGB(0, 0, 0, 0);
-        paint.setColor(Color.WHITE);
-        canvas.drawCircle(sbmp.getWidth() / 2+0.7f, sbmp.getHeight() / 2+0.7f,
-                sbmp.getWidth() / 2+0.1f, paint);
-        paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_IN));
-        canvas.drawBitmap(sbmp, rect, rect, paint);
-
-
-        return output;
+        return roundedBorderedBitMap;
     }
 }

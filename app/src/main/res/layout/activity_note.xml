@@ -1,18 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
     android:id="@+id/note_parent_layout"
+    android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:layout_centerHorizontal="true"
-    android:orientation="vertical"
     android:background="#D1D0CE"
+    android:orientation="vertical"
     tools:context=".Activities.NoteActivity">
 
     <ScrollView
-        android:layout_weight="1"
         android:layout_width="match_parent"
-        android:layout_height="0dp">
+        android:layout_height="0dp"
+        android:layout_weight="1">
 
         <LinearLayout
             android:id="@+id/note_layout"
@@ -22,73 +22,91 @@
             android:orientation="vertical"
             android:weightSum="2">
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:hint="Note"
-                android:textSize="20dp"/>
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:hint="Note"
+                    android:textSize="20sp" />
+
+                <TextView
+                    android:id="@+id/note_edit_time"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="end"
+                    android:textSize="14dp" />
+            </RelativeLayout>
+
             <View
-                android:layout_marginTop="5dp"
-                android:layout_marginBottom="5dp"
                 android:layout_width="match_parent"
                 android:layout_height="2dp"
+                android:layout_marginBottom="5dp"
+                android:layout_marginTop="5dp"
                 android:background="@android:color/black" />
 
-            <EditText
-                android:id="@+id/note_edit_title"
+            <LinearLayout
+                android:background="#EFEEEC"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="Title"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:layout_marginBottom="10dp">
 
-                android:singleLine="true" />
+                <EditText
+                    android:layout_marginLeft="5dp"
 
-            <EditText
-                android:id="@+id/note_edit_content"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="@null"
-                android:gravity="top"
-                android:hint="Content"
-                android:layout_marginBottom="15dp"
-                android:inputType="textMultiLine" />
+                    android:id="@+id/note_edit_title"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Title"
+                    android:singleLine="true" />
 
+                <EditText
+                    android:layout_marginLeft="7dp"
+                    android:id="@+id/note_edit_content"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="15dp"
+                    android:gravity="top"
+                    android:background="@android:color/transparent"
+                    android:hint="Content"
+                    android:minHeight="150dp"
+                    android:inputType="textMultiLine" />
+            </LinearLayout>
 
             <com.example.achypur.tagview.TagView
                 android:id="@+id/tag_grid"
                 android:layout_width="match_parent"
+                android:layout_height="wrap_content"
                 android:visibility="visible"
-                android:layout_height="wrap_content" />
+                android:layout_marginBottom="15dp"/>
 
             <GridView
-                android:stretchMode="columnWidth"
-                android:numColumns="auto_fit"
-                android:columnWidth="100dp"
                 android:id="@+id/note_edit_pictures"
-                android:layout_width="wrap_content"
-                android:horizontalSpacing="10dp"
-                android:verticalSpacing="10dp"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_margin="5dp"
+                android:columnWidth="100dp"
                 android:gravity="center"
-                android:layout_height="wrap_content"
-                android:layout_margin="7dp"/>
+                android:numColumns="auto_fit"
+                android:stretchMode="none" />
 
             <fragment
                 android:id="@+id/note_map"
                 android:name="com.google.android.gms.maps.SupportMapFragment"
                 android:layout_width="match_parent"
-                android:layout_height="250dp" />
+                android:layout_height="250dp"
+                android:layout_marginBottom="20dp"/>
 
 
         </LinearLayout>
     </ScrollView>
 
-    <TextView
-        android:id="@+id/note_edit_time"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center"
-        android:textSize="20dp" />
+
     <View
-        android:id="@+id/linearLayout"
+        android:id="@+id/line"
         android:layout_width="match_parent"
         android:layout_height="1dp"
         android:background="#00CCff" />
@@ -109,7 +127,7 @@
             android:layout_weight="1"
             android:background="@drawable/button_selector"
             android:text="Save"
-            android:textSize="20dp" />
+            android:textSize="20sp" />
 
         <View
             android:layout_width="1dp"
@@ -126,7 +144,7 @@
             android:layout_weight="1"
             android:background="@drawable/button_selector"
             android:text="Cancel"
-            android:textSize="20dp" />
+            android:textSize="20sp" />
     </LinearLayout>
 
 

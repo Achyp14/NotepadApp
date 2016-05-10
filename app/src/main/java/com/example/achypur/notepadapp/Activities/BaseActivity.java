@@ -38,7 +38,6 @@ import java.util.List;
 
 public class BaseActivity extends AppCompatActivity {
 
-    private final static int KEY = 1;
 
     private ListView mLeftListView;
     private DrawerLayout mDrawerLayout;
@@ -61,6 +60,7 @@ public class BaseActivity extends AppCompatActivity {
     public void setContentView(@LayoutRes int layoutResID) {
         super.setContentView(R.layout.activity_base);
         Toolbar toolbar = (Toolbar) findViewById(R.id.my_toolbar);
+        NoteActivity n = new NoteActivity();
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayShowTitleEnabled(false);
         mSession = new SessionManager(this);

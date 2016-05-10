@@ -59,6 +59,8 @@ public class LoginActivity extends AppCompatActivity {
         if (userDao.isEmpty()) {
             mUser = userDao.createUser("admin", "Andrii", "achyp14@gmail.com", "admin", null, null);
             mSession.createLoginSession(mUser.getLogin(), mUser.getPassword());
+            mSession.logoutUser();
+            finish();
         }
 
         final EditText login = (EditText) findViewById(R.id.login_login);
