@@ -78,9 +78,17 @@ public class PictureDao {
     }
 
     public Long findPictureByNoteId(Long id) {
+        Log.e("Achyp", "81|PictureDao::findPictureByNoteId: " + id);
         Cursor cursor = mSqLiteDatabase.rawQuery("select id from " + mDataBaseHelper.TABLE_TAG_PICTURE
                 + " where note_id = ? ", new String[]{String.valueOf(id)});
         cursor.moveToFirst();
         return cursor.getLong(0);
+    }
+
+    public Picture findPictureById(Long id) {
+        Log.e("Achyp", "89|PictureDao::findPictureById:  " + id);
+        Cursor cursor = mSqLiteDatabase.rawQuery("select * from " + DataBaseHelper.TABLE_TAG_PICTURE + " where id = ?", new String[]{id.toString()});
+
+        return cursorToPicture(cursor);
     }
 }

@@ -55,6 +55,16 @@ public class NoteDao {
         return note;
     }
 
+    public void deleteAllNotes() {
+        List<Note> list = getAllNotes();
+
+        for (Note note : list) {
+            mSqLiteDatabase.delete(DataBaseHelper.TABLE_NOTE, DataBaseHelper.KEY_ID + " = " + note.getmId(), null);
+        }
+
+    }
+
+
     private Note cursorToNote(Cursor cursor) {
         return new Note(
                 cursor.getLong(0),
@@ -69,31 +79,33 @@ public class NoteDao {
     }
 
     public void updateNote(Note note) {
-        mSqLiteDatabase.update(mDataBaseHelper.TABLE_NOTE, getNoteContentValues(note),
+        mSqLiteDatabase.update(DataBaseHelper.TABLE_NOTE, getNoteContentValues(note),
                 " id= " + note.getmId(), null);
     }
 
     public void deleteNote(long id) {
-        mSqLiteDatabase.delete(mDataBaseHelper.TABLE_NOTE, mDataBaseHelper.KEY_ID + " = " + id, null);
+        mSqLiteDatabase.delete(DataBaseHelper.TABLE_NOTE, DataBaseHelper.KEY_ID + " = " + id, null);
     }
 
 
     public Note getNoteById(Long id) {
         if (id < 0)
             return null;
-
-        Cursor cursor = mSqLiteDatabase.rawQuery("Select * from " + mDataBaseHelper.TABLE_NOTE + " where id = ? ", new String[]{String.valueOf(id)});
+        for(Note n : getAllNotes()) {
+            Log.e("Achyp", "95|NoteDao::getNoteById: " + n.getmTitle());
+        }
+        Cursor cursor = mSqLiteDatabase.rawQuery("Select * from " + DataBaseHelper.TABLE_NOTE + " where id = ? ", new String[]{String.valueOf(id)});
         cursor.moveToFirst();
         return cursorToNote(cursor);
     }
 
     public List<Note> getAllNotes() {
-        Cursor cursor = mSqLiteDatabase.rawQuery("Select * from " + mDataBaseHelper.TABLE_NOTE, null);
+        Cursor cursor = mSqLiteDatabase.rawQuery("Select * from " + DataBaseHelper.TABLE_NOTE, null);
         return addNoteToList(cursor);
     }
 
     public List<Note> getNotesByUserId(Long id, int status) {
-        Cursor cursor = mSqLiteDatabase.rawQuery("Select * from " + mDataBaseHelper.TABLE_NOTE + " where user_id = ? or policy = ? ", new String[]{id.toString(),String.valueOf(status)});
+        Cursor cursor = mSqLiteDatabase.rawQuery("Select * from " + DataBaseHelper.TABLE_NOTE + " where user_id = ? or policy = ? ", new String[]{id.toString(), String.valueOf(status)});
         return addNoteToList(cursor);
     }
 

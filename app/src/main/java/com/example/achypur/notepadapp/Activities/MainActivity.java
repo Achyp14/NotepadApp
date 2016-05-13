@@ -4,7 +4,9 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.database.CursorIndexOutOfBoundsException;
 import android.os.Bundle;
+import android.support.design.widget.FloatingActionButton;
 import android.util.Log;
 import android.util.SparseBooleanArray;
 import android.view.LayoutInflater;
@@ -15,6 +17,7 @@ import android.view.ViewGroup;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.BaseAdapter;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -24,6 +27,7 @@ import com.example.achypur.notepadapp.DAO.NoteDao;
 import com.example.achypur.notepadapp.DAO.PictureDao;
 import com.example.achypur.notepadapp.DAO.UserDao;
 import com.example.achypur.notepadapp.Entities.Note;
+import com.example.achypur.notepadapp.Entities.Picture;
 import com.example.achypur.notepadapp.Entities.User;
 import com.example.achypur.notepadapp.R;
 import com.example.achypur.notepadapp.Session.SessionManager;
@@ -86,6 +90,16 @@ public class MainActivity extends BaseActivity {
         setContentView(R.layout.activity_main);
 
         mListView = (ListView) findViewById(R.id.note_list);
+        FloatingActionButton floatingActionButton = (FloatingActionButton) findViewById(R.id.note_float_button);
+        if (floatingActionButton != null) {
+            floatingActionButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent intent = NoteActivity.createIntentForAddNote(MainActivity.this);
+                    startActivity(intent);
+                }
+            });
+        }
         mNoteAdapter = new NoteListAdapter(this);
 
         runOnUiThread(new Runnable() {
@@ -113,7 +127,12 @@ public class MainActivity extends BaseActivity {
 
             @Override
             public void onItemCheckedStateChanged(android.view.ActionMode mode, int position, long id, boolean checked) {
+                Log.e("Achyp", "127|MainActivity::onItemCheckedStateChanged: ");
                 pos = position;
+
+                View view = mListView.getChildAt(position);
+
+                Log.e("Achyp", "132|MainActivity::onItemCheckedStateChanged: " + view.isSelected() + " "+ view.isLongClickable() + " " + view.isClickable());
 
                 if (checked) {
                     selectedItems.append(position, checked);
@@ -132,6 +151,7 @@ public class MainActivity extends BaseActivity {
 
             @Override
             public boolean onCreateActionMode(android.view.ActionMode mode, Menu menu) {
+                Log.e("Achyp", "147|MainActivity::onCreateActionMode: ");
                 mNoteAdapter.setMultiChoice(true);
                 mode.getMenuInflater().inflate(R.menu.action_menu, menu);
                 return true;
@@ -139,22 +159,25 @@ public class MainActivity extends BaseActivity {
 
             @Override
             public boolean onPrepareActionMode(android.view.ActionMode mode, Menu menu) {
-                return false;
+                Log.e("Achyp", "155|MainActivity::onPrepareActionMode: ");
+                return true;
             }
+
 
 
             @Override
             public boolean onActionItemClicked(android.view.ActionMode mode, MenuItem item) {
+                Log.e("Achyp", "162|MainActivity::onActionItemClicked: ");
                 Note note;
                 switch (item.getItemId()) {
                     case R.id.menu_item_share:
                         List<Note> noteList = new ArrayList<>();
-                        for (Integer position: positionList) {
+                        for (Integer position : positionList) {
                             noteList.add(mNoteAdapter.getItem(position));
                         }
                         alertForSharing(noteList);
                         mode.finish();
-                        return  true;
+                        return true;
 
                     case R.id.menu_item_edit:
                         note = mNoteAdapter.getItem(pos);
@@ -204,6 +227,8 @@ public class MainActivity extends BaseActivity {
                 mNoteAdapter.setMultiChoice(false);
             }
         });
+
+
     }
 
     public void alertForSharing(final List<Note> list) {
@@ -211,8 +236,8 @@ public class MainActivity extends BaseActivity {
         AlertDialog alertDialog;
         String message;
         if (!list.isEmpty()) {
-            if(list.size() == 1) {
-                message= "Share this note?";
+            if (list.size() == 1) {
+                message = "Share this note?";
             } else {
                 message = "Share picked notes?";
             }
@@ -220,7 +245,7 @@ public class MainActivity extends BaseActivity {
             alertDialog = builder.setTitle(message).setPositiveButton("YES", new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
-                    for(Note note : list) {
+                    for (Note note : list) {
                         note.setmPolicyStatus(true);
                         mNoteDao.updateNote(note);
                     }
@@ -278,15 +303,15 @@ public class MainActivity extends BaseActivity {
         TextView title;
         TextView time;
         TextView sharedBy;
-        View line;
-        TextView location;
+        ImageView location;
+        ImageView picture;
 
         public ViewHolderItem(View view) {
             title = (TextView) view.findViewById(R.id.item_title);
             time = (TextView) view.findViewById(R.id.time);
             sharedBy = (TextView) view.findViewById(R.id.item_shared_by);
-            location = (TextView) view.findViewById(R.id.item_location);
-            line = view.findViewById(R.id.item_line);
+            location = (ImageView) view.findViewById(R.id.item_location);
+            picture = (ImageView) view.findViewById(R.id.item_picture);
         }
     }
 
@@ -338,11 +363,18 @@ public class MainActivity extends BaseActivity {
         }
 
         private void bind(ViewHolderItem holder, Note note) {
+            Picture picture;
+
+                Long id = mPictureDao.findPictureByNoteId(note.getmId());
+                picture = mPictureDao.findPictureById(id);
+
+
             if (note.getmUserId() != mLoggedUser.getId()) {
+                String shared = "Shared by " +
+                        mUserDao.findUserById(note.getmUserId()).getName();
                 holder.location.setVisibility(View.GONE);
                 holder.sharedBy.setVisibility(View.VISIBLE);
-                holder.sharedBy.setText("Shared by " +
-                        mUserDao.findUserById(note.getmUserId()).getName());
+                holder.sharedBy.setText(shared);
             } else {
                 holder.location.setVisibility(View.GONE);
                 holder.sharedBy.setVisibility(View.GONE);
@@ -350,6 +382,11 @@ public class MainActivity extends BaseActivity {
 
             if (note.getmLocation() != 0) {
                 holder.location.setVisibility(View.VISIBLE);
+            }
+
+            if(picture != null) {
+                Log.e("Achyp", "391|NoteListAdapter::bind: ");
+                holder.picture.setVisibility(View.VISIBLE);
             }
 
             holder.title.setText(note.getmTitle());
@@ -361,7 +398,6 @@ public class MainActivity extends BaseActivity {
             final ViewHolderItem viewHolderItem;
             Note note = getItem(position);
 
-
             if (convertView == null) {
                 convertView = mInflater.inflate(R.layout.item, parent, false);
                 viewHolderItem = new ViewHolderItem(convertView);
@@ -371,7 +407,6 @@ public class MainActivity extends BaseActivity {
             }
 
             bind(viewHolderItem, note);
-
 
             return convertView;
         }

@@ -25,13 +25,13 @@ import com.example.achypur.notepadapp.CustomView.ProfilePicture;
 import com.example.achypur.notepadapp.DAO.UserDao;
 import com.example.achypur.notepadapp.Entities.User;
 import com.example.achypur.notepadapp.R;
+import com.example.achypur.notepadapp.Session.SessionManager;
 
 import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.SQLException;
-
 
 
 public class ProfileActivity extends AppCompatActivity {
@@ -41,6 +41,7 @@ public class ProfileActivity extends AppCompatActivity {
     User mCurrentUser = new User();
     UserDao mUserDao;
     ProfilePicture mProfilePicture;
+    SessionManager mSession;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,6 +63,7 @@ public class ProfileActivity extends AppCompatActivity {
         } catch (SQLException ex) {
             ex.printStackTrace();
         }
+        mSession = new SessionManager(this);
 
         Bundle extras = getIntent().getExtras();
 
@@ -78,7 +80,7 @@ public class ProfileActivity extends AppCompatActivity {
             mProfilePicture.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.people));
         }
 
-        if (!mCurrentUser.getEmail().equals("")) {
+        if (!mCurrentUser.getEmail().equals("") && email != null) {
             email.setText(mCurrentUser.getEmail());
         }
 
@@ -129,16 +131,18 @@ public class ProfileActivity extends AppCompatActivity {
 
 
         login.addTextChangedListener(textWatcher);
-        ok.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Log.e("Achyp", "135|ProfileActivity::onClick: " + firstName.getText());
-                updateUser(firstName.getText().toString(), login.getText().toString(),
-                        email.getText().toString(), mCurrentUser.getPassword(), mCurrentUser.getImage());
+        if (ok != null) {
+            ok.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    updateUser(firstName.getText().toString(), login.getText().toString(),
+                            email.getText().toString(), mCurrentUser.getPassword(), mCurrentUser.getImage());
+                    mSession.createLoginSession(login.getText().toString(), mCurrentUser.getPassword());
 
-                finish();
-            }
-        });
+                    finish();
+                }
+            });
+        }
 
         cancel.setOnClickListener(new View.OnClickListener() {
             @Override

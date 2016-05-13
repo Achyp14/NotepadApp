@@ -11,16 +11,15 @@
 
     <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="0dp"
+        android:layout_height="@dimen/note_scroll_view_height"
         android:layout_weight="1">
 
         <LinearLayout
             android:id="@+id/note_layout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_margin="10dp"
-            android:orientation="vertical"
-            android:weightSum="2">
+            android:layout_margin="@dimen/note_main_linearLayout_margin"
+            android:orientation="vertical">
 
             <RelativeLayout
                 android:layout_width="match_parent"
@@ -29,78 +28,77 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:hint="Note"
-                    android:textSize="20sp" />
+                    android:hint="@string/note"
+                    android:textSize="@dimen/note_header" />
 
                 <TextView
                     android:id="@+id/note_edit_time"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:gravity="end"
-                    android:textSize="14dp" />
+                    android:textSize="@dimen/note_time" />
             </RelativeLayout>
 
             <View
                 android:layout_width="match_parent"
-                android:layout_height="2dp"
-                android:layout_marginBottom="5dp"
-                android:layout_marginTop="5dp"
+                android:layout_height="@dimen/note_header_line_height"
+                android:layout_marginBottom="@dimen/note_header_margin"
+                android:layout_marginTop="@dimen/note_header_margin"
                 android:background="@android:color/black" />
 
             <LinearLayout
-                android:background="#EFEEEC"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:orientation="vertical"
-                android:layout_marginBottom="10dp">
+                android:layout_marginBottom="@dimen/note_layout_margin_bottom"
+                android:background="#EFEEEC"
+                android:orientation="vertical">
 
                 <EditText
-                    android:layout_marginLeft="5dp"
-
                     android:id="@+id/note_edit_title"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="Title"
+                    android:layout_marginLeft="@dimen/note_title_margin_left"
+                    android:hint="@string/title"
                     android:singleLine="true" />
 
                 <EditText
-                    android:layout_marginLeft="7dp"
                     android:id="@+id/note_edit_content"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="15dp"
-                    android:gravity="top"
+                    android:layout_marginBottom="@dimen/note_content_margin_bottom"
+                    android:layout_marginLeft="@dimen/note_content_margin_left"
                     android:background="@android:color/transparent"
-                    android:hint="Content"
-                    android:minHeight="150dp"
-                    android:inputType="textMultiLine" />
+                    android:gravity="top"
+                    android:hint="@string/content"
+                    android:inputType="textMultiLine"
+                    android:minHeight="@dimen/note_content_min_height" />
             </LinearLayout>
 
             <com.example.achypur.tagview.TagView
                 android:id="@+id/tag_grid"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:visibility="visible"
-                android:layout_marginBottom="15dp"/>
+                android:layout_marginBottom="@dimen/note_tag_view_margin_bottom"
+                android:visibility="visible" />
 
             <GridView
                 android:id="@+id/note_edit_pictures"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_margin="5dp"
-                android:columnWidth="100dp"
+                android:layout_height="wrap_content"
+                android:layout_margin="@dimen/note_grid_view_margin"
+                android:columnWidth="@dimen/note_grid_view_column_width"
                 android:gravity="center"
+                android:longClickable="true"
+                android:minHeight="@dimen/note_grid_view_min_height"
                 android:numColumns="auto_fit"
-                android:stretchMode="none" />
+                android:stretchMode="columnWidth" />
 
             <fragment
                 android:id="@+id/note_map"
                 android:name="com.google.android.gms.maps.SupportMapFragment"
                 android:layout_width="match_parent"
-                android:layout_height="250dp"
-                android:layout_marginBottom="20dp"/>
-
-
+                android:layout_height="@dimen/note_map_height"
+                android:layout_marginBottom="@dimen/note_map_margin_bottom" />
         </LinearLayout>
     </ScrollView>
 
@@ -108,14 +106,14 @@
     <View
         android:id="@+id/line"
         android:layout_width="match_parent"
-        android:layout_height="1dp"
+        android:layout_height="@dimen/note_line_above_button_height"
         android:background="#00CCff" />
 
     <LinearLayout
         android:id="@+id/buttons"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:horizontalSpacing="0dp"
+        android:horizontalSpacing="@dimen/note_button_layout_horizontal_spacing"
         android:orientation="horizontal"
         android:weightSum="2">
 
@@ -126,25 +124,25 @@
             android:layout_gravity="bottom"
             android:layout_weight="1"
             android:background="@drawable/button_selector"
-            android:text="Save"
-            android:textSize="20sp" />
+            android:text="@string/save"
+            android:textSize="@dimen/note_save_button_text_size" />
 
         <View
-            android:layout_width="1dp"
+            android:layout_width="@dimen/note_button_divider_width"
             android:layout_height="match_parent"
-            android:layout_marginBottom="5dp"
-            android:layout_marginTop="5dp"
+            android:layout_marginBottom="@dimen/note_button_divider_margin_bottom"
+            android:layout_marginTop="@dimen/note_button_divider_margin_top"
             android:background="#00CCff" />
 
         <Button
             android:id="@+id/note_button_cancel"
-            android:layout_width="0dp"
+            android:layout_width="@dimen/note_cancel_button_width"
             android:layout_height="wrap_content"
             android:layout_gravity="bottom"
             android:layout_weight="1"
             android:background="@drawable/button_selector"
-            android:text="Cancel"
-            android:textSize="20sp" />
+            android:text="@string/cancel"
+            android:textSize="@dimen/main_cancel_button_text_size" />
     </LinearLayout>
 
 

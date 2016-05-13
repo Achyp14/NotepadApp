@@ -5,6 +5,7 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.database.CursorIndexOutOfBoundsException;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -46,21 +47,22 @@ public class LoginActivity extends AppCompatActivity {
         setContentView(R.layout.activity_login);
 
         final UserDao userDao = new UserDao(this);
+
         try {
             userDao.open();
         } catch (SQLException ex) {
             ex.printStackTrace();
         }
+
         final SessionManager mSession;
         mSession = new SessionManager(this);
         final List<User> userList = userDao.getAllUsers();
-
 
         if (userDao.isEmpty()) {
             mUser = userDao.createUser("admin", "Andrii", "achyp14@gmail.com", "admin", null, null);
             mSession.createLoginSession(mUser.getLogin(), mUser.getPassword());
             mSession.logoutUser();
-            finish();
+
         }
 
         final EditText login = (EditText) findViewById(R.id.login_login);
@@ -74,8 +76,17 @@ public class LoginActivity extends AppCompatActivity {
         final Intent loginPage = new Intent(this, MainActivity.class);
         mCurrentUser = mSession.getUserDetails();
 
+
         if (mSession.isLoggedIn()) {
-            mUser = userDao.findUserById(userDao.findUserByLogin(mCurrentUser.get(SessionManager.KEY_LOGIN)));
+            try {
+                mUser = userDao.findUserById(userDao.findUserByLogin(mCurrentUser.get(SessionManager.KEY_LOGIN)));
+            } catch (CursorIndexOutOfBoundsException ex) {
+//                userDao.deleteAll();
+//                mUser = userDao.createUser("admin", "Andrii", "achyp14@gmail.com", "admin", null, null);
+//                mSession.createLoginSession(mUser.getLogin(), mUser.getPassword());
+//                mSession.logoutUser();
+                finish();
+            }
             loginPage.putExtra("userId", mUser.getId());
             startActivity(loginPage);
             finish();
@@ -141,7 +152,7 @@ public class LoginActivity extends AppCompatActivity {
                                            String permissions[], int[] grantResults) {
         switch (requestCode) {
             case REQUEST_ID_MULTIPLE_PERMISSIONS: {
-                if (Arrays.asList(grantResults).contains(PackageManager.PERMISSION_DENIED) ) {
+                if (Arrays.asList(grantResults).contains(PackageManager.PERMISSION_DENIED)) {
                     //return
                 }
 

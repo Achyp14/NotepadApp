@@ -1,0 +1,23 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/activity_main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/colorPlatinum"
+    android:orientation="vertical"
+    tools:context=".Activities.MainActivity">
+
+    <ListView
+        android:id="@+id/note_list"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginEnd="3dp"
+        android:layout_marginLeft="3dp"
+        android:layout_marginRight="3dp"
+        android:layout_marginStart="3dp"
+        android:layout_marginTop="3dp"
+        android:background="@color/colorPlatinum"
+        android:divider="@android:color/transparent"
+        android:dividerHeight="3dp"
+        android:listSelector="@drawable/button_selector" />
+</LinearLayout>

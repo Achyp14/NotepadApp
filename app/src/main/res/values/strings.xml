@@ -13,4 +13,21 @@
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="title_activity_main2">Main2Activity</string>
     <string name="title_activity_profile">ProfileActivity</string>
+    <string name="login">Login</string>
+    <string name="password">Password</string>
+    <string name="sign_up">Sign up</string>
+    <string name="upload_picture">Upload Picture</string>
+    <string name="first_name">First name</string>
+    <string name="email">Email</string>
+    <string name="confirm_password">Confirm password</string>
+    <string name="submit">Submit</string>
+    <string name="cancel">Cancel</string>
+    <string name="old_password">Old password</string>
+    <string name="new_password">New Password</string>
+    <string name="note">Note</string>
+    <string name="title">Title</string>
+    <string name="save">Save</string>
+    <string name="content">Content</string>
+    <string name="change_password">Change password</string>
+    <string name="ok">OK</string>
 </resources>

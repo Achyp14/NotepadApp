@@ -4,23 +4,23 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#A7FFEB"
-    android:padding="10dp"
+    android:padding="@dimen/sign_up_parent_layout_padding"
     tools:context=".Activities.SignUpActivity">
 
         <com.example.achypur.notepadapp.CustomView.ProfilePicture
             xmlns:customNS="http://schemas.android.com/apk/res/com.example.achypur.notepadapp"
             android:layout_centerHorizontal="true"
             android:id="@+id/sign_up_image"
-            android:layout_width="100dp"
-            android:layout_height="100dp"
-            customNS:borderSize="5dp"
+            android:layout_width="@dimen/profile_custom_picture_width"
+            android:layout_height="@dimen/profile_custom_picture_height"
+            customNS:borderSize="@dimen/profile_custom_picture_border_size"
             android:scaleType="fitXY"
             android:adjustViewBounds="true"/>
 
         <Button
             android:layout_centerHorizontal="true"
             android:layout_below="@+id/sign_up_image"
-            android:text="Upload Picture"
+            android:text="@string/upload_picture"
             android:textColor="@color/colorLoginText"
             android:id="@+id/sign_up_upload_button"
             android:layout_width="wrap_content"
@@ -29,8 +29,8 @@
         <LinearLayout
             android:id="@+id/profile_edit_text_holder"
             android:orientation="vertical"
-            android:layout_margin="30dp"
-            android:paddingBottom="10dp"
+            android:layout_margin="@dimen/sign_up_input_layout_margin"
+            android:paddingBottom="@dimen/sign_up_input_layout_padding_bottom"
             android:layout_below="@+id/sign_up_upload_button"
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
@@ -39,7 +39,7 @@
                     android:id="@+id/profile_first_name"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="First name"
+                    android:hint="@string/first_name"
                     android:textCursorDrawable="@color/colorLoginText"
                     android:backgroundTint="@color/colorLoginText"
                     android:singleLine="true" />
@@ -48,7 +48,7 @@
                     android:id="@+id/profile_login"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="Login"
+                    android:hint="@string/login"
                     android:textCursorDrawable="@color/colorLoginText"
                     android:backgroundTint="@color/colorLoginText"
                     android:singleLine="true" />
@@ -57,7 +57,8 @@
                     android:id="@+id/profile_email"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="Email"
+                    android:hint="@string/email"
+                    android:inputType="textEmailAddress"
                     android:textCursorDrawable="@color/colorLoginText"
                     android:backgroundTint="@color/colorLoginText"
                     android:singleLine="true" />
@@ -66,7 +67,7 @@
                     android:id="@+id/sign_up_password"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="Password"
+                    android:hint="@string/password"
                     android:inputType="textPassword"
                     android:textCursorDrawable="@color/colorLoginText"
                     android:backgroundTint="@color/colorLoginText"
@@ -77,7 +78,7 @@
                     android:layout_width="match_parent"
                     android:inputType="textPassword"
                     android:layout_height="wrap_content"
-                    android:hint="Confirm password"
+                    android:hint="@string/confirm_password"
                     android:textCursorDrawable="@color/colorLoginText"
                     android:backgroundTint="@color/colorLoginText"
                     android:singleLine="true" />
@@ -93,16 +94,16 @@
                 <Button
                     android:id="@+id/profile_submit_button"
                     android:layout_width="wrap_content"
-                    android:text="Submit"
-                    android:textSize="16dp"
+                    android:text="@string/submit"
+                    android:textSize="@dimen/main_cancel_button_text_size"
                     android:textColor="@color/colorLoginText"
                     android:layout_height="wrap_content" />
 
                 <Button
                     android:id="@+id/profile_cancel_button"
                     android:layout_width="wrap_content"
-                    android:text="Cancel"
-                    android:textSize="16dp"
+                    android:text="@string/cancel"
+                    android:textSize="@dimen/main_cancel_button_text_size"
                     android:textColor="@color/colorLoginText"
                     android:layout_height="wrap_content" />
 

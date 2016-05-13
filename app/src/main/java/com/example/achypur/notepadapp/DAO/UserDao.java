@@ -42,7 +42,7 @@ public class UserDao {
         contentValues.put(DataBaseHelper.KEY_IMAGE, user.getImage());
         Long id = mSqLiteDatabase.insert(DataBaseHelper.TABLE_USER, null, contentValues);
         user.setId(id);
-        return  user;
+        return user;
     }
 
     public User createUser(String login, String name, String email, String password, String role, byte[] image) {
@@ -76,10 +76,10 @@ public class UserDao {
         contentValues.put(mDataBaseHelper.KEY_IMAGE, user.getImage());
 
         int status = mSqLiteDatabase.update(mDataBaseHelper.TABLE_USER, contentValues,
-                " id = ? " , new String[] {String.valueOf(user.getId())});
+                " id = ? ", new String[]{String.valueOf(user.getId())});
         Log.e("Achyp", "81|UserDao::updateUser:  " + status);
 
-        User  newUser = findUserById(user.getId());
+        User newUser = findUserById(user.getId());
         Log.e("Achyp", "84|UserDao::updateUser: " + newUser.getName());
 
     }
@@ -98,13 +98,13 @@ public class UserDao {
 
     public void deleteUser(User user) {
         long id = user.getId();
-        mSqLiteDatabase.delete(mDataBaseHelper.TABLE_USER, mDataBaseHelper.KEY_ID + " = " + id, null);
+        mSqLiteDatabase.delete(DataBaseHelper.TABLE_USER, DataBaseHelper.KEY_ID + " = " + id, null);
     }
 
 
     public void deleteAll() {
-        for(User user: getAllUsers()) {
-            mSqLiteDatabase.delete(mDataBaseHelper.TABLE_USER, mDataBaseHelper.KEY_ID + " = " + user.getId(), null);
+        for (User user : getAllUsers()) {
+            mSqLiteDatabase.delete(DataBaseHelper.TABLE_USER, DataBaseHelper.KEY_ID + " = " + user.getId(), null);
         }
     }
 
@@ -112,7 +112,7 @@ public class UserDao {
     public List<User> getAllUsers() {
         List<User> userList = new ArrayList<User>();
 
-        Cursor cursor = mSqLiteDatabase.rawQuery("Select * from " + mDataBaseHelper.TABLE_USER, null);
+        Cursor cursor = mSqLiteDatabase.rawQuery("Select * from " + DataBaseHelper.TABLE_USER, null);
         User user;
         if (cursor.moveToFirst()) {
             while (cursor.isAfterLast() == false) {
@@ -136,7 +136,6 @@ public class UserDao {
 
 
     public Long findUserByLogin(String login) {
-        Log.e("Achyp", "128|UserDao::findUserByLogin: " + login);
         Cursor cursor = mSqLiteDatabase.rawQuery("Select * from " + mDataBaseHelper.TABLE_USER + " where login = ?", new String[]{login});
         cursor.moveToFirst();
         return cursor.getLong(0);
@@ -145,7 +144,6 @@ public class UserDao {
     public User findUserById(Long id) {
         Cursor cursor = mSqLiteDatabase.rawQuery("Select * from " + mDataBaseHelper.TABLE_USER + " where id = ?", new String[]{String.valueOf(id)});
         cursor.moveToFirst();
-        User user = cursorToUser(cursor);
-        return user;
+        return cursorToUser(cursor);
     }
 }

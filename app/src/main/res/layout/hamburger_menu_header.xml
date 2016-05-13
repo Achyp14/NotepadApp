@@ -2,21 +2,21 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@color/ColorViolet"
+    android:background="@color/colorAccent"
     android:gravity="center_horizontal"
     android:orientation="vertical"
-    android:padding="16dp">
+    android:padding="@dimen/ham_menu_header_padding">
 
 
     <com.example.achypur.notepadapp.CustomView.ProfilePicture
         xmlns:customNS="http://schemas.android.com/apk/res/com.example.achypur.notepadapp"
         android:id="@+id/hamburger_header_profile_picture"
-        android:layout_width="100dp"
-        android:layout_height="100dp"
+        android:layout_width="@dimen/profile_custom_picture_width"
+        android:layout_height="@dimen/profile_custom_picture_width"
         android:adjustViewBounds="true"
         android:scaleType="fitXY"
         android:layout_centerHorizontal="true"
-        customNS:borderSize="5dp" />
+        customNS:borderSize="@dimen/profile_custom_picture_border_size" />
 
     <LinearLayout
         android:layout_alignParentBottom="true"

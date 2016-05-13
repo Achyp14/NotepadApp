@@ -29,7 +29,7 @@ public class TagView extends ViewGroup {
     List<String> mList = new ArrayList<>();
     int mDeviceWidth;
     Listener mListener;
-    boolean isFocused = false;
+    boolean mIsFocused = false;
 
     public void setListener(Listener listener) {
         mListener = listener;
@@ -40,7 +40,6 @@ public class TagView extends ViewGroup {
         mList = list;
         removeAllViews();
         for (String tag : mList) {
-            colorGenerator(R.drawable.circle, R.id.circle_shape, R.array.item_colors_dark, i);
             colorGenerator(R.drawable.item_effect, R.id.shape, R.array.item_colors, i);
             addView(createTagView(tag));
             i++;
@@ -190,13 +189,23 @@ public class TagView extends ViewGroup {
         final ImageView imageView = (ImageView) root.findViewById(R.id.plus);
         final EditText editText = (EditText) root.findViewById(R.id.edit_text);
 
-
+        Log.e("Achyp", "193|TagView::createAddTag: " + editText.isFocused());
         if (isEnabled()) {
             imageView.setVisibility(VISIBLE);
+            if (mIsFocused) {
+                imageView.setVisibility(GONE);
+                editText.setVisibility(VISIBLE);
+                editText.requestFocus();
+                Log.e("Achyp", "200|TagView::createAddTag: " + editText.isFocused());
+            } else {
+                imageView.setVisibility(VISIBLE);
+                editText.setVisibility(GONE);
+                Log.e("Achyp", "204|TagView::createAddTag: " + editText.isFocused());
+            }
         } else {
             imageView.setVisibility(GONE);
+            Log.e("Achyp", "208|TagView::createAddTag: " + editText.isFocused());
         }
-
 
         imageView.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -204,6 +213,7 @@ public class TagView extends ViewGroup {
                 imageView.setVisibility(GONE);
                 editText.setVisibility(VISIBLE);
                 editText.requestFocus();
+                Log.e("Achyp", "215|TagView::createAddTag: " + editText.isFocused());
                 InputMethodManager imm = (InputMethodManager) getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
                 imm.showSoftInput(editText, InputMethodManager.SHOW_IMPLICIT);
             }
@@ -217,8 +227,10 @@ public class TagView extends ViewGroup {
                         String item = editText.getText().toString();
                         mListener.onAddingTag(item);
                         editText.setText("");
+                        mIsFocused = true;
                         setList(mList);
-                        isFocused = true;
+                        Log.e("Achyp", "231|TagView::createAddTag: " + editText.isFocused());
+
                         return true;
                     }
                 }
@@ -229,13 +241,11 @@ public class TagView extends ViewGroup {
         editText.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
             public void onFocusChange(View v, boolean hasFocus) {
-                Log.e("Achyp", "231|TagView::onFocusChange: " + hasFocus);
                 if (!hasFocus) {
-                    isFocused = false;
                     editText.setVisibility(GONE);
                     editText.setText("");
-                    editText.clearFocus();
                     imageView.setVisibility(VISIBLE);
+                    Log.e("Achyp", "247|TagView::createAddTag: " + editText.isFocused());
                 }
             }
         });

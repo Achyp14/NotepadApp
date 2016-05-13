@@ -6,19 +6,18 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="80dp"
-        android:layout_margin="50dp"
+        android:layout_height="@dimen/dialog_llayout_height"
+        android:layout_margin="@dimen/dialog_layout_margin"
         android:orientation="vertical">
 
         <TextView
             android:id="@+id/dialog_text"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="hello"/>
+            android:layout_height="wrap_content" />
 
         <Button
             android:id="@+id/dialog_refresh"
-            android:layout_width="60dp"
+            android:layout_width="@dimen/dialog_refresh_width"
             android:layout_height="wrap_content"
             android:layout_gravity="end"
             android:drawableLeft="@drawable/ic_cached_black_36dp" />

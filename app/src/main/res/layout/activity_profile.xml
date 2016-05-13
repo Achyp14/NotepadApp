@@ -4,17 +4,17 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#A7FFEB"
-    android:padding="10dp"
+    android:padding="@dimen/profile_parent_layout_padding"
     tools:context=".Activities.SignUpActivity">
 
     <com.example.achypur.notepadapp.CustomView.ProfilePicture
         xmlns:customNS="http://schemas.android.com/apk/res/com.example.achypur.notepadapp"
         android:id="@+id/profile_image"
-        android:layout_width="100dp"
-        android:layout_height="100dp"
+        android:layout_width="@dimen/profile_custom_picture_width"
+        android:layout_height="@dimen/profile_custom_picture_height"
         android:adjustViewBounds="true"
         android:layout_centerHorizontal="true"
-        customNS:borderSize="5dp" />
+        customNS:borderSize="@dimen/profile_custom_picture_border_size" />
 
     <Button
         android:id="@+id/profile_upload_button"
@@ -22,7 +22,7 @@
         android:layout_height="wrap_content"
         android:layout_below="@+id/profile_image"
         android:layout_centerHorizontal="true"
-        android:text="Upload Picture"
+        android:text="@string/upload_picture"
         android:textColor="@color/colorLoginText" />
 
     <LinearLayout
@@ -30,9 +30,9 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@+id/profile_upload_button"
-        android:layout_margin="30dp"
+        android:layout_margin="@dimen/profile_layout_margin"
         android:orientation="vertical"
-        android:paddingBottom="10dp">
+        android:paddingBottom="@dimen/profile_layout_padding_bottom">
 
         <EditText
             android:id="@+id/profile_first_name"
@@ -49,7 +49,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:backgroundTint="@color/colorLoginText"
-            android:hint="Login"
+            android:hint="@string/login"
             android:inputType="textNoSuggestions"
             android:singleLine="true"
             android:textCursorDrawable="@color/colorLoginText" />
@@ -59,7 +59,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:backgroundTint="@color/colorLoginText"
-            android:hint="Email"
+            android:hint="@string/email"
             android:singleLine="true"
             android:inputType="textNoSuggestions"
             android:textCursorDrawable="@color/colorLoginText" />
@@ -69,7 +69,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textColor="@color/colorLoginText"
-            android:text="Change password"/>
+            android:text="@string/change_password"/>
     </LinearLayout>
 
     <LinearLayout
@@ -83,16 +83,16 @@
             android:id="@+id/profile_submit_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="OK"
+            android:text="@string/ok"
             android:textColor="@color/colorLoginText"
-            android:textSize="16dp" />
+            android:textSize="@dimen/profile_ok_button_text_size" />
 
         <Button
             android:id="@+id/profile_cancel_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Cancel"
+            android:text="@string/cancel"
             android:textColor="@color/colorLoginText"
-            android:textSize="16dp" />
+            android:textSize="@dimen/profile_cancel_button_text_size" />
     </LinearLayout>
 </RelativeLayout>

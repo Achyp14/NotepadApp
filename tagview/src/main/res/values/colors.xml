@@ -1,23 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <color name="ColorRedDark">#C10005</color>
-    <color name="ColorGray">#8A7273</color>
+    <color name="ColorRedDark">#C1B370</color>
+    <color name="ColorGray">#ffffff</color>
 
-    <color name="ColorYellow">#FAB564</color>
-    <color name="ColorYellowDark">#F48300</color>
+    <color name="ColorYellow">#F19143</color>
+    <color name="ColorYellowDark">#FF773D</color>
 
-    <color name="ColorGreenLight">#C5EC5f</color>
-    <color name="ColorGreenCont">#A7E700</color>
+    <color name="ColorGreenLight">#BBACC1</color>
+    <color name="ColorGreenCont">#80727B</color>
 
-    <color name="ColorGreenDark">#47AF7A</color>
-    <color name="ColorGreenDarkComp">#00AB54</color>
+    <color name="ColorGreenDark">#60C9AA</color>
+    <color name="ColorGreenDarkComp">#6C8477</color>
 
-    <color name="ColorBlue">#4876A2</color>
-    <color name="ColorBlueDark">#04529F</color>
+    <color name="ColorBlue">#0BB4CF</color>
+    <color name="ColorBlueDark">#1664B7</color>
 
-    <color name="ColorViolet">#784CA9</color>
-    <color name="ColorVioletDark">#4E04A6</color>
+    <color name="ColorViolet">#7c77b9</color>
+    <color name="ColorVioletDark">#6B3C93</color>
 
 
 

@@ -279,7 +279,8 @@ public class NoteActivity extends BaseActivity {
                 title.setTextColor(Color.BLACK);
                 content.setTextColor(Color.BLACK);
                 mTagView.setEnabled(false);
-                mGridView.setEnabled(false);
+                mGridView.setLongClickable(false);
+                Log.e("Achyp", "283|NoteActivity::onCreate: " + mGridView.isLongClickable());
                 buttonLayout.setVisibility(View.GONE);
                 line.setVisibility(View.GONE);
             }
@@ -290,25 +291,27 @@ public class NoteActivity extends BaseActivity {
             mGridView.setAdapter(mGridViewAdapter);
         }
 
-        mGridView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
-            @Override
-            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
-                final DecorAdapter decorAdapter = new DecorAdapter(NoteActivity.this);
-                decorAdapter.setAdapter(mGridViewAdapter);
-                mGridView.requestFocus();
-                mGridView.setFocusable(true);
-                decorAdapter.setListener(new DecorAdapter.Listener() {
-                    @Override
-                    public void onRemoveClicked(int position) {
-                        mCurrentRemovePictures.add(mUriList.get(position));
-                        mUriList.remove(position);
-                        mGridViewAdapter.setList(mUriList);
-                    }
-                });
-                mGridView.setAdapter(decorAdapter);
-                return true;
-            }
-        });
+        if (mGridView.isLongClickable()) {
+            mGridView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+                @Override
+                public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+                    final DecorAdapter decorAdapter = new DecorAdapter(NoteActivity.this);
+                    decorAdapter.setAdapter(mGridViewAdapter);
+                    mGridView.requestFocus();
+                    mGridView.setFocusable(true);
+                    decorAdapter.setListener(new DecorAdapter.Listener() {
+                        @Override
+                        public void onRemoveClicked(int position) {
+                            mCurrentRemovePictures.add(mUriList.get(position));
+                            mUriList.remove(position);
+                            mGridViewAdapter.setList(mUriList);
+                        }
+                    });
+                    mGridView.setAdapter(decorAdapter);
+                    return true;
+                }
+            });
+        }
 
         mGridView.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override

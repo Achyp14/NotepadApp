@@ -26,6 +26,7 @@ android {
         }
         debug {
             signingConfig signingConfigs.config
+            minifyEnabled false
         }
     }
 }
