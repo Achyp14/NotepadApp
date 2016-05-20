@@ -9,6 +9,13 @@
     android:orientation="vertical"
     tools:context=".Activities.NoteActivity">
 
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/my_toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/colorLoginText"
+        android:minHeight="?attr/actionBarSize" />
+
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="@dimen/note_scroll_view_height"
@@ -20,31 +27,6 @@
             android:layout_height="wrap_content"
             android:layout_margin="@dimen/note_main_linearLayout_margin"
             android:orientation="vertical">
-
-            <RelativeLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:hint="@string/note"
-                    android:textSize="@dimen/note_header" />
-
-                <TextView
-                    android:id="@+id/note_edit_time"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="end"
-                    android:textSize="@dimen/note_time" />
-            </RelativeLayout>
-
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="@dimen/note_header_line_height"
-                android:layout_marginBottom="@dimen/note_header_margin"
-                android:layout_marginTop="@dimen/note_header_margin"
-                android:background="@android:color/black" />
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -74,6 +56,22 @@
                     android:minHeight="@dimen/note_content_min_height" />
             </LinearLayout>
 
+            <TextView
+                android:id="@+id/note_edit_time"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="end"
+                android:textSize="@dimen/note_time" />
+
+            <TextView
+                android:id="@+id/note_edit_tag"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="3dp"
+                android:gravity="start"
+                android:text="@string/tags"
+                android:textSize="@dimen/note_time" />
+
             <com.example.achypur.tagview.TagView
                 android:id="@+id/tag_grid"
                 android:layout_width="match_parent"
@@ -93,6 +91,108 @@
                 android:numColumns="auto_fit"
                 android:stretchMode="columnWidth" />
 
+            <LinearLayout
+                android:id="@+id/forecast_layout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="10dp"
+                android:layout_marginTop="10dp"
+                android:background="@color/colorPlatinum"
+                android:orientation="horizontal"
+                android:visibility="gone"
+                android:weightSum="1">
+
+                <ImageView
+                    android:id="@+id/forecast_icon"
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:scaleType="fitXY"
+                    android:src="@drawable/default_weather_icon" />
+
+                <View
+                    android:layout_width="@dimen/note_button_divider_width"
+                    android:layout_height="match_parent"
+                    android:layout_marginBottom="@dimen/note_button_divider_margin_bottom"
+                    android:layout_marginTop="@dimen/note_button_divider_margin_top"
+                    android:background="@color/colorTag" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_marginLeft="10dp"
+                    android:layout_marginRight="10dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:weightSum="1">
+
+                    <TextView
+                        android:id="@+id/forecast_description"
+                        android:layout_width="wrap_content"
+                        android:layout_height="0dp"
+                        android:layout_weight="0.7"
+                        android:text="Description"
+                        android:textSize="26sp" />
+
+                    <TextView
+                        android:id="@+id/forecast_city"
+                        android:layout_width="wrap_content"
+                        android:layout_height="0dp"
+                        android:layout_weight="0.3"
+                        android:text="City"
+                        android:layout_marginBottom="@dimen/note_button_divider_margin_bottom"
+                        android:textSize="14sp" />
+                </LinearLayout>
+
+                <View
+                    android:layout_width="@dimen/note_button_divider_width"
+                    android:layout_height="match_parent"
+                    android:layout_marginBottom="@dimen/note_button_divider_margin_bottom"
+                    android:layout_marginTop="@dimen/note_button_divider_margin_top"
+                    android:background="@color/colorTag" />
+
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:layout_marginLeft="10dp"
+                    android:gravity="end"
+                    android:orientation="vertical"
+                    android:weightSum="1">
+
+                    <TextView
+                        android:id="@+id/forecast_temp"
+                        android:layout_width="wrap_content"
+                        android:layout_height="0dp"
+                        android:layout_gravity="end"
+                        android:layout_weight="0.7"
+                        android:text="20"
+                        android:textSize="26sp" />
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="0dp"
+                        android:layout_marginBottom="@dimen/note_button_divider_margin_bottom"
+                        android:layout_weight="0.3">
+
+                        <TextView
+                            android:id="@+id/forecast_wind"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginRight="10dp"
+                            android:text="Wind"
+                            android:textSize="14sp" />
+
+                        <TextView
+                            android:id="@+id/forecast_rain"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Rain"
+                            android:textSize="14sp" />
+                    </LinearLayout>
+                </LinearLayout>
+
+            </LinearLayout>
+
             <fragment
                 android:id="@+id/note_map"
                 android:name="com.google.android.gms.maps.SupportMapFragment"
@@ -107,6 +207,7 @@
         android:id="@+id/line"
         android:layout_width="match_parent"
         android:layout_height="@dimen/note_line_above_button_height"
+        android:layout_marginTop="25dp"
         android:background="#00CCff" />
 
     <LinearLayout

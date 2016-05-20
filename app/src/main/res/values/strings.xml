@@ -30,4 +30,16 @@
     <string name="content">Content</string>
     <string name="change_password">Change password</string>
     <string name="ok">OK</string>
+    <string name="tags">Tags:</string>
+
+    <string-array name="countries_array">
+        <item>Afghanistan</item>
+        <item>Albania</item>
+        <item>Algeria</item>
+        <item>American Samoa</item>
+        <item>Andorra</item>
+        <item>Angola</item>
+        <item>Anguilla</item>
+        <item>Antarctica</item>
+    </string-array>
 </resources>

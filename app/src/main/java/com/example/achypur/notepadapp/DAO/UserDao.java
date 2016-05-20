@@ -66,22 +66,13 @@ public class UserDao {
     }
 
     public void updateUser(User user) {
-        Log.e("Achyp", "70|UserDao::updateUser: " + user.getName());
         ContentValues contentValues = new ContentValues();
-        contentValues.put(mDataBaseHelper.KEY_LOGIN, user.getLogin());
-        contentValues.put(mDataBaseHelper.KEY_NAME, user.getName());
-        contentValues.put(mDataBaseHelper.KEY_EMAIL, user.getEmail());
-        contentValues.put(mDataBaseHelper.KEY_PASSWORD, user.getPassword());
-        contentValues.put(mDataBaseHelper.KEY_USER_ROLE, user.getRole());
-        contentValues.put(mDataBaseHelper.KEY_IMAGE, user.getImage());
-
-        int status = mSqLiteDatabase.update(mDataBaseHelper.TABLE_USER, contentValues,
-                " id = ? ", new String[]{String.valueOf(user.getId())});
-        Log.e("Achyp", "81|UserDao::updateUser:  " + status);
-
-        User newUser = findUserById(user.getId());
-        Log.e("Achyp", "84|UserDao::updateUser: " + newUser.getName());
-
+        contentValues.put(DataBaseHelper.KEY_LOGIN, user.getLogin());
+        contentValues.put(DataBaseHelper.KEY_NAME, user.getName());
+        contentValues.put(DataBaseHelper.KEY_EMAIL, user.getEmail());
+        contentValues.put(DataBaseHelper.KEY_PASSWORD, user.getPassword());
+        contentValues.put(DataBaseHelper.KEY_USER_ROLE, user.getRole());
+        contentValues.put(DataBaseHelper.KEY_IMAGE, user.getImage());
     }
 
     private User cursorToUser(Cursor cursor) {

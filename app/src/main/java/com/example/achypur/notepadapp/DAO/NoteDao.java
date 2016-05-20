@@ -91,9 +91,7 @@ public class NoteDao {
     public Note getNoteById(Long id) {
         if (id < 0)
             return null;
-        for(Note n : getAllNotes()) {
-            Log.e("Achyp", "95|NoteDao::getNoteById: " + n.getmTitle());
-        }
+
         Cursor cursor = mSqLiteDatabase.rawQuery("Select * from " + DataBaseHelper.TABLE_NOTE + " where id = ? ", new String[]{String.valueOf(id)});
         cursor.moveToFirst();
         return cursorToNote(cursor);

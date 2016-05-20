@@ -1,12 +1,15 @@
 package com.example.achypur.notepadapp.Activities;
 
 import android.app.AlertDialog;
+import android.app.SearchManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.database.CursorIndexOutOfBoundsException;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v4.view.MenuItemCompat;
+import android.support.v7.widget.SearchView;
 import android.util.Log;
 import android.util.SparseBooleanArray;
 import android.view.LayoutInflater;
@@ -23,27 +26,25 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.achypur.notepadapp.DAO.CoordinateDao;
+import com.example.achypur.notepadapp.DAO.ForecastDao;
 import com.example.achypur.notepadapp.DAO.NoteDao;
 import com.example.achypur.notepadapp.DAO.PictureDao;
 import com.example.achypur.notepadapp.DAO.UserDao;
+import com.example.achypur.notepadapp.Entities.ForecastEntity;
 import com.example.achypur.notepadapp.Entities.Note;
 import com.example.achypur.notepadapp.Entities.Picture;
 import com.example.achypur.notepadapp.Entities.User;
+import com.example.achypur.notepadapp.JsonObjects.Forecast;
 import com.example.achypur.notepadapp.R;
 import com.example.achypur.notepadapp.Session.SessionManager;
 
 
 import java.sql.SQLException;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
-import java.util.TimeZone;
 
 public class MainActivity extends BaseActivity {
 
@@ -56,7 +57,9 @@ public class MainActivity extends BaseActivity {
     HashMap<String, String> mCurrentUser;
     PictureDao mPictureDao;
     User mLoggedUser = new User();
-
+    SearchView mSearchView;
+    List<Note> mNotesList;
+    ForecastDao mForecastDao;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,6 +69,7 @@ public class MainActivity extends BaseActivity {
         mNoteDao = new NoteDao(this);
         mCoordinateDao = new CoordinateDao(this);
         mPictureDao = new PictureDao(this);
+        mForecastDao = new ForecastDao(this);
         mSession = new SessionManager(this);
         mCurrentUser = mSession.getUserDetails();
 
@@ -74,6 +78,7 @@ public class MainActivity extends BaseActivity {
             mNoteDao.open();
             mCoordinateDao.open();
             mPictureDao.open();
+            mForecastDao.open();
         } catch (SQLException ex) {
             ex.printStackTrace();
         }
@@ -101,11 +106,12 @@ public class MainActivity extends BaseActivity {
             });
         }
         mNoteAdapter = new NoteListAdapter(this);
+        mNotesList = mNoteDao.getNotesByUserId(mLoggedUser.getId(), 1);
 
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                mNoteAdapter.setList(mNoteDao.getNotesByUserId(mLoggedUser.getId(), 1));
+                mNoteAdapter.setList(mNotesList);
             }
         });
         mListView.setAdapter(mNoteAdapter);
@@ -127,19 +133,19 @@ public class MainActivity extends BaseActivity {
 
             @Override
             public void onItemCheckedStateChanged(android.view.ActionMode mode, int position, long id, boolean checked) {
-                Log.e("Achyp", "127|MainActivity::onItemCheckedStateChanged: ");
                 pos = position;
 
-                View view = mListView.getChildAt(position);
-
-                Log.e("Achyp", "132|MainActivity::onItemCheckedStateChanged: " + view.isSelected() + " "+ view.isLongClickable() + " " + view.isClickable());
-
                 if (checked) {
+                    Log.e("Achyp", "139|MainActivity::onItemCheckedStateChanged: ");
                     selectedItems.append(position, checked);
                     positionList.add(pos);
                 } else {
+                    Log.e("Achyp", "143|MainActivity::onItemCheckedStateChanged: ");
                     selectedItems.delete(position);
+                    Log.e("Achyp", "143|MainActivity::onItemCheckedStateChanged: " + positionList.indexOf(pos));
                     positionList.remove(positionList.indexOf(pos));
+                    Log.e("Achyp", "147|MainActivity::onItemCheckedStateChanged: " + positionList.size());
+
                 }
 
                 if (selectedItems.size() > 1) {
@@ -151,7 +157,6 @@ public class MainActivity extends BaseActivity {
 
             @Override
             public boolean onCreateActionMode(android.view.ActionMode mode, Menu menu) {
-                Log.e("Achyp", "147|MainActivity::onCreateActionMode: ");
                 mNoteAdapter.setMultiChoice(true);
                 mode.getMenuInflater().inflate(R.menu.action_menu, menu);
                 return true;
@@ -159,15 +164,12 @@ public class MainActivity extends BaseActivity {
 
             @Override
             public boolean onPrepareActionMode(android.view.ActionMode mode, Menu menu) {
-                Log.e("Achyp", "155|MainActivity::onPrepareActionMode: ");
                 return true;
             }
 
 
-
             @Override
             public boolean onActionItemClicked(android.view.ActionMode mode, MenuItem item) {
-                Log.e("Achyp", "162|MainActivity::onActionItemClicked: ");
                 Note note;
                 switch (item.getItemId()) {
                     case R.id.menu_item_share:
@@ -225,9 +227,9 @@ public class MainActivity extends BaseActivity {
             @Override
             public void onDestroyActionMode(android.view.ActionMode mode) {
                 mNoteAdapter.setMultiChoice(false);
+                positionList.clear();
             }
         });
-
 
     }
 
@@ -250,7 +252,7 @@ public class MainActivity extends BaseActivity {
                         mNoteDao.updateNote(note);
                     }
                 }
-            }).setNegativeButton("NO", null).create();
+            }).setNegativeButton("NO", null ).create();
             alertDialog.show();
         }
     }
@@ -258,6 +260,26 @@ public class MainActivity extends BaseActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_main, menu);
+        mSearchView = (SearchView) MenuItemCompat.getActionView(menu.findItem(R.id.item_search_note));
+        SearchManager searchManager = (SearchManager) getSystemService(SEARCH_SERVICE);
+        mSearchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
+        mSearchView.setQueryHint("Search");
+        mSearchView.setBackgroundColor(Color.WHITE);
+
+        mSearchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                mNoteAdapter.filter(newText);
+                mListView.invalidate();
+                return false;
+            }
+        });
+
         return true;
     }
 
@@ -278,6 +300,9 @@ public class MainActivity extends BaseActivity {
             case R.id.item_add_note:
                 Intent intent = NoteActivity.createIntentForAddNote(this);
                 startActivityForResult(intent, 1);
+                return true;
+
+            case R.id.item_search_note:
                 return true;
             default:
                 super.onOptionsItemSelected(item);
@@ -305,6 +330,7 @@ public class MainActivity extends BaseActivity {
         TextView sharedBy;
         ImageView location;
         ImageView picture;
+        ImageView weather;
 
         public ViewHolderItem(View view) {
             title = (TextView) view.findViewById(R.id.item_title);
@@ -312,11 +338,12 @@ public class MainActivity extends BaseActivity {
             sharedBy = (TextView) view.findViewById(R.id.item_shared_by);
             location = (ImageView) view.findViewById(R.id.item_location);
             picture = (ImageView) view.findViewById(R.id.item_picture);
+            weather = (ImageView) view.findViewById(R.id.item_weather);
         }
     }
 
     class NoteListAdapter extends BaseAdapter {
-        List<Note> mNoteList;
+        List<Note> mAdapterList;
         LayoutInflater mInflater;
         boolean multiChoice = false;
 
@@ -342,18 +369,18 @@ public class MainActivity extends BaseActivity {
         }
 
         public void setList(List<Note> list) {
-            mNoteList = list;
+            mAdapterList = list;
             notifyDataSetChanged();
         }
 
         @Override
         public int getCount() {
-            return mNoteList.size();
+            return mAdapterList.size();
         }
 
         @Override
         public Note getItem(int position) {
-            return mNoteList.get(position);
+            return mAdapterList.get(position);
         }
 
 
@@ -364,10 +391,16 @@ public class MainActivity extends BaseActivity {
 
         private void bind(ViewHolderItem holder, Note note) {
             Picture picture;
+            boolean weather = mForecastDao.ifExistForecastForNote(note.getmId());
 
-                Long id = mPictureDao.findPictureByNoteId(note.getmId());
+            Long id = mPictureDao.findPictureByNoteId(note.getmId());
+
+            if (id != null) {
                 picture = mPictureDao.findPictureById(id);
 
+            } else {
+                picture = null;
+            }
 
             if (note.getmUserId() != mLoggedUser.getId()) {
                 String shared = "Shared by " +
@@ -384,9 +417,12 @@ public class MainActivity extends BaseActivity {
                 holder.location.setVisibility(View.VISIBLE);
             }
 
-            if(picture != null) {
-                Log.e("Achyp", "391|NoteListAdapter::bind: ");
+            if (picture != null) {
                 holder.picture.setVisibility(View.VISIBLE);
+            }
+
+            if (weather) {
+               holder.weather.setVisibility(View.VISIBLE);
             }
 
             holder.title.setText(note.getmTitle());
@@ -399,7 +435,7 @@ public class MainActivity extends BaseActivity {
             Note note = getItem(position);
 
             if (convertView == null) {
-                convertView = mInflater.inflate(R.layout.item, parent, false);
+                convertView = mInflater.inflate(R.layout.item_note_list, parent, false);
                 viewHolderItem = new ViewHolderItem(convertView);
                 convertView.setTag(viewHolderItem);
             } else {
@@ -410,11 +446,23 @@ public class MainActivity extends BaseActivity {
 
             return convertView;
         }
-    }
 
-    @Override
-    public void onBackPressed() {
-        super.onBackPressed();
+        public void filter(String text) {
+            text = text.toLowerCase();
+            List<Note> searchResult = new ArrayList<>();
+            if (text.length() != 0) {
+                for (Note note : mNotesList) {
+                    if (note.getmTitle().contains(text)) {
+                        searchResult.add(note);
+                    }
+                    setList(searchResult);
+                }
+            } else {
+                setList(mNotesList);
+            }
+            notifyDataSetChanged();
+        }
+
     }
 }
 

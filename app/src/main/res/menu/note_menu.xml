@@ -5,26 +5,27 @@
         android:id="@+id/note_menu_edit"
         android:icon="@drawable/ic_mode_edit_black_24dp"
         android:title="Edit"
-        app:showAsAction="ifRoom"
-        />
+        app:showAsAction="ifRoom" />
     <item
         android:id="@+id/note_menu_check_shared"
-        android:orderInCategory="1"
         android:checkable="true"
+        android:orderInCategory="1"
         android:title="Shared"
-        app:showAsAction="never">
-    </item>
+        app:showAsAction="never"/>
     <item
         android:id="@+id/note_menu_location"
         android:orderInCategory="2"
         android:title="Add location"
-        app:showAsAction="never">
-    </item>
+        app:showAsAction="never"/>
     <item
         android:id="@+id/note_menu_picture"
         android:orderInCategory="3"
         android:title="Add picture"
-        app:showAsAction="never">
-    </item>
+        app:showAsAction="never"/>
+    <item
+        android:id="@+id/note_menu_weather"
+        android:orderInCategory="4"
+        android:title="Add whether"
+        app:showAsAction="never"/>
 
 </menu>

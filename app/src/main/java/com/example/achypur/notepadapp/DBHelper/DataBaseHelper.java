@@ -7,7 +7,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 public class DataBaseHelper extends SQLiteOpenHelper {
 
     private static final String LOG = "DataBaseHelper";
-    private static final int DATABASE_VERSION = 7;
+    private static final int DATABASE_VERSION = 8;
     private static final String DATABASE_NAME = "notepad.db";
 
     /*
@@ -66,8 +66,26 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     public static final String KEY_LATITUDE = "latitude";
     public static final String KEY_LONGTITUDE = "longtitude";
 
+    /*
+       Picture - column names
+    */
     public static final String TABLE_TAG_PICTURE = "pictures";
     public static final String KEY_PICTURE = "picture";
+
+     /*
+        Forecast - column names
+     */
+
+    public static final String TABLE_FORECAST = "forecast";
+    public static final String KEY_TEMPERATURE = "temperature";
+    public static final String KEY_DESCRIPTION = "description";
+    public static final String KEY_COUNTRY = "country";
+    public static final String KEY_CITY = "city";
+    public static final String KEY_RAIN = "rain";
+    public static final String KEY_WIND = "wind";
+    public static final String KEY_ICON = "icon";
+
+
 
 
     private static final String CREATE_TABLE_USER = "create table "
@@ -101,6 +119,11 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             TABLE_TAG_PICTURE + "(" + KEY_ID + " integer primary key autoincrement," + KEY_PICTURE +
             " blob,"  + KEY_NOTE_ID + " integer not null" + ")";
 
+    public static final String CREATE_TABLE_FORECAST = "create table " +
+            TABLE_FORECAST + "(" + KEY_ID + " integer primary key autoincrement," +  KEY_NOTE_ID + " integer not null," +  KEY_ICON +
+            " blob,"  + KEY_DESCRIPTION + " text," +  KEY_COUNTRY + " text," + KEY_CITY  + " text,"
+            +  KEY_TEMPERATURE + " real,"  + KEY_RAIN + " real," + KEY_WIND + " real" +  ")";
+
 
 
     public DataBaseHelper(Context context) {
@@ -116,6 +139,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         db.execSQL(CREATE_TAG_OF_NOTES);
         db.execSQL(CREATE_TABLE_COORDINATES);
         db.execSQL(CREATE_TABLE_TAG_PICTURE);
+        db.execSQL(CREATE_TABLE_FORECAST);
     }
 
     @Override
@@ -127,6 +151,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_TAG_NOTES);
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_COORDINATES);
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_TAG_PICTURE);
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_FORECAST);
         onCreate(db);
     }
 }

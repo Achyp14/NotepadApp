@@ -6,6 +6,7 @@ import android.graphics.Color;
 import android.graphics.Point;
 import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.LayerDrawable;
+import android.nfc.Tag;
 import android.os.Build;
 import android.support.v4.content.ContextCompat;
 import android.util.AttributeSet;
@@ -16,10 +17,13 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.EditText;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,6 +34,8 @@ public class TagView extends ViewGroup {
     int mDeviceWidth;
     Listener mListener;
     boolean mIsFocused = false;
+    ArrayAdapter<String> mArrayAdapter;
+    AutoCompleteTextView mAutoCompleteTextView;
 
     public void setListener(Listener listener) {
         mListener = listener;
@@ -39,7 +45,7 @@ public class TagView extends ViewGroup {
         int i = 0;
         mList = list;
         removeAllViews();
-        for (String tag : mList) {
+        for (String tag : list) {
             colorGenerator(R.drawable.item_effect, R.id.shape, R.array.item_colors, i);
             addView(createTagView(tag));
             i++;
@@ -187,49 +193,51 @@ public class TagView extends ViewGroup {
     private View createAddTag() {
         View root = inflate(getContext(), R.layout.edit_layout, null);
         final ImageView imageView = (ImageView) root.findViewById(R.id.plus);
-        final EditText editText = (EditText) root.findViewById(R.id.edit_text);
+        mAutoCompleteTextView = (AutoCompleteTextView) root.findViewById(R.id.edit_text);
+        mAutoCompleteTextView.setAdapter(mArrayAdapter);
+        mAutoCompleteTextView.setThreshold(1);
+        mAutoCompleteTextView.setDropDownWidth(500);
 
-        Log.e("Achyp", "193|TagView::createAddTag: " + editText.isFocused());
         if (isEnabled()) {
             imageView.setVisibility(VISIBLE);
             if (mIsFocused) {
                 imageView.setVisibility(GONE);
-                editText.setVisibility(VISIBLE);
-                editText.requestFocus();
-                Log.e("Achyp", "200|TagView::createAddTag: " + editText.isFocused());
+                mAutoCompleteTextView.setVisibility(VISIBLE);
+                mAutoCompleteTextView.requestFocus();
             } else {
                 imageView.setVisibility(VISIBLE);
-                editText.setVisibility(GONE);
-                Log.e("Achyp", "204|TagView::createAddTag: " + editText.isFocused());
+                mAutoCompleteTextView.setVisibility(GONE);
             }
         } else {
             imageView.setVisibility(GONE);
-            Log.e("Achyp", "208|TagView::createAddTag: " + editText.isFocused());
         }
 
         imageView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 imageView.setVisibility(GONE);
-                editText.setVisibility(VISIBLE);
-                editText.requestFocus();
-                Log.e("Achyp", "215|TagView::createAddTag: " + editText.isFocused());
+                mAutoCompleteTextView.setVisibility(VISIBLE);
+                mAutoCompleteTextView.requestFocus();
                 InputMethodManager imm = (InputMethodManager) getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
-                imm.showSoftInput(editText, InputMethodManager.SHOW_IMPLICIT);
+                imm.showSoftInput(mAutoCompleteTextView, InputMethodManager.SHOW_IMPLICIT);
             }
         });
 
-        editText.setOnKeyListener(new View.OnKeyListener() {
+        mAutoCompleteTextView.setOnKeyListener(new View.OnKeyListener() {
             @Override
             public boolean onKey(View v, int keyCode, KeyEvent event) {
                 if (keyCode == KeyEvent.KEYCODE_ENTER && event.getAction() == KeyEvent.ACTION_UP) {
                     if (mListener != null) {
-                        String item = editText.getText().toString();
+                        Log.e("Achyp", "231|TagView::onKey: " + mAutoCompleteTextView.getText());
+                        if (mAutoCompleteTextView.getText().toString().equals("")) {
+                            Toast.makeText(getContext(), "Tag can't be empty", Toast.LENGTH_SHORT).show();
+                            return false;
+                        }
+                        String item = mAutoCompleteTextView.getText().toString();
                         mListener.onAddingTag(item);
-                        editText.setText("");
+                        mAutoCompleteTextView.setText("");
                         mIsFocused = true;
                         setList(mList);
-                        Log.e("Achyp", "231|TagView::createAddTag: " + editText.isFocused());
 
                         return true;
                     }
@@ -238,17 +246,17 @@ public class TagView extends ViewGroup {
             }
         });
 
-        editText.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+        mAutoCompleteTextView.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
             public void onFocusChange(View v, boolean hasFocus) {
                 if (!hasFocus) {
-                    editText.setVisibility(GONE);
-                    editText.setText("");
+                    mAutoCompleteTextView.setVisibility(GONE);
+                    mAutoCompleteTextView.setText("");
                     imageView.setVisibility(VISIBLE);
-                    Log.e("Achyp", "247|TagView::createAddTag: " + editText.isFocused());
                 }
             }
         });
+
         return root;
     }
 
@@ -272,4 +280,10 @@ public class TagView extends ViewGroup {
     public void removeTag(String tag) {
         mList.remove(tag);
     }
+
+    public void setAdapter(ArrayAdapter arrayAdapter) {
+        mArrayAdapter = arrayAdapter;
+        mAutoCompleteTextView.setAdapter(mArrayAdapter);
+    }
+
 }

@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="tag_autocomplete_text_size">22sp</dimen>
+</resources>

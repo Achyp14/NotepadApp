@@ -2,7 +2,7 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/linearLayout1"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
+    android:layout_height="match_parent"
     android:background="@drawable/list_view_effect"
     android:paddingLeft="@dimen/title_layout_padding_left">
 
@@ -28,7 +28,7 @@
     <LinearLayout
         android:id="@+id/linearLayout3"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:layout_below="@id/linearLayout2"
         android:orientation="horizontal"
         android:weightSum="1">
@@ -38,7 +38,6 @@
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:layout_marginRight="@dimen/item_shared_margin_right"
-            android:text="hello"
             android:visibility="gone" />
 
         <LinearLayout
@@ -53,6 +52,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="@dimen/item_location_margin_left"
+                android:layout_marginRight="@dimen/item_location_margin_left"
+                android:adjustViewBounds="true"
                 android:scaleType="fitXY"
                 android:src="@drawable/location_16"
                 android:visibility="gone" />
@@ -62,9 +63,20 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="@dimen/item_location_margin_left"
+                android:layout_marginRight="@dimen/item_location_margin_left"
                 android:scaleType="fitXY"
                 android:src="@drawable/picture_16"
+                android:visibility="gone" />
+
+            <ImageView
+                android:id="@+id/item_weather"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="@dimen/item_location_margin_left"
+                android:layout_marginRight="@dimen/item_location_margin_left"
                 android:paddingRight="5dp"
+                android:scaleType="fitXY"
+                android:src="@drawable/weather_16"
                 android:visibility="gone" />
         </LinearLayout>
 
@@ -72,8 +84,7 @@
             android:id="@+id/time"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginRight="10dp"
             android:text="hello" />
-
-
     </LinearLayout>
 </RelativeLayout>
