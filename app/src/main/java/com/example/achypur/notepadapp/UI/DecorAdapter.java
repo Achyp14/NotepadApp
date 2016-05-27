@@ -1,4 +1,4 @@
-package com.example.achypur.notepadapp.Activities;
+package com.example.achypur.notepadapp.UI;
 
 import android.content.Context;
 import android.database.DataSetObserver;

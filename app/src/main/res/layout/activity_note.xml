@@ -7,7 +7,7 @@
     android:layout_centerHorizontal="true"
     android:background="#D1D0CE"
     android:orientation="vertical"
-    tools:context=".Activities.NoteActivity">
+    tools:context=".UI.NoteActivity">
 
     <android.support.v7.widget.Toolbar
         android:id="@+id/my_toolbar"

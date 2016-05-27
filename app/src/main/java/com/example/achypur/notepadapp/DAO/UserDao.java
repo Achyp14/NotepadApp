@@ -73,6 +73,8 @@ public class UserDao {
         contentValues.put(DataBaseHelper.KEY_PASSWORD, user.getPassword());
         contentValues.put(DataBaseHelper.KEY_USER_ROLE, user.getRole());
         contentValues.put(DataBaseHelper.KEY_IMAGE, user.getImage());
+
+        mSqLiteDatabase.update(DataBaseHelper.TABLE_USER, contentValues, " id= " + user.getId(), null);
     }
 
     private User cursorToUser(Cursor cursor) {

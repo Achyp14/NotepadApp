@@ -1,4 +1,4 @@
-package com.example.achypur.notepadapp.Activities;
+package com.example.achypur.notepadapp.UI;
 
 import android.app.AlertDialog;
 import android.app.SearchManager;
@@ -25,16 +25,15 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.achypur.notepadapp.Application.NoteApplication;
 import com.example.achypur.notepadapp.DAO.CoordinateDao;
 import com.example.achypur.notepadapp.DAO.ForecastDao;
-import com.example.achypur.notepadapp.DAO.NoteDao;
 import com.example.achypur.notepadapp.DAO.PictureDao;
-import com.example.achypur.notepadapp.DAO.UserDao;
-import com.example.achypur.notepadapp.Entities.ForecastEntity;
 import com.example.achypur.notepadapp.Entities.Note;
 import com.example.achypur.notepadapp.Entities.Picture;
 import com.example.achypur.notepadapp.Entities.User;
-import com.example.achypur.notepadapp.JsonObjects.Forecast;
+import com.example.achypur.notepadapp.Managers.AccountManager;
+import com.example.achypur.notepadapp.Managers.NoteManager;
 import com.example.achypur.notepadapp.R;
 import com.example.achypur.notepadapp.Session.SessionManager;
 
@@ -51,8 +50,6 @@ public class MainActivity extends BaseActivity {
     NoteListAdapter mNoteAdapter;
     ListView mListView;
     SessionManager mSession;
-    UserDao mUserDao;
-    NoteDao mNoteDao;
     CoordinateDao mCoordinateDao;
     HashMap<String, String> mCurrentUser;
     PictureDao mPictureDao;
@@ -61,21 +58,26 @@ public class MainActivity extends BaseActivity {
     List<Note> mNotesList;
     ForecastDao mForecastDao;
 
+    AccountManager mAccountManager;
+    NoteManager mNoteManager;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        mUserDao = new UserDao(this);
-        mNoteDao = new NoteDao(this);
         mCoordinateDao = new CoordinateDao(this);
         mPictureDao = new PictureDao(this);
         mForecastDao = new ForecastDao(this);
         mSession = new SessionManager(this);
         mCurrentUser = mSession.getUserDetails();
 
+        mAccountManager = NoteApplication.getsAccountManager();
+        mAccountManager.initLoginSession();
+        mAccountManager.createUserRepository();
+
+        mNoteManager = NoteApplication.getsNoteManager();
+        mNoteManager.createNoteRepo();
         try {
-            mUserDao.open();
-            mNoteDao.open();
             mCoordinateDao.open();
             mPictureDao.open();
             mForecastDao.open();
@@ -86,9 +88,9 @@ public class MainActivity extends BaseActivity {
         Bundle extras = getIntent().getExtras();
         if (extras != null) {
             Long id = (Long) extras.get("userId");
-            mLoggedUser = mUserDao.findUserById(id);
+            mLoggedUser = mAccountManager.findUserById(id);
         } else {
-            mLoggedUser = mUserDao.findUserById(mUserDao.findUserByLogin(mCurrentUser.get(SessionManager.KEY_LOGIN)));
+            mLoggedUser = mAccountManager.findUserById(mAccountManager.findUserId(mAccountManager.retrieveLogin()));
         }
 
 
@@ -106,7 +108,7 @@ public class MainActivity extends BaseActivity {
             });
         }
         mNoteAdapter = new NoteListAdapter(this);
-        mNotesList = mNoteDao.getNotesByUserId(mLoggedUser.getId(), 1);
+        mNotesList = mNoteManager.findAll(mLoggedUser.getId(), 1);
 
         runOnUiThread(new Runnable() {
             @Override
@@ -136,16 +138,11 @@ public class MainActivity extends BaseActivity {
                 pos = position;
 
                 if (checked) {
-                    Log.e("Achyp", "139|MainActivity::onItemCheckedStateChanged: ");
                     selectedItems.append(position, checked);
                     positionList.add(pos);
                 } else {
-                    Log.e("Achyp", "143|MainActivity::onItemCheckedStateChanged: ");
                     selectedItems.delete(position);
-                    Log.e("Achyp", "143|MainActivity::onItemCheckedStateChanged: " + positionList.indexOf(pos));
                     positionList.remove(positionList.indexOf(pos));
-                    Log.e("Achyp", "147|MainActivity::onItemCheckedStateChanged: " + positionList.size());
-
                 }
 
                 if (selectedItems.size() > 1) {
@@ -203,9 +200,9 @@ public class MainActivity extends BaseActivity {
                             return false;
                         for (long id : ids) {
                             if (id != 0) {
-                                note = mNoteDao.getNoteById(id);
+                                note = mNoteManager.findNote(id);
                                 mCoordinateDao.deleteCoordinate(note.getmLocation());
-                                mNoteDao.deleteNote(id);
+                                mNoteManager.deleteNote(id);
                             } else {
                                 return false;
                             }
@@ -215,7 +212,7 @@ public class MainActivity extends BaseActivity {
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                mNoteAdapter.setList(mNoteDao.getNotesByUserId(mLoggedUser.getId(), 1));
+                                mNoteAdapter.setList(mNoteManager.findAll(mLoggedUser.getId(), 1));
                             }
                         });
                         mode.finish();
@@ -249,7 +246,7 @@ public class MainActivity extends BaseActivity {
                 public void onClick(DialogInterface dialog, int which) {
                     for (Note note : list) {
                         note.setmPolicyStatus(true);
-                        mNoteDao.updateNote(note);
+                        mNoteManager.updateNote(note);
                     }
                 }
             }).setNegativeButton("NO", null ).create();
@@ -288,7 +285,7 @@ public class MainActivity extends BaseActivity {
         List<Note> noteList;
         switch (item.getItemId()) {
             case (R.id.item_order_by_title):
-                noteList = mNoteDao.getNotesByUserId(mLoggedUser.getId(), 1);
+                noteList = mNoteManager.findAll(mLoggedUser.getId(), 1);
                 Collections.sort(noteList, new Comparator<Note>() {
                     @Override
                     public int compare(Note note1, Note note2) {
@@ -317,7 +314,7 @@ public class MainActivity extends BaseActivity {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        mNoteAdapter.setList(mNoteDao.getNotesByUserId(mLoggedUser.getId(), 1));
+                        mNoteAdapter.setList(mNoteManager.findAll(mLoggedUser.getId(), 1));
                     }
                 });
             }
@@ -404,7 +401,7 @@ public class MainActivity extends BaseActivity {
 
             if (note.getmUserId() != mLoggedUser.getId()) {
                 String shared = "Shared by " +
-                        mUserDao.findUserById(note.getmUserId()).getName();
+                       mAccountManager.findUserById(note.getmUserId()).getName();
                 holder.location.setVisibility(View.GONE);
                 holder.sharedBy.setVisibility(View.VISIBLE);
                 holder.sharedBy.setText(shared);

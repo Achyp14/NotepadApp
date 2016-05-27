@@ -1,4 +1,4 @@
-package com.example.achypur.notepadapp.Activities;
+package com.example.achypur.notepadapp.UI;
 
 import android.Manifest;
 import android.app.AlertDialog;
@@ -10,7 +10,6 @@ import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
-import android.text.InputType;
 import android.text.SpannableString;
 import android.text.style.UnderlineSpan;
 import android.util.Log;
@@ -20,12 +19,11 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.achypur.notepadapp.DAO.UserDao;
+import com.example.achypur.notepadapp.Application.NoteApplication;
 import com.example.achypur.notepadapp.Entities.User;
+import com.example.achypur.notepadapp.Managers.AccountManager;
 import com.example.achypur.notepadapp.R;
-import com.example.achypur.notepadapp.Session.SessionManager;
 
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -37,6 +35,7 @@ public class LoginActivity extends AppCompatActivity {
     User mUser;
     HashMap<String, String> mCurrentUser = new HashMap<>();
     public static final int REQUEST_ID_MULTIPLE_PERMISSIONS = 1;
+    AccountManager mAccountManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,24 +44,14 @@ public class LoginActivity extends AppCompatActivity {
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
+        mAccountManager = NoteApplication.getsAccountManager();
+        mAccountManager.createUserRepository();
+        mAccountManager.initLoginSession();
 
-        final UserDao userDao = new UserDao(this);
+        final List<User> userList = mAccountManager.findAllUsers();
 
-        try {
-            userDao.open();
-        } catch (SQLException ex) {
-            ex.printStackTrace();
-        }
-
-        final SessionManager mSession;
-        mSession = new SessionManager(this);
-        final List<User> userList = userDao.getAllUsers();
-
-        if (userDao.isEmpty()) {
-            mUser = userDao.createUser("admin", "Andrii", "achyp14@gmail.com", "admin", null, null);
-            mSession.createLoginSession(mUser.getLogin(), mUser.getPassword());
-            mSession.logoutUser();
-
+        if (mAccountManager.isEmptyTable()) {
+            mAccountManager.createAdmin();
         }
 
         final EditText login = (EditText) findViewById(R.id.login_login);
@@ -73,37 +62,32 @@ public class LoginActivity extends AppCompatActivity {
         content.setSpan(new UnderlineSpan(), 0, content.length(), 0);
         linkToSignUp.setText(content);
         linkToSignUp.setTextSize(20);
+
         final Intent loginPage = new Intent(this, MainActivity.class);
-        mCurrentUser = mSession.getUserDetails();
-
-
-        if (mSession.isLoggedIn()) {
-            try {
-                mUser = userDao.findUserById(userDao.findUserByLogin(mCurrentUser.get(SessionManager.KEY_LOGIN)));
-            } catch (CursorIndexOutOfBoundsException ex) {
-//                userDao.deleteAll();
-//                mUser = userDao.createUser("admin", "Andrii", "achyp14@gmail.com", "admin", null, null);
-//                mSession.createLoginSession(mUser.getLogin(), mUser.getPassword());
-//                mSession.logoutUser();
-                finish();
-            }
+        if (mAccountManager.isLoggedIn()) {
+            mUser = mAccountManager.findUserById(mAccountManager.findUserId(mAccountManager.retrieveLogin()));
             loginPage.putExtra("userId", mUser.getId());
             startActivity(loginPage);
             finish();
         }
 
-        logInButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (checkLogin(login.getText().toString().trim(), password.getText().toString().trim(), userList)) {
-                    mSession.createLoginSession(login.getText().toString().trim(), password.getText().toString().trim());
-                    mUser = userDao.findUserById(userDao.findUserByLogin(login.getText().toString()));
-                    loginPage.putExtra("userId", mUser.getId());
-                    startActivity(loginPage);
-                    finish();
+        if (logInButton != null) {
+            logInButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (mAccountManager.checkLogin(login.getText().toString().trim(), password.getText().toString().trim(), userList)) {
+                        mAccountManager.createSession(login.getText().toString().trim(), password.getText().toString().trim());
+                        mUser = mAccountManager.findUserById(mAccountManager.findUserId(login.getText().toString().trim()));
+                        mAccountManager.setUser(mUser);
+                        loginPage.putExtra("userId", mUser.getId());
+                        startActivity(loginPage);
+                        finish();
+                    } else {
+                        Toast.makeText(LoginActivity.this, "Bad credentials", Toast.LENGTH_SHORT).show();
+                    }
                 }
-            }
-        });
+            });
+        }
 
         final Intent signUp = new Intent(this, SignUpActivity.class);
         linkToSignUp.setOnClickListener(new View.OnClickListener() {
@@ -115,15 +99,7 @@ public class LoginActivity extends AppCompatActivity {
         });
     }
 
-    private boolean checkLogin(String login, String password, List<User> userList) {
-        for (User someBody : userList) {
-            if (someBody.getLogin().equals(login) && someBody.getPassword().equals(password)) {
-                return true;
-            }
-        }
-        Toast.makeText(this, "Bad credentials", Toast.LENGTH_SHORT).show();
-        return false;
-    }
+
 
     @Override
     public void onBackPressed() {

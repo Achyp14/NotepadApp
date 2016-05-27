@@ -25,34 +25,6 @@ public class DataBaseUtil {
         mNote = note;
     }
 
-    public TagOfNotesDao getmTagOfNotesDao() {
-        return mTagOfNotesDao;
-    }
-
-    public void setmTagOfNotesDao(TagOfNotesDao mTagOfNotesDao) {
-        this.mTagOfNotesDao = mTagOfNotesDao;
-    }
-
-    public TagView getmTagView() {
-        return mTagView;
-    }
-
-    public void setmTagView(TagView mTagView) {
-        this.mTagView = mTagView;
-    }
-
-    public TagDao getmTagDao() {
-        return mTagDao;
-    }
-
-    public void setmTagDao(TagDao mTagDao) {
-        this.mTagDao = mTagDao;
-    }
-
-    public Note getmNote() {
-        return mNote;
-    }
-
     public void setmNote(Note mNote) {
         this.mNote = mNote;
     }

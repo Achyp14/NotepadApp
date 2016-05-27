@@ -74,8 +74,8 @@ public class TagDao {
         List<Tag> tagList = new ArrayList<>();
         for (Cursor cursor : cursorList) {
             if (cursor.moveToFirst()) {
-                while (cursor.isAfterLast() == false) {
-                    tagList.add(cursorToTag(cursor)); // Get tag id
+                while (!cursor.isAfterLast()) {
+                    tagList.add(cursorToTag(cursor));
                     cursor.moveToNext();
                 }
             }

@@ -3,10 +3,10 @@ package com.example.achypur.notepadapp.Session;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.util.Log;
+import android.preference.Preference;
 
-import com.example.achypur.notepadapp.Activities.LoginActivity;
-import com.example.achypur.notepadapp.Activities.MainActivity;
+import com.example.achypur.notepadapp.UI.LoginActivity;
+import com.example.achypur.notepadapp.UI.MainActivity;
 
 import java.util.HashMap;
 
@@ -83,6 +83,8 @@ public class SessionManager {
         } else
             return (mPref.getBoolean(IS_LOGIN, false));
     }
+
+
 }
 
 

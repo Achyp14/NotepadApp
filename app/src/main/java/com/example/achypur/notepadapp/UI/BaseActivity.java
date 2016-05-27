@@ -1,4 +1,4 @@
-package com.example.achypur.notepadapp.Activities;
+package com.example.achypur.notepadapp.UI;
 
 import android.app.Activity;
 import android.content.Context;
@@ -13,7 +13,6 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -24,9 +23,11 @@ import android.widget.FrameLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.example.achypur.notepadapp.Application.NoteApplication;
 import com.example.achypur.notepadapp.CustomView.ProfilePicture;
 import com.example.achypur.notepadapp.DAO.UserDao;
 import com.example.achypur.notepadapp.Entities.User;
+import com.example.achypur.notepadapp.Managers.AccountManager;
 import com.example.achypur.notepadapp.R;
 import com.example.achypur.notepadapp.Session.SessionManager;
 
@@ -44,11 +45,12 @@ public class BaseActivity extends AppCompatActivity {
     private ActionBarDrawerToggle mDrawerToggle;
     private ProfilePicture mProfilePicture;
     private SessionManager mSession;
-    private UserDao mUserDao;
+//    private UserDao mUserDao;
     private User mLoggedUser;
     HashMap<String, String> mCurrentUser = new HashMap<>();
     TextView mLogin;
     TextView mEmail;
+    AccountManager mAccountManager;
 
 
     @Override
@@ -65,21 +67,15 @@ public class BaseActivity extends AppCompatActivity {
         getSupportActionBar().setDisplayShowTitleEnabled(false);
         mSession = new SessionManager(this);
         mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
-        mUserDao = new UserDao(this);
-
-        try {
-            mUserDao.open();
-        } catch (SQLException ex) {
-            ex.printStackTrace();
-        }
+        mAccountManager = NoteApplication.getsAccountManager();
+        mAccountManager.createUserRepository();
 
         Bundle extras = getIntent().getExtras();
         if (extras != null && extras.containsKey("userId")) {
             Long id = (Long) extras.get("userId");
-            mLoggedUser = mUserDao.findUserById(id);
+            mLoggedUser = mAccountManager.findUserById(id);
         } else {
-            mCurrentUser = mSession.getUserDetails();
-            mLoggedUser = mUserDao.findUserById(mUserDao.findUserByLogin(mCurrentUser.get(SessionManager.KEY_LOGIN)));
+            mLoggedUser = mAccountManager.findUserById(mAccountManager.findUserId(mAccountManager.retrieveLogin()));
         }
 
         mLeftListView = (ListView) findViewById(R.id.left_drawer);
@@ -141,18 +137,13 @@ public class BaseActivity extends AppCompatActivity {
         FrameLayout contentFrame = (FrameLayout) findViewById(R.id.content_frame);
         contentFrame.addView(contentView);
 
-        mUserDao.close();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        try {
-            mUserDao.open();
-        } catch (SQLException ex) {
-            ex.printStackTrace();
-        }
-        mLoggedUser = mUserDao.findUserById(mLoggedUser.getId());
+
+        mLoggedUser = mAccountManager.findUserById(mLoggedUser.getId());
         if(mLoggedUser.getEmail() != null){
             mEmail.setText(mLoggedUser.getEmail());
         }

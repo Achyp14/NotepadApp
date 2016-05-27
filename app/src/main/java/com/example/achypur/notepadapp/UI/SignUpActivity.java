@@ -1,4 +1,4 @@
-package com.example.achypur.notepadapp.Activities;
+package com.example.achypur.notepadapp.UI;
 
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -9,45 +9,42 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 
+import com.example.achypur.notepadapp.CustomView.PictureConvertor;
 import com.example.achypur.notepadapp.CustomView.ProfilePicture;
 import com.example.achypur.notepadapp.DAO.UserDao;
 import com.example.achypur.notepadapp.Entities.User;
+import com.example.achypur.notepadapp.Managers.AccountManager;
+import com.example.achypur.notepadapp.Application.NoteApplication;
 import com.example.achypur.notepadapp.R;
-import com.example.achypur.notepadapp.Session.SessionManager;
 
-import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.sql.SQLException;
 import java.util.List;
 
 public class SignUpActivity extends AppCompatActivity {
 
     private final static int UPLOAD_KEY = 1;
-    UserDao mUserDao;
     User mCurrentUser = new User();
     ProfilePicture mProfilePicture;
     Bitmap mBitmap;
-    SessionManager mSession;
+    AccountManager mAccountManager;
+    PictureConvertor mPictureConvertor;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_signup);
 
-        mUserDao = new UserDao(this);
-        mSession = new SessionManager(this);
-        try {
-            mUserDao.open();
-        } catch (SQLException ex) {
-            ex.printStackTrace();
-        }
+
+        mPictureConvertor = PictureConvertor.getInstance();
+        mAccountManager = NoteApplication.getsAccountManager();
+        mAccountManager.initLoginSession();
+        mAccountManager.createUserRepository();
 
         final EditText firstName = (EditText) findViewById(R.id.profile_first_name);
         final EditText login = (EditText) findViewById(R.id.profile_login);
@@ -62,7 +59,7 @@ public class SignUpActivity extends AppCompatActivity {
                 R.drawable.people);
         mProfilePicture.setImageBitmap(mBitmap);
 
-        final List<User> userList = mUserDao.getAllUsers();
+        final List<User> userList = mAccountManager.findAllUsers();
         final Intent intentMain = new Intent(this, MainActivity.class);
 
         final TextWatcher textWatcher = new TextWatcher() {
@@ -93,7 +90,7 @@ public class SignUpActivity extends AppCompatActivity {
                     firstName.addTextChangedListener(textWatcher);
                     password.addTextChangedListener(textWatcher);
                     confirmPassword.addTextChangedListener(textWatcher);
-                    if (!checkPassword(password.getText().toString().trim(), confirmPassword.getText().toString().trim())) {
+                    if (!mAccountManager.checkPassword(password.getText().toString().trim(), confirmPassword.getText().toString().trim())) {
                         alertBuilder(Check.CHECK_PASSWORD);
                     } else {
                         mCurrentUser = createUser(firstName.getText().toString().trim(),
@@ -101,12 +98,12 @@ public class SignUpActivity extends AppCompatActivity {
                                 email.getText().toString().trim(),
                                 password.getText().toString().trim(), mCurrentUser.getImage());
 
-                        if (checkUserInDb(mCurrentUser, userList)) {
+                        if (mAccountManager.checkUserInDb(mCurrentUser, userList)) {
                             alertBuilder(Check.CHECK_USER);
                         } else {
-                            User user = createUserInDb(mCurrentUser);
-                            mSession.createLoginSession(user.getLogin(), user.getPassword());
-                            intentMain.putExtra("userId", user.getId());
+                            mCurrentUser = mAccountManager.createUser(mCurrentUser);
+                            mAccountManager.createSession(mCurrentUser.getLogin(), mCurrentUser.getPassword());
+                            intentMain.putExtra("userId", mAccountManager.getCurrentUser().getId());
                             startActivity(intentMain);
                             finish();
                         }
@@ -124,22 +121,22 @@ public class SignUpActivity extends AppCompatActivity {
                 }
             });
 
-        upload.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent getIntent = new Intent(Intent.ACTION_GET_CONTENT);
-                getIntent.setType("image/*");
+        if (upload != null) {
+            upload.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent getIntent = new Intent(Intent.ACTION_GET_CONTENT);
+                    getIntent.setType("image/*");
 
-                Intent pickIntent = new Intent(Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-                pickIntent.setType("image/*");
+                    Intent pickIntent = new Intent(Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+                    pickIntent.setType("image/*");
 
-                Intent chooserIntent = Intent.createChooser(getIntent, "Select Image");
-                chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, new Intent[]{pickIntent});
-                startActivityForResult(chooserIntent, UPLOAD_KEY);
-            }
-        });
-
-
+                    Intent chooserIntent = Intent.createChooser(getIntent, "Select Image");
+                    chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, new Intent[]{pickIntent});
+                    startActivityForResult(chooserIntent, UPLOAD_KEY);
+                }
+            });
+        }
     }
 
     @Override
@@ -150,8 +147,8 @@ public class SignUpActivity extends AppCompatActivity {
 
             try {
                 InputStream iStream = getContentResolver().openInputStream(selectedImage);
-                byte[] image = getBytes(iStream);
-                mBitmap = byteToBitMap(image);
+                byte[] image = mPictureConvertor.getBytes(iStream);
+                mBitmap = mPictureConvertor.byteToBitMap(image);
                 mCurrentUser.setImage(image);
                 mProfilePicture.setImageBitmap(mBitmap);
             } catch (FileNotFoundException ex) {
@@ -160,23 +157,6 @@ public class SignUpActivity extends AppCompatActivity {
                 ex.printStackTrace();
             }
         }
-    }
-
-
-    public byte[] getBytes(InputStream inputStream) throws IOException {
-        ByteArrayOutputStream byteBuffer = new ByteArrayOutputStream();
-        int bufferSize = 1024;
-        byte[] buffer = new byte[bufferSize];
-
-        int len;
-        while ((len = inputStream.read(buffer)) != -1) {
-            byteBuffer.write(buffer, 0, len);
-        }
-        return byteBuffer.toByteArray();
-    }
-
-    public Bitmap byteToBitMap(byte[] image) {
-        return BitmapFactory.decodeByteArray(image, 0, image.length);
     }
 
 
@@ -207,31 +187,10 @@ public class SignUpActivity extends AppCompatActivity {
         }
     }
 
-    public boolean checkPassword(String password, String confirmPassword) {
-        if (password.equals(confirmPassword)) {
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    public boolean checkUserInDb(User user, List<User> userList) {
-        for (User human : userList) {
-            if (human.getLogin().equals(user.getLogin())) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     public User createUser(String name, String login, String email, String password, byte[] image) {
         return new User(login, name, email, password, null, image);
     }
 
-    public User createUserInDb(User user) {
-        User currentUser = mUserDao.createUser(user);
-        return currentUser;
-    }
 
     @Override
     public void onBackPressed() {

@@ -1,4 +1,4 @@
-package com.example.achypur.notepadapp.Activities;
+package com.example.achypur.notepadapp.UI;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -14,8 +14,6 @@ import android.location.Criteria;
 import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationManager;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
@@ -28,6 +26,7 @@ import android.text.SpannableStringBuilder;
 import android.text.Spanned;
 import android.text.TextWatcher;
 import android.text.method.LinkMovementMethod;
+import android.util.Log;
 import android.util.Patterns;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -45,16 +44,18 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.achypur.notepadapp.Application.NoteApplication;
 import com.example.achypur.notepadapp.DAO.CoordinateDao;
 import com.example.achypur.notepadapp.DAO.ForecastDao;
-import com.example.achypur.notepadapp.DAO.NoteDao;
 import com.example.achypur.notepadapp.DAO.PictureDao;
 import com.example.achypur.notepadapp.DAO.TagDao;
 import com.example.achypur.notepadapp.DAO.TagOfNotesDao;
-import com.example.achypur.notepadapp.DAO.UserDao;
 import com.example.achypur.notepadapp.JsonObjects.Forecast;
 import com.example.achypur.notepadapp.JsonObjects.ForecastFetcher;
 import com.example.achypur.notepadapp.JsonObjects.Rain;
+import com.example.achypur.notepadapp.Managers.AccountManager;
+import com.example.achypur.notepadapp.Managers.NoteManager;
+import com.example.achypur.notepadapp.Managers.TagManager;
 import com.example.achypur.notepadapp.Spannable.EmailClickableSpan;
 import com.example.achypur.notepadapp.Entities.Coordinate;
 import com.example.achypur.notepadapp.Entities.Note;
@@ -98,14 +99,10 @@ public class NoteActivity extends AppCompatActivity {
     private final static String REVISE_MODE = "MODE";
     private final static int UPLOAD_KEY = 1;
 
-    NoteDao mNoteDao;
-    UserDao mUserDao;
-    TagDao mTagDao;
     CoordinateDao mCoordinateDao;
     TagOfNotesDao mTagOfNotesDao;
     Note mNote = null;
     HashMap<String, String> mCurrentUser;
-    SessionManager mSession;
     LocationManager mLocationManager;
     SupportMapFragment mMapFragment;
     Menu mMenu;
@@ -127,6 +124,10 @@ public class NoteActivity extends AppCompatActivity {
     LinearLayout mForecastLayout;
     ForecastDao mForecastDao;
 
+    AccountManager mAccountManager;
+    NoteManager mNoteManager;
+    TagManager mTagManager;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -135,24 +136,26 @@ public class NoteActivity extends AppCompatActivity {
         setContentView(R.layout.activity_note);
         Toolbar toolbar = (Toolbar) findViewById(R.id.my_toolbar);
         setSupportActionBar(toolbar);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        getSupportActionBar().setDisplayShowTitleEnabled(false);
+        if(getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+            getSupportActionBar().setDisplayShowTitleEnabled(false);
+        }
+
+        mAccountManager = NoteApplication.getsAccountManager();
+        mAccountManager.createUserRepository();
+        mNoteManager = NoteApplication.getsNoteManager();
+        mNoteManager.createNoteRepo();
+        mTagManager = NoteApplication.getsTagManager();
+        mTagManager.createTagRepo();
 
 
-        mNoteDao = new NoteDao(this);
-        mUserDao = new UserDao(this);
         mCoordinateDao = new CoordinateDao(this);
-        mTagDao = new TagDao(this);
         mTagOfNotesDao = new TagOfNotesDao(this);
-        mSession = new SessionManager(this);
         mPictureDao = new PictureDao(this);
         mForecastDao = new ForecastDao(this);
 
         try {
-            mNoteDao.open();
-            mUserDao.open();
             mCoordinateDao.open();
-            mTagDao.open();
             mTagOfNotesDao.open();
             mPictureDao.open();
             mForecastDao.open();
@@ -160,8 +163,8 @@ public class NoteActivity extends AppCompatActivity {
             ex.printStackTrace();
         }
 
-        mCurrentUser = mSession.getUserDetails();
-        mLoggedUser = mUserDao.findUserById(mUserDao.findUserByLogin(mCurrentUser.get(SessionManager.KEY_LOGIN)));
+
+        mLoggedUser = mAccountManager.findUserById(mAccountManager.findUserId(mAccountManager.retrieveLogin()));
 
         mTagView = (TagView) findViewById(R.id.tag_grid);
         mGridViewAdapter = new GridViewAdapter(this);
@@ -320,10 +323,10 @@ public class NoteActivity extends AppCompatActivity {
             mGridViewAdapter.setList(mUriList);
             mTagsList = mDataBaseUtil.showAllTags(mNote.getmId(), mTagsList);
             List<String> tagContentList = new ArrayList<>();
-            List<Tag> tagList = mTagDao.findAllTag();
-            for (Tag tag : tagList) {
-                tagContentList.add(tag.getmTag());
-            }
+////            List<Tag> tagList = mTagDao.findAllTag();
+//            for (Tag tag : tagList) {
+//                tagContentList.add(tag.getmTag());
+//            }
             ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, tagContentList);
             mTagView.setAdapter(arrayAdapter);
             mGridView.setAdapter(mGridViewAdapter);
@@ -369,16 +372,15 @@ public class NoteActivity extends AppCompatActivity {
                     mNote.setmTitle(title.getText().toString().trim());
                     mNote.setmContent(content.getText().toString().trim());
                     mNote.setmModifiedDate(dateFormat.format(currentLocalTime));
-                    mNoteDao.updateNote(mNote);
+                    mNoteManager.updateNote(mNote);
                     if (!mForecastDao.ifExistForecastForNote(mNote.getmId()) && mForecast != null) {
                         mForecastDao.createForecast(mForecast, mNote.getmId());
                     }
                     startActivity(createIntentForReviseNote(NoteActivity.this, mNote.getmId(), true));
                     finish();
                 } else {
-                    mNote = mNoteDao.createNote(title.getText().toString().trim(),
-                            content.getText().toString().trim(), mUserDao.findUserByLogin
-                                    (mCurrentUser.get(SessionManager.KEY_LOGIN)),
+                    mNote = mNoteManager.createNote(title.getText().toString().trim(),
+                            content.getText().toString().trim(), mLoggedUser.getId(),
                             dateFormat.format(currentLocalTime),
                             dateFormat.format(currentLocalTime), false, mLocation);
                     startActivity(intent);
@@ -408,12 +410,9 @@ public class NoteActivity extends AppCompatActivity {
                 }
 
 
-                mNoteDao.close();
                 mPictureDao.close();
-                mTagDao.close();
                 mTagOfNotesDao.close();
                 mCoordinateDao.close();
-                mUserDao.close();
             }
         });
 
@@ -421,12 +420,9 @@ public class NoteActivity extends AppCompatActivity {
             cancel.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    mNoteDao.close();
                     mPictureDao.close();
-                    mTagDao.close();
                     mTagOfNotesDao.close();
                     mCoordinateDao.close();
-                    mUserDao.close();
                     if (!isEditMode()) {
                         startActivity(new Intent(NoteActivity.this, MainActivity.class));
                         finish();
@@ -567,7 +563,10 @@ public class NoteActivity extends AppCompatActivity {
                 if (location != null) {
                     LatLng latLng = findingCoordinate(location);
                     String city = findingCityName();
-                    locationDialog(this, latLng, city);
+                    if (city != null) {
+                        locationDialog(this, latLng, city);
+                        return true;
+                    }
                     return true;
                 } else {
                     Toast.makeText(this, "Location not found", Toast.LENGTH_SHORT).show();
@@ -596,9 +595,9 @@ public class NoteActivity extends AppCompatActivity {
                 if (location != null) {
                     try {
                         ForecastFetcher forecastFetcher = new ForecastFetcher();
-                        if(!forecastFetcher.isNetworkAvailable(this)) {
+                        if (!forecastFetcher.isNetworkAvailable(this)) {
                             Toast.makeText(this, "No internet connection", Toast.LENGTH_SHORT).show();
-                            return  true;
+                            return true;
                         } else {
                             Coordinate coordinate = new Coordinate(location.getLatitude(), location.getLongitude());
                             mForecast = forecastFetcher.execute(coordinate).get();
@@ -632,13 +631,13 @@ public class NoteActivity extends AppCompatActivity {
 
         if (intent != null && intent.getExtras() != null && intent.getExtras().containsKey(NOTE_ID_KEY) &&
                 intent.getExtras().containsKey(REVISE_MODE)) {
-            mNote = mNoteDao.getNoteById(intent.getLongExtra(NOTE_ID_KEY, -1));
+            mNote = mNoteManager.findNote(intent.getLongExtra(NOTE_ID_KEY, -1));
             mReviseMode = true;
             return;
         }
 
         if (intent != null && intent.getExtras() != null && intent.getExtras().containsKey(NOTE_ID_KEY)) {
-            mNote = mNoteDao.getNoteById(intent.getLongExtra(NOTE_ID_KEY, -1));
+            mNote = mNoteManager.findNote(intent.getLongExtra(NOTE_ID_KEY, -1));
         }
 
     }
@@ -714,12 +713,16 @@ public class NoteActivity extends AppCompatActivity {
         try {
             address = geocoder.getFromLocation(coordinate.getLatitude(), coordinate.getLongtitude(), 100);
         } catch (IOException e) {
-            e.printStackTrace();
+            if (address == null) {
+                Toast.makeText(this, "No internet connection", Toast.LENGTH_SHORT).show();
+                mNote.setmLocation(Long.valueOf(0));
+                return null;
+            }
         }
         if (address.get(0).getLocality() != null) {
             return address.get(0).getLocality();
         } else {
-            return "Can't find your current location";
+            return null;
         }
     }
 
@@ -809,7 +812,7 @@ public class NoteActivity extends AppCompatActivity {
         dialogHolder.refresh = (ImageView) dialog.findViewById(R.id.dialog_refresh);
         dialogHolder.remove = (Button) dialog.findViewById(R.id.dialog_remove);
 
-        if(mForecastLayout.getVisibility()==View.VISIBLE) {
+        if (mForecastLayout.getVisibility() == View.VISIBLE) {
             dialogHolder.refresh.setVisibility(View.VISIBLE);
         }
 
@@ -817,13 +820,10 @@ public class NoteActivity extends AppCompatActivity {
         dialogHolder.ok.setText("OK");
         dialogHolder.cancel.setText("CANCEL");
         dialogHolder.remove.setText("Remove");
-
-        dialog.show();
-
         String dialogTitle = "Current location";
         dialog.setTitle(dialogTitle);
 
-
+        dialog.show();
 
         dialogHolder.ok.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -835,7 +835,12 @@ public class NoteActivity extends AppCompatActivity {
                     try {
                         mForecast = forecastFetcher.execute(coordinate).get();
                         if (mForecast != null) {
-                            showForecastLayout(mForecastLayout);
+                            if (!mForecastDao.ifExistForecastForNote(mNote.getmId())) {
+                                showForecastLayout(mForecastLayout);
+                            } else {
+                                mForecast = mForecastDao.updateWeather(mForecast, mNote.getmId());
+                                showForecastLayout(mForecastLayout);
+                            }
                         }
                     } catch (ExecutionException ex) {
                         ex.printStackTrace();
