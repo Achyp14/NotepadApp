@@ -88,6 +88,8 @@
                 android:gravity="center"
                 android:longClickable="true"
                 android:minHeight="@dimen/note_grid_view_min_height"
+                android:verticalSpacing="4dp"
+                android:horizontalSpacing="4dp"
                 android:numColumns="auto_fit"
                 android:stretchMode="columnWidth" />
 

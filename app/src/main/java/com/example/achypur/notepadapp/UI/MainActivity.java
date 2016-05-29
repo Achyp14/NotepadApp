@@ -2,13 +2,18 @@ package com.example.achypur.notepadapp.UI;
 
 import android.app.AlertDialog;
 import android.app.SearchManager;
+import android.app.SearchableInfo;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.database.Cursor;
+import android.database.MatrixCursor;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.view.MenuItemCompat;
+import android.support.v4.widget.CursorAdapter;
 import android.support.v7.widget.SearchView;
 import android.util.Log;
 import android.util.SparseBooleanArray;
@@ -44,6 +49,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
 
 public class MainActivity extends BaseActivity {
 
@@ -57,6 +63,8 @@ public class MainActivity extends BaseActivity {
     SearchView mSearchView;
     List<Note> mNotesList;
     ForecastDao mForecastDao;
+    MatrixCursor mCursor;
+//    NoteCursorAdapter mNoteCursorAdapter;
 
     AccountManager mAccountManager;
     NoteManager mNoteManager;
@@ -74,6 +82,7 @@ public class MainActivity extends BaseActivity {
         mAccountManager = NoteApplication.getsAccountManager();
         mAccountManager.initLoginSession();
         mAccountManager.createUserRepository();
+        mCursor = new MatrixCursor(new String[]{"_id","title","content","user_id","date_of_creation","date_of_last_modified","policy","coordinates_id"});
 
         mNoteManager = NoteApplication.getsNoteManager();
         mNoteManager.createNoteRepo();
@@ -93,7 +102,6 @@ public class MainActivity extends BaseActivity {
             mLoggedUser = mAccountManager.findUserById(mAccountManager.findUserId(mAccountManager.retrieveLogin()));
         }
 
-
         setContentView(R.layout.activity_main);
 
         mListView = (ListView) findViewById(R.id.note_list);
@@ -104,11 +112,20 @@ public class MainActivity extends BaseActivity {
                 public void onClick(View v) {
                     Intent intent = NoteActivity.createIntentForAddNote(MainActivity.this);
                     startActivity(intent);
+                    finish();
                 }
             });
         }
         mNoteAdapter = new NoteListAdapter(this);
+        for (Note note : mNoteManager.findAll(mLoggedUser.getId(),1)) {
+            Log.e("112","note" + note.getmTitle());
+        }
         mNotesList = mNoteManager.findAll(mLoggedUser.getId(), 1);
+
+        for (Note item : mNotesList) {
+            mCursor.addRow(new Object[]{item.getmId(),item.getmTitle(),item.getmContent(), item.getmUserId(), item.getmCreatedDate(), item.getmModifiedDate(), item.getmPolicyStatus(), item.getmLocation()});
+        }
+//        mNoteCursorAdapter= new NoteCursorAdapter(this, mCursor, mNotesList);
 
         runOnUiThread(new Runnable() {
             @Override
@@ -206,15 +223,23 @@ public class MainActivity extends BaseActivity {
                             } else {
                                 return false;
                             }
-
                         }
                         mListView.clearChoices();
+                        mListView.invalidate();
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
                                 mNoteAdapter.setList(mNoteManager.findAll(mLoggedUser.getId(), 1));
                             }
                         });
+
+                        for (Note item1 : mNoteManager.findAll(mLoggedUser.getId(),1)) {
+                            Log.e("222","note " + item1.getmTitle());
+                        }
+                        mListView.setAdapter(mNoteAdapter);
+//                        mNoteCursorAdapter.notifyDataSetChanged();
+                        mSearchView.invalidate();
+                        getSupportActionBar().invalidateOptionsMenu();
                         mode.finish();
                         return true;
                 }
@@ -255,14 +280,18 @@ public class MainActivity extends BaseActivity {
     }
 
     @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.menu_main, menu);
+    public boolean onPrepareOptionsMenu(Menu menu) {
         mSearchView = (SearchView) MenuItemCompat.getActionView(menu.findItem(R.id.item_search_note));
         SearchManager searchManager = (SearchManager) getSystemService(SEARCH_SERVICE);
-        mSearchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
+        ComponentName componentName = new ComponentName(this, MainActivity.class);
+        mSearchView.setSearchableInfo(searchManager.getSearchableInfo(componentName));
+
         mSearchView.setQueryHint("Search");
         mSearchView.setBackgroundColor(Color.WHITE);
 
+        for (Note item1 : mNoteManager.findAll(mLoggedUser.getId(),1)) {
+            Log.e("276","note " + item1.getmTitle());
+        }
         mSearchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
@@ -273,9 +302,17 @@ public class MainActivity extends BaseActivity {
             public boolean onQueryTextChange(String newText) {
                 mNoteAdapter.filter(newText);
                 mListView.invalidate();
-                return false;
+                return true;
             }
+
         });
+
+        return true;
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_main, menu);
 
         return true;
     }
@@ -298,7 +335,6 @@ public class MainActivity extends BaseActivity {
                 Intent intent = NoteActivity.createIntentForAddNote(this);
                 startActivityForResult(intent, 1);
                 return true;
-
             case R.id.item_search_note:
                 return true;
             default:
@@ -461,5 +497,27 @@ public class MainActivity extends BaseActivity {
         }
 
     }
+
+//    class NoteCursorAdapter extends CursorAdapter {
+//
+//        private List<Note> mItems;
+//        LayoutInflater mLayoutInflater;
+//
+//        NoteCursorAdapter(Context context, Cursor cursor, List<Note> items) {
+//            super(context, cursor, false);
+//            mItems = items;
+//            mLayoutInflater = LayoutInflater.from(context);
+//        }
+//        @Override
+//        public View newView(Context context, Cursor cursor, ViewGroup parent) {
+//            return mLayoutInflater.inflate(R.layout.item_note_list, parent, false);
+//
+//        }
+//
+//        @Override
+//        public void bindView(View view, Context context, Cursor cursor) {
+//            ViewHolderItem viewHolderItem = new ViewHolderItem(view);
+//        }
+//    }
 }
 
