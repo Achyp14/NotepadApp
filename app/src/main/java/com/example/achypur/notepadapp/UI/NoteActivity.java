@@ -185,7 +185,7 @@ public class NoteActivity extends AppCompatActivity {
         save.setEnabled(false);
         LinearLayout buttonLayout = (LinearLayout) findViewById(R.id.buttons);
         mGridView = (GridView) findViewById(R.id.note_edit_pictures);
-        mDataBaseUtil = new DataBaseUtil(mTagOfNotesDao, mTagView, mTagDao, mNote);
+//        mDataBaseUtil = new DataBaseUtil(mTagOfNotesDao, mTagView, mTagDao, mNote);
         TextWatcher watcher = new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
