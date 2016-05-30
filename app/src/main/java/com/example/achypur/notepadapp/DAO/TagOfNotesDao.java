@@ -4,10 +4,9 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.util.Log;
 
 import com.example.achypur.notepadapp.DBHelper.DataBaseHelper;
-import com.example.achypur.notepadapp.Entities.TagOfNotes;
+import com.example.achypur.notepadapp.Entities.TagofNotes;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -31,9 +30,9 @@ public class TagOfNotesDao {
         mDataBaseHelper.close();
     }
 
-    public TagOfNotes createTagOfNotes(Long noteId, Long tagId, Long userdId) {
+    public TagofNotes createTagOfNotes(Long noteId, Long tagId, Long userdId) {
 
-        TagOfNotes tagOfNotes = new TagOfNotes(noteId, tagId, userdId);
+        TagofNotes tagOfNotes = new TagofNotes(noteId, tagId, userdId);
 
         Long id = mSqLiteDatabase.insert(DataBaseHelper.TABLE_TAG_NOTES, null, getTagOfNotesContentValues(tagOfNotes));
 
@@ -42,7 +41,7 @@ public class TagOfNotesDao {
         return tagOfNotes;
     }
 
-    private ContentValues getTagOfNotesContentValues(TagOfNotes tagOfNotes) {
+    private ContentValues getTagOfNotesContentValues(TagofNotes tagOfNotes) {
         final ContentValues contentValues = new ContentValues();
         contentValues.put(DataBaseHelper.KEY_NOTE_ID, tagOfNotes.getmNotesId());
         contentValues.put(DataBaseHelper.KEY_TAG_ID, tagOfNotes.getmTagId());
@@ -58,7 +57,7 @@ public class TagOfNotesDao {
 
     private List<Long> addTagOfNotesToCursor(Cursor cursor) {
         List<Long> idList = new ArrayList<>();
-        TagOfNotes tagOfNotes;
+        TagofNotes tagOfNotes;
 
         if (cursor.moveToFirst()) {
             while (cursor.isAfterLast() == false) {
@@ -71,8 +70,8 @@ public class TagOfNotesDao {
         return idList;
     }
 
-    private TagOfNotes cursorToTagOfNotes(Cursor cursor) {
-        return new TagOfNotes(
+    private TagofNotes cursorToTagOfNotes(Cursor cursor) {
+        return new TagofNotes(
                 cursor.getLong(0),
                 cursor.getLong(1),
                 cursor.getLong(2),

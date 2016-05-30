@@ -50,6 +50,7 @@ import com.example.achypur.notepadapp.DAO.ForecastDao;
 import com.example.achypur.notepadapp.DAO.PictureDao;
 import com.example.achypur.notepadapp.DAO.TagDao;
 import com.example.achypur.notepadapp.DAO.TagOfNotesDao;
+import com.example.achypur.notepadapp.Entities.Picture;
 import com.example.achypur.notepadapp.JsonObjects.Forecast;
 import com.example.achypur.notepadapp.JsonObjects.ForecastFetcher;
 import com.example.achypur.notepadapp.JsonObjects.Rain;
@@ -62,7 +63,6 @@ import com.example.achypur.notepadapp.Entities.Note;
 import com.example.achypur.notepadapp.Entities.Tag;
 import com.example.achypur.notepadapp.Entities.User;
 import com.example.achypur.notepadapp.R;
-import com.example.achypur.notepadapp.Session.SessionManager;
 import com.example.achypur.notepadapp.Spannable.PhoneCLickableSpan;
 import com.example.achypur.notepadapp.Spannable.UrlClickableSpan;
 import com.example.achypur.notepadapp.Util.DataBaseUtil;
@@ -85,6 +85,7 @@ import java.sql.SQLException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
@@ -102,6 +103,7 @@ public class NoteActivity extends AppCompatActivity {
     CoordinateDao mCoordinateDao;
     TagOfNotesDao mTagOfNotesDao;
     Note mNote = null;
+    TagDao mTagDao;
     HashMap<String, String> mCurrentUser;
     LocationManager mLocationManager;
     SupportMapFragment mMapFragment;
@@ -146,12 +148,13 @@ public class NoteActivity extends AppCompatActivity {
         mNoteManager = NoteApplication.getsNoteManager();
         mNoteManager.createNoteRepo();
         mTagManager = NoteApplication.getsTagManager();
-        mTagManager.createTagRepo();
+//        mTagManager.createTagRepo();
 
 
         mCoordinateDao = new CoordinateDao(this);
         mTagOfNotesDao = new TagOfNotesDao(this);
         mPictureDao = new PictureDao(this);
+        mTagDao = new TagDao(this);
         mForecastDao = new ForecastDao(this);
 
         try {
@@ -159,6 +162,7 @@ public class NoteActivity extends AppCompatActivity {
             mTagOfNotesDao.open();
             mPictureDao.open();
             mForecastDao.open();
+            mTagDao.open();
         } catch (SQLException ex) {
             ex.printStackTrace();
         }
@@ -323,13 +327,14 @@ public class NoteActivity extends AppCompatActivity {
             mGridViewAdapter.setList(mUriList);
             mTagsList = mDataBaseUtil.showAllTags(mNote.getmId(), mTagsList);
             List<String> tagContentList = new ArrayList<>();
-////            List<Tag> tagList = mTagDao.findAllTag();
-//            for (Tag tag : tagList) {
-//                tagContentList.add(tag.getmTag());
-//            }
+            List<Tag> tagList = mTagDao.findAllTag();
+            for (Tag tag : tagList) {
+                tagContentList.add(tag.getmTag());
+            }
             ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, tagContentList);
             mTagView.setAdapter(arrayAdapter);
             mGridView.setAdapter(mGridViewAdapter);
+            Log.e("336", "onCreate: " + mGridView.isVerticalScrollBarEnabled());
         }
 
         if (mGridView.isLongClickable()) {
@@ -337,13 +342,13 @@ public class NoteActivity extends AppCompatActivity {
                 @Override
                 public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
                     final DecorAdapter decorAdapter = new DecorAdapter(NoteActivity.this);
+                    Log.e("344", "onCreate: " + mGridView.isVerticalScrollBarEnabled());
                     decorAdapter.setAdapter(mGridViewAdapter);
-                    mGridView.requestFocus();
-                    mGridView.setFocusable(true);
                     decorAdapter.setListener(new DecorAdapter.Listener() {
                         @Override
                         public void onRemoveClicked(int position) {
                             mCurrentRemovePictures.add(mUriList.get(position));
+                            Log.e("352","position" + position);
                             mUriList.remove(position);
                             mGridViewAdapter.setList(mUriList);
                         }
@@ -398,14 +403,22 @@ public class NoteActivity extends AppCompatActivity {
 
                 if (!mCurrentAddPictures.isEmpty()) {
                     for (int i = 0; i < mCurrentAddPictures.size(); i++) {
-                        mPictureDao.createPicture(mCurrentAddPictures.get(i), mNote.getmId());
+                        Picture current = mPictureDao.createPicture(mCurrentAddPictures.get(i), mNote.getmId());
+                        Log.e("409", "onClick: " + current.getmId());
                     }
                 }
 
                 if (!mCurrentRemovePictures.isEmpty()) {
                     for (int i = 0; i < mCurrentRemovePictures.size(); i++) {
-                        Long id = mPictureDao.findPictureByNoteId(mNote.getmId());
-                        mPictureDao.deletePicture(id, mNote.getmId());
+                        List<byte[]> pictureList = mPictureDao.getAllPicture(mNote.getmId());
+                        List<Long> idList = mPictureDao.getAllPictureId(mNote.getmId());
+                        for (byte[] item: pictureList) {
+                            if(Arrays.equals(item,mCurrentRemovePictures.get(i))) {
+                                int position = pictureList.indexOf(item);
+                                Long id = idList.get(position);
+                                mPictureDao.deletePictureById(id);
+                            }
+                        }
                     }
                 }
 
@@ -711,6 +724,7 @@ public class NoteActivity extends AppCompatActivity {
         Geocoder geocoder = new Geocoder(NoteActivity.this, Locale.getDefault());
         List<Address> address = null;
         try {
+            Log.i("", "findingCityName: " + geocoder.getFromLocation(coordinate.getLatitude(), coordinate.getLongtitude(), 100));
             address = geocoder.getFromLocation(coordinate.getLatitude(), coordinate.getLongtitude(), 100);
         } catch (IOException e) {
             if (address == null) {
@@ -929,10 +943,18 @@ public class NoteActivity extends AppCompatActivity {
             try {
                 InputStream iStream = getContentResolver().openInputStream(selectedImage);
                 byte[] inputData = getBytes(iStream);
-                mUriList.add(inputData);
-                mCurrentAddPictures.add(inputData);
-                mGridViewAdapter.setList(mUriList);
-                mGridViewAdapter.notifyDataSetChanged();
+                for (byte[] item : mUriList) {
+                    if(Arrays.equals(item, inputData)) {
+                        Toast.makeText(NoteActivity.this, "Picked already attached to current note", Toast.LENGTH_SHORT).show();
+                    } else {
+                        mUriList.add(inputData);
+                        mCurrentAddPictures.add(inputData);
+                        mGridViewAdapter.setList(mUriList);
+                        mGridViewAdapter.notifyDataSetChanged();
+
+                    }
+                }
+
             } catch (FileNotFoundException ex) {
                 ex.printStackTrace();
             } catch (IOException ex) {

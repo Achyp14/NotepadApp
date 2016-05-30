@@ -4,12 +4,14 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.util.Base64;
 import android.util.Log;
 
 import com.example.achypur.notepadapp.DBHelper.DataBaseHelper;
 import com.example.achypur.notepadapp.Entities.Note;
 import com.example.achypur.notepadapp.Entities.Picture;
 
+import java.io.UnsupportedEncodingException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -72,6 +74,18 @@ public class PictureDao {
         return pictureList;
     }
 
+    public List<Long> addIdToList(Cursor cursor) {
+        List<Long> idList = new ArrayList<>();
+        if (cursor.moveToFirst()) {
+            while (!cursor.isAfterLast()) {
+                idList.add(cursor.getLong(0));
+                cursor.moveToNext();
+            }
+        }
+        cursor.close();
+        return idList;
+    }
+
     public void deletePicture(Long id, Long noteId) {
         mSqLiteDatabase.delete(mDataBaseHelper.TABLE_TAG_PICTURE, " id = ? and note_id = ? ",
                 new String[]{String.valueOf(id), String.valueOf(noteId)});
@@ -95,5 +109,17 @@ public class PictureDao {
         cursor.moveToFirst();
         return cursorToPicture(cursor);
     }
+
+    public void deletePictureById(Long id) {
+        mSqLiteDatabase.delete(DataBaseHelper.TABLE_TAG_PICTURE, " id = ? ", new String[] {id.toString()});
+    }
+
+    public List<Long> getAllPictureId(Long noteId) {
+        Cursor cursor = mSqLiteDatabase.rawQuery("select * from " + DataBaseHelper.TABLE_TAG_PICTURE + " where note_id = ? " , new String[] {noteId.toString()});
+
+        return addIdToList(cursor);
+
+    }
+
 
 }

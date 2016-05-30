@@ -41,7 +41,9 @@
 
         <activity
             android:name=".UI.MainActivity"
-            android:label="@string/title_activity_login" />
+            android:label="@string/title_activity_login">
+        </activity>
+
         <activity
             android:name=".UI.SignUpActivity"
             android:label="@string/title_activity_register" />

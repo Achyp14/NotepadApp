@@ -10,11 +10,11 @@ import com.example.achypur.notepadapp.Repositories.NoteRepository;
 import java.sql.SQLException;
 import java.util.List;
 
-public class NoteRepositoryImpl implements NoteRepository {
+public class NoterepositoryImpl implements NoteRepository {
 
     private NoteDao noteDao;
 
-    public NoteRepositoryImpl(Context context) {
+    public NoterepositoryImpl(Context context) {
         noteDao = new NoteDao(context);
         try {
            noteDao.open();
@@ -47,4 +47,7 @@ public class NoteRepositoryImpl implements NoteRepository {
     public Note createNote(String title, String content, Long userId, String createdDate, String modifiedDate, boolean policy, Long location) {
        return noteDao.createNote(title, content, userId, createdDate, modifiedDate, policy, location);
     }
+
+
+
 }

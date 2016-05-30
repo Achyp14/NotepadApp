@@ -6,7 +6,7 @@ android {
             keyAlias 'android'
             keyPassword 'android'
 
-            storeFile file('C:\\Users\\achypur\\keystores.jks')
+            storeFile file('/Users/achyp/Desktop/AndroidProjects/Keystore/keystore.jks')
             storePassword 'android'
         }
     }
