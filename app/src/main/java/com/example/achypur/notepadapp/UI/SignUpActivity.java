@@ -169,7 +169,7 @@ public class SignUpActivity extends AppCompatActivity {
         AlertDialog alertDialog;
 
         if (check == Check.CHECK_INPUT) {
-            builder.setMessage("Please input all field").setPositiveButton("OK", null);
+            builder.setMessage("Please input all fields").setPositiveButton("OK", null);
             alertDialog = builder.create();
             alertDialog.show();
         }

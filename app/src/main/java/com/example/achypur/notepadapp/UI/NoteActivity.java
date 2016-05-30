@@ -1,5 +1,6 @@
 package com.example.achypur.notepadapp.UI;
 
+import android.Manifest;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
@@ -13,9 +14,12 @@ import android.location.Address;
 import android.location.Criteria;
 import android.location.Geocoder;
 import android.location.Location;
+import android.location.LocationListener;
 import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -67,6 +71,10 @@ import com.example.achypur.notepadapp.Spannable.PhoneCLickableSpan;
 import com.example.achypur.notepadapp.Spannable.UrlClickableSpan;
 import com.example.achypur.notepadapp.Util.DataBaseUtil;
 import com.example.achypur.tagview.TagView;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -125,6 +133,9 @@ public class NoteActivity extends AppCompatActivity {
     Forecast mForecast;
     LinearLayout mForecastLayout;
     ForecastDao mForecastDao;
+    GoogleApiClient mGoogleApiClient;
+    Location mLastLocation;
+    LocationRequest mLocationRequest;
 
     AccountManager mAccountManager;
     NoteManager mNoteManager;
@@ -138,7 +149,7 @@ public class NoteActivity extends AppCompatActivity {
         setContentView(R.layout.activity_note);
         Toolbar toolbar = (Toolbar) findViewById(R.id.my_toolbar);
         setSupportActionBar(toolbar);
-        if(getSupportActionBar() != null) {
+        if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
             getSupportActionBar().setDisplayShowTitleEnabled(false);
         }
@@ -180,16 +191,16 @@ public class NoteActivity extends AppCompatActivity {
         mForecastLayout = (LinearLayout) findViewById(R.id.forecast_layout);
         TextView tags = (TextView) findViewById(R.id.note_edit_tag);
 
-        Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("GMT + 2:00"));
+        Calendar calendar = Calendar.getInstance(Locale.getDefault());
         final Date currentLocalTime = calendar.getTime();
+        Log.e("Achyp", "185|NoteActivity::onCreate: " + currentLocalTime.toString());
         View line = findViewById(R.id.line);
-        final DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
-        dateFormat.setTimeZone(TimeZone.getTimeZone("GMT + 2:00"));
+        final DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault());
         time.setText("Created at " + dateFormat.format(currentLocalTime));
         save.setEnabled(false);
         LinearLayout buttonLayout = (LinearLayout) findViewById(R.id.buttons);
         mGridView = (GridView) findViewById(R.id.note_edit_pictures);
-//        mDataBaseUtil = new DataBaseUtil(mTagOfNotesDao, mTagView, mTagDao, mNote);
+        mDataBaseUtil = new DataBaseUtil(mTagOfNotesDao, mTagView, mTagDao, mNote);
         TextWatcher watcher = new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
@@ -334,7 +345,6 @@ public class NoteActivity extends AppCompatActivity {
             ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, tagContentList);
             mTagView.setAdapter(arrayAdapter);
             mGridView.setAdapter(mGridViewAdapter);
-            Log.e("336", "onCreate: " + mGridView.isVerticalScrollBarEnabled());
         }
 
         if (mGridView.isLongClickable()) {
@@ -342,13 +352,11 @@ public class NoteActivity extends AppCompatActivity {
                 @Override
                 public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
                     final DecorAdapter decorAdapter = new DecorAdapter(NoteActivity.this);
-                    Log.e("344", "onCreate: " + mGridView.isVerticalScrollBarEnabled());
                     decorAdapter.setAdapter(mGridViewAdapter);
                     decorAdapter.setListener(new DecorAdapter.Listener() {
                         @Override
                         public void onRemoveClicked(int position) {
                             mCurrentRemovePictures.add(mUriList.get(position));
-                            Log.e("352","position" + position);
                             mUriList.remove(position);
                             mGridViewAdapter.setList(mUriList);
                         }
@@ -404,7 +412,6 @@ public class NoteActivity extends AppCompatActivity {
                 if (!mCurrentAddPictures.isEmpty()) {
                     for (int i = 0; i < mCurrentAddPictures.size(); i++) {
                         Picture current = mPictureDao.createPicture(mCurrentAddPictures.get(i), mNote.getmId());
-                        Log.e("409", "onClick: " + current.getmId());
                     }
                 }
 
@@ -412,8 +419,8 @@ public class NoteActivity extends AppCompatActivity {
                     for (int i = 0; i < mCurrentRemovePictures.size(); i++) {
                         List<byte[]> pictureList = mPictureDao.getAllPicture(mNote.getmId());
                         List<Long> idList = mPictureDao.getAllPictureId(mNote.getmId());
-                        for (byte[] item: pictureList) {
-                            if(Arrays.equals(item,mCurrentRemovePictures.get(i))) {
+                        for (byte[] item : pictureList) {
+                            if (Arrays.equals(item, mCurrentRemovePictures.get(i))) {
                                 int position = pictureList.indexOf(item);
                                 Long id = idList.get(position);
                                 mPictureDao.deletePictureById(id);
@@ -479,6 +486,12 @@ public class NoteActivity extends AppCompatActivity {
                 mCurrentRemoveTagsList.add(new Tag(tag));
             }
         });
+
+
+        buildGoogleApiClient();
+        if(mGoogleApiClient != null) {
+            mGoogleApiClient.connect();
+        }
 
     }
 
@@ -572,7 +585,8 @@ public class NoteActivity extends AppCompatActivity {
                     return true;
                 }
             case R.id.note_menu_location:
-                location = findingLocation(this);
+                location = findingLocation();
+
                 if (location != null) {
                     LatLng latLng = findingCoordinate(location);
                     String city = findingCityName();
@@ -604,7 +618,7 @@ public class NoteActivity extends AppCompatActivity {
                 return true;
 
             case R.id.note_menu_weather:
-                location = findingLocation(this);
+                location = findingLocation();
                 if (location != null) {
                     try {
                         ForecastFetcher forecastFetcher = new ForecastFetcher();
@@ -621,6 +635,9 @@ public class NoteActivity extends AppCompatActivity {
                     } catch (ExecutionException e) {
                         e.printStackTrace();
                     }
+                } else {
+                    Toast.makeText(this, "Weather not found", Toast.LENGTH_SHORT).show();
+                    return true;
                 }
                 return true;
             case android.R.id.home:
@@ -673,18 +690,8 @@ public class NoteActivity extends AppCompatActivity {
         return intent;
     }
 
-    private Location findingLocation(final Context context) {
-        if (ContextCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_FINE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED) {
-            Toast.makeText(context, "Location permissions required", Toast.LENGTH_SHORT).show();
-        }
-
-        mLocationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-        Criteria criteria = new Criteria();
-
-        final String provider = mLocationManager.getBestProvider(criteria, true);
-        Location location = mLocationManager.getLastKnownLocation(provider);
-        return location;
+    private Location findingLocation() {
+        return mLastLocation;
     }
 
     private LatLng findingCoordinate(Location location) {
@@ -724,11 +731,11 @@ public class NoteActivity extends AppCompatActivity {
         Geocoder geocoder = new Geocoder(NoteActivity.this, Locale.getDefault());
         List<Address> address = null;
         try {
-            Log.i("", "findingCityName: " + geocoder.getFromLocation(coordinate.getLatitude(), coordinate.getLongtitude(), 100));
+            Log.e("Achyp", "724|NoteActivity::findingCityName: " + geocoder + " " + Geocoder.isPresent());
             address = geocoder.getFromLocation(coordinate.getLatitude(), coordinate.getLongtitude(), 100);
         } catch (IOException e) {
             if (address == null) {
-                Toast.makeText(this, "No internet connection", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Location not found", Toast.LENGTH_SHORT).show();
                 mNote.setmLocation(Long.valueOf(0));
                 return null;
             }
@@ -791,7 +798,7 @@ public class NoteActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 dialog.dismiss();
-                Location location = findingLocation(NoteActivity.this);
+                Location location = findingLocation();
                 LatLng latLng = findingCoordinate(location);
                 String city = findingCityName();
                 locationDialog(NoteActivity.this, latLng, city);
@@ -842,7 +849,7 @@ public class NoteActivity extends AppCompatActivity {
         dialogHolder.ok.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Location location = findingLocation(NoteActivity.this);
+                Location location = findingLocation();
                 if (location != null) {
                     Coordinate coordinate = new Coordinate(location.getLatitude(), location.getLongitude());
                     ForecastFetcher forecastFetcher = new ForecastFetcher();
@@ -876,7 +883,7 @@ public class NoteActivity extends AppCompatActivity {
         dialogHolder.refresh.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Location location = findingLocation(NoteActivity.this);
+                Location location = findingLocation();
                 Coordinate coordinate = new Coordinate(location.getLatitude(), location.getLongitude());
                 ForecastFetcher forecastFetcher = new ForecastFetcher();
                 try {
@@ -943,16 +950,22 @@ public class NoteActivity extends AppCompatActivity {
             try {
                 InputStream iStream = getContentResolver().openInputStream(selectedImage);
                 byte[] inputData = getBytes(iStream);
-                for (byte[] item : mUriList) {
-                    if(Arrays.equals(item, inputData)) {
-                        Toast.makeText(NoteActivity.this, "Picked already attached to current note", Toast.LENGTH_SHORT).show();
-                    } else {
-                        mUriList.add(inputData);
-                        mCurrentAddPictures.add(inputData);
-                        mGridViewAdapter.setList(mUriList);
-                        mGridViewAdapter.notifyDataSetChanged();
-
+                if (!mUriList.isEmpty()) {
+                    for (byte[] item : mUriList) {
+                        if (Arrays.equals(item, inputData)) {
+                            Toast.makeText(NoteActivity.this, "Picked picture already attached to current note", Toast.LENGTH_SHORT).show();
+                        } else {
+                            mUriList.add(inputData);
+                            mCurrentAddPictures.add(inputData);
+                            mGridViewAdapter.setList(mUriList);
+                            mGridViewAdapter.notifyDataSetChanged();
+                        }
                     }
+                } else {
+                    mUriList.add(inputData);
+                    mCurrentAddPictures.add(inputData);
+                    mGridViewAdapter.setList(mUriList);
+                    mGridViewAdapter.notifyDataSetChanged();
                 }
 
             } catch (FileNotFoundException ex) {
@@ -1061,5 +1074,56 @@ public class NoteActivity extends AppCompatActivity {
         }
     }
 
+    private void buildGoogleApiClient() {
+        mGoogleApiClient = new GoogleApiClient.Builder(this)
+                .addConnectionCallbacks(new GoogleApiClient.ConnectionCallbacks() {
+                    @Override
+                    public void onConnected(@Nullable Bundle bundle) {
+                        if (ContextCompat.checkSelfPermission(NoteActivity.this, android.Manifest.permission.ACCESS_FINE_LOCATION)
+                                != PackageManager.PERMISSION_GRANTED) {
+                            Toast.makeText(NoteActivity.this, "Location permissions required", Toast.LENGTH_SHORT).show();
+                        }
+                        mLastLocation = LocationServices.FusedLocationApi.getLastLocation(
+                                mGoogleApiClient);
+                        if (mLastLocation != null) {
+                            Toast.makeText(NoteActivity.this, "Latitude:" + mLastLocation.getLatitude() + ", Longitude:" + mLastLocation.getLongitude(), Toast.LENGTH_LONG).show();
+                        }
+                    }
 
+                    @Override
+                    public void onConnectionSuspended(int i) {
+                    }
+                })
+                .addOnConnectionFailedListener(new GoogleApiClient.OnConnectionFailedListener() {
+                    @Override
+                    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+                    }
+                })
+                .addApi(LocationServices.API)
+                .build();
+    }
+
+
+//    public void createLocationRequest() {
+//        mLocationRequest = new LocationRequest();
+//        mLocationRequest.setInterval(20000);
+//        mLocationRequest.setFastestInterval(5000);
+//        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+//        Log.e("Achyp", "1129|NoteActivity::createLocationRequest: " + mLastLocation);
+//    }
+//
+//    protected void startLocationUpdates() {
+//        if (ContextCompat.checkSelfPermission(NoteActivity.this, android.Manifest.permission.ACCESS_FINE_LOCATION)
+//                != PackageManager.PERMISSION_GRANTED) {
+//            Toast.makeText(NoteActivity.this, "Location permissions required", Toast.LENGTH_SHORT).show();
+//        }
+//        Log.e("Achyp", "1137|NoteActivity::createLocationRequest: " + mLastLocation);
+//        LocationServices.FusedLocationApi.requestLocationUpdates(
+//                mGoogleApiClient, mLocationRequest, new com.google.android.gms.location.LocationListener() {
+//                    @Override
+//                    public void onLocationChanged(Location location) {
+//                      mLastLocation = location;
+//                    }
+//                });
+//    }
 }

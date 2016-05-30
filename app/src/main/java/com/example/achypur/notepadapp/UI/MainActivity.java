@@ -64,7 +64,6 @@ public class MainActivity extends BaseActivity {
     List<Note> mNotesList;
     ForecastDao mForecastDao;
     MatrixCursor mCursor;
-//    NoteCursorAdapter mNoteCursorAdapter;
 
     AccountManager mAccountManager;
     NoteManager mNoteManager;
@@ -82,7 +81,6 @@ public class MainActivity extends BaseActivity {
         mAccountManager = NoteApplication.getsAccountManager();
         mAccountManager.initLoginSession();
         mAccountManager.createUserRepository();
-        mCursor = new MatrixCursor(new String[]{"_id","title","content","user_id","date_of_creation","date_of_last_modified","policy","coordinates_id"});
 
         mNoteManager = NoteApplication.getsNoteManager();
         mNoteManager.createNoteRepo();
@@ -117,22 +115,9 @@ public class MainActivity extends BaseActivity {
             });
         }
         mNoteAdapter = new NoteListAdapter(this);
-        for (Note note : mNoteManager.findAll(mLoggedUser.getId(),1)) {
-            Log.e("112","note" + note.getmTitle());
-        }
+
         mNotesList = mNoteManager.findAll(mLoggedUser.getId(), 1);
-
-        for (Note item : mNotesList) {
-            mCursor.addRow(new Object[]{item.getmId(),item.getmTitle(),item.getmContent(), item.getmUserId(), item.getmCreatedDate(), item.getmModifiedDate(), item.getmPolicyStatus(), item.getmLocation()});
-        }
-//        mNoteCursorAdapter= new NoteCursorAdapter(this, mCursor, mNotesList);
-
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                mNoteAdapter.setList(mNotesList);
-            }
-        });
+        mNoteAdapter.setList(mNotesList);
         mListView.setAdapter(mNoteAdapter);
 
         mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -211,6 +196,7 @@ public class MainActivity extends BaseActivity {
                             int key = selectedItems.keyAt(i);
                             if (selectedItems.get(key)) {
                                 ids[i] = mListView.getItemIdAtPosition(key);
+                                mNotesList.remove(key);
                             }
                         }
                         if (selectedItems.size() == 0)
@@ -225,21 +211,20 @@ public class MainActivity extends BaseActivity {
                             }
                         }
                         mListView.clearChoices();
-                        mListView.invalidate();
-                        runOnUiThread(new Runnable() {
+
+
+                        mListView.post(new Runnable() {
                             @Override
                             public void run() {
                                 mNoteAdapter.setList(mNoteManager.findAll(mLoggedUser.getId(), 1));
+                                mListView.setAdapter(mNoteAdapter);
                             }
                         });
 
-                        for (Note item1 : mNoteManager.findAll(mLoggedUser.getId(),1)) {
-                            Log.e("222","note " + item1.getmTitle());
+                        for (Note item1 : mNoteManager.findAll(mLoggedUser.getId(), 1)) {
+                            Log.e("222", "note " + item1.getmTitle());
                         }
-                        mListView.setAdapter(mNoteAdapter);
-//                        mNoteCursorAdapter.notifyDataSetChanged();
-                        mSearchView.invalidate();
-                        getSupportActionBar().invalidateOptionsMenu();
+
                         mode.finish();
                         return true;
                 }
@@ -274,7 +259,7 @@ public class MainActivity extends BaseActivity {
                         mNoteManager.updateNote(note);
                     }
                 }
-            }).setNegativeButton("NO", null ).create();
+            }).setNegativeButton("NO", null).create();
             alertDialog.show();
         }
     }
@@ -289,9 +274,6 @@ public class MainActivity extends BaseActivity {
         mSearchView.setQueryHint("Search");
         mSearchView.setBackgroundColor(Color.WHITE);
 
-        for (Note item1 : mNoteManager.findAll(mLoggedUser.getId(),1)) {
-            Log.e("276","note " + item1.getmTitle());
-        }
         mSearchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
@@ -301,7 +283,6 @@ public class MainActivity extends BaseActivity {
             @Override
             public boolean onQueryTextChange(String newText) {
                 mNoteAdapter.filter(newText);
-                mListView.invalidate();
                 return true;
             }
 
@@ -336,6 +317,12 @@ public class MainActivity extends BaseActivity {
                 startActivityForResult(intent, 1);
                 return true;
             case R.id.item_search_note:
+                mSearchView.setOnSearchClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        mSearchView.invalidate();
+                    }
+                });
                 return true;
             default:
                 super.onOptionsItemSelected(item);
@@ -377,6 +364,7 @@ public class MainActivity extends BaseActivity {
 
     class NoteListAdapter extends BaseAdapter {
         List<Note> mAdapterList;
+        List<Note> mFilterList;
         LayoutInflater mInflater;
         boolean multiChoice = false;
 
@@ -403,7 +391,8 @@ public class MainActivity extends BaseActivity {
 
         public void setList(List<Note> list) {
             mAdapterList = list;
-            notifyDataSetChanged();
+            mFilterList = list;
+            notifyDataSetInvalidated();
         }
 
         @Override
@@ -437,7 +426,7 @@ public class MainActivity extends BaseActivity {
 
             if (note.getmUserId() != mLoggedUser.getId()) {
                 String shared = "Shared by " +
-                       mAccountManager.findUserById(note.getmUserId()).getName();
+                        mAccountManager.findUserById(note.getmUserId()).getName();
                 holder.location.setVisibility(View.GONE);
                 holder.sharedBy.setVisibility(View.VISIBLE);
                 holder.sharedBy.setText(shared);
@@ -455,7 +444,7 @@ public class MainActivity extends BaseActivity {
             }
 
             if (weather) {
-               holder.weather.setVisibility(View.VISIBLE);
+                holder.weather.setVisibility(View.VISIBLE);
             }
 
             holder.title.setText(note.getmTitle());
@@ -480,11 +469,12 @@ public class MainActivity extends BaseActivity {
             return convertView;
         }
 
+
         public void filter(String text) {
             text = text.toLowerCase();
             List<Note> searchResult = new ArrayList<>();
             if (text.length() != 0) {
-                for (Note note : mNotesList) {
+                for (Note note : mFilterList) {
                     if (note.getmTitle().contains(text)) {
                         searchResult.add(note);
                     }
@@ -497,27 +487,5 @@ public class MainActivity extends BaseActivity {
         }
 
     }
-
-//    class NoteCursorAdapter extends CursorAdapter {
-//
-//        private List<Note> mItems;
-//        LayoutInflater mLayoutInflater;
-//
-//        NoteCursorAdapter(Context context, Cursor cursor, List<Note> items) {
-//            super(context, cursor, false);
-//            mItems = items;
-//            mLayoutInflater = LayoutInflater.from(context);
-//        }
-//        @Override
-//        public View newView(Context context, Cursor cursor, ViewGroup parent) {
-//            return mLayoutInflater.inflate(R.layout.item_note_list, parent, false);
-//
-//        }
-//
-//        @Override
-//        public void bindView(View view, Context context, Cursor cursor) {
-//            ViewHolderItem viewHolderItem = new ViewHolderItem(view);
-//        }
-//    }
 }
 
