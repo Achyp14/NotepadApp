@@ -20,8 +20,15 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.achypur.notepadapp.Application.NoteApplication;
+import com.example.achypur.notepadapp.Component.ActivityComponent;
+import com.example.achypur.notepadapp.Component.AppComponent;
+import com.example.achypur.notepadapp.Component.DaggerActivityComponent;
+import com.example.achypur.notepadapp.Component.DaggerAppComponent;
 import com.example.achypur.notepadapp.Entities.User;
 import com.example.achypur.notepadapp.Managers.AccountManager;
+import com.example.achypur.notepadapp.Managers.NoteManager;
+import com.example.achypur.notepadapp.Module.ActivityModule;
+import com.example.achypur.notepadapp.Module.ManagerModule;
 import com.example.achypur.notepadapp.R;
 
 import java.util.ArrayList;
@@ -30,12 +37,18 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.inject.Inject;
+
 public class LoginActivity extends AppCompatActivity {
 
-    User mUser;
-    HashMap<String, String> mCurrentUser = new HashMap<>();
+
     public static final int REQUEST_ID_MULTIPLE_PERMISSIONS = 1;
+
+    @Inject
     AccountManager mAccountManager;
+
+    private ActivityComponent activityComponent;
+    User mUser;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,7 +57,10 @@ public class LoginActivity extends AppCompatActivity {
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
-        mAccountManager = NoteApplication.getsAccountManager();
+
+        activityComponent = DaggerActivityComponent.builder().activityModule(new ActivityModule(this)).build();
+        activityComponent.inject(this);
+
         mAccountManager.createUserRepository();
         mAccountManager.initLoginSession();
 
@@ -129,10 +145,7 @@ public class LoginActivity extends AppCompatActivity {
         switch (requestCode) {
             case REQUEST_ID_MULTIPLE_PERMISSIONS: {
                 if (Arrays.asList(grantResults).contains(PackageManager.PERMISSION_DENIED)) {
-                    //return
                 }
-
-                //Sok
                 Map<String, Integer> perms = new HashMap<>();
                 perms.put(Manifest.permission.READ_EXTERNAL_STORAGE, PackageManager.PERMISSION_GRANTED);
                 perms.put(Manifest.permission.ACCESS_FINE_LOCATION, PackageManager.PERMISSION_GRANTED);
@@ -176,6 +189,13 @@ public class LoginActivity extends AppCompatActivity {
                 .show();
     }
 
+
+    ActivityComponent component() {
+        if (activityComponent == null) {
+            activityComponent = DaggerActivityComponent.builder().activityModule(new ActivityModule(this)).build();
+        }
+        return activityComponent;
+    }
 
 }
 

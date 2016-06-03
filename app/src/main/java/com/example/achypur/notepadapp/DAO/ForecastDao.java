@@ -55,16 +55,6 @@ public class ForecastDao {
         return contentValues;
     }
 
-
-    public ForecastEntity createForecast(Long noteId, byte[] icon, String description, String country, String city, Double temperature, Double rain, Double wind) {
-        ForecastEntity forecast = new ForecastEntity(noteId, icon, description, country, city, temperature, rain, wind);
-        Long id = mSqLiteDatabase.insert(DataBaseHelper.TABLE_FORECAST, null, getForecastContentValues(forecast));
-
-        forecast.setmId(id);
-
-        return forecast;
-    }
-
     public ForecastEntity createForecast(Forecast forecast, Long noteId) {
         if(forecast.getmRain() == null) {
             Rain rain = new Rain();

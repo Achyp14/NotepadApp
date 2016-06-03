@@ -15,7 +15,6 @@ import android.widget.EditText;
 
 import com.example.achypur.notepadapp.CustomView.PictureConvertor;
 import com.example.achypur.notepadapp.CustomView.ProfilePicture;
-import com.example.achypur.notepadapp.DAO.UserDao;
 import com.example.achypur.notepadapp.Entities.User;
 import com.example.achypur.notepadapp.Managers.AccountManager;
 import com.example.achypur.notepadapp.Application.NoteApplication;
@@ -34,6 +33,7 @@ public class SignUpActivity extends AppCompatActivity {
     Bitmap mBitmap;
     AccountManager mAccountManager;
     PictureConvertor mPictureConvertor;
+    NoteApplication mNoteApplication = new NoteApplication();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,7 +42,7 @@ public class SignUpActivity extends AppCompatActivity {
 
 
         mPictureConvertor = PictureConvertor.getInstance();
-        mAccountManager = NoteApplication.getsAccountManager();
+//        mAccountManager = mNoteApplication.getsAccountManager();
         mAccountManager.initLoginSession();
         mAccountManager.createUserRepository();
 

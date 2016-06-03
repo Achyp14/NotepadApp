@@ -2,20 +2,15 @@ package com.example.achypur.notepadapp.UI;
 
 import android.app.AlertDialog;
 import android.app.SearchManager;
-import android.app.SearchableInfo;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.database.Cursor;
-import android.database.MatrixCursor;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.view.MenuItemCompat;
-import android.support.v4.widget.CursorAdapter;
 import android.support.v7.widget.SearchView;
-import android.util.Log;
 import android.util.SparseBooleanArray;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -31,66 +26,41 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.achypur.notepadapp.Application.NoteApplication;
-import com.example.achypur.notepadapp.DAO.CoordinateDao;
-import com.example.achypur.notepadapp.DAO.ForecastDao;
-import com.example.achypur.notepadapp.DAO.PictureDao;
 import com.example.achypur.notepadapp.Entities.Note;
 import com.example.achypur.notepadapp.Entities.Picture;
 import com.example.achypur.notepadapp.Entities.User;
 import com.example.achypur.notepadapp.Managers.AccountManager;
 import com.example.achypur.notepadapp.Managers.NoteManager;
 import com.example.achypur.notepadapp.R;
-import com.example.achypur.notepadapp.Session.SessionManager;
 
-
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Objects;
 
 public class MainActivity extends BaseActivity {
 
     NoteListAdapter mNoteAdapter;
     ListView mListView;
-    SessionManager mSession;
-    CoordinateDao mCoordinateDao;
-    HashMap<String, String> mCurrentUser;
-    PictureDao mPictureDao;
     User mLoggedUser = new User();
     SearchView mSearchView;
     List<Note> mNotesList;
-    ForecastDao mForecastDao;
-    MatrixCursor mCursor;
 
     AccountManager mAccountManager;
     NoteManager mNoteManager;
+    NoteApplication noteApplication;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        mCoordinateDao = new CoordinateDao(this);
-        mPictureDao = new PictureDao(this);
-        mForecastDao = new ForecastDao(this);
-        mSession = new SessionManager(this);
-        mCurrentUser = mSession.getUserDetails();
-
-        mAccountManager = NoteApplication.getsAccountManager();
+        noteApplication = new NoteApplication();
+//        mAccountManager = noteApplication.getsAccountManager();
         mAccountManager.initLoginSession();
         mAccountManager.createUserRepository();
 
-        mNoteManager = NoteApplication.getsNoteManager();
+//        mNoteManager = noteApplication.getsNoteManager();
         mNoteManager.createNoteRepo();
-        try {
-            mCoordinateDao.open();
-            mPictureDao.open();
-            mForecastDao.open();
-        } catch (SQLException ex) {
-            ex.printStackTrace();
-        }
 
         Bundle extras = getIntent().getExtras();
         if (extras != null) {
@@ -140,10 +110,11 @@ public class MainActivity extends BaseActivity {
                 pos = position;
 
                 if (checked) {
-                    selectedItems.append(position, checked);
+                    selectedItems.append(pos, checked);
                     positionList.add(pos);
+
                 } else {
-                    selectedItems.delete(position);
+                    selectedItems.delete(pos);
                     positionList.remove(positionList.indexOf(pos));
                 }
 
@@ -167,8 +138,7 @@ public class MainActivity extends BaseActivity {
             }
 
 
-            @Override
-            public boolean onActionItemClicked(android.view.ActionMode mode, MenuItem item) {
+            @Override public boolean onActionItemClicked(android.view.ActionMode mode, MenuItem item) {
                 Note note;
                 switch (item.getItemId()) {
                     case R.id.menu_item_share:
@@ -196,22 +166,20 @@ public class MainActivity extends BaseActivity {
                             int key = selectedItems.keyAt(i);
                             if (selectedItems.get(key)) {
                                 ids[i] = mListView.getItemIdAtPosition(key);
-                                mNotesList.remove(key);
+//                                mNotesList.remove(selectedItems.keyAt(i));
                             }
                         }
                         if (selectedItems.size() == 0)
                             return false;
                         for (long id : ids) {
                             if (id != 0) {
-                                note = mNoteManager.findNote(id);
-                                mCoordinateDao.deleteCoordinate(note.getmLocation());
+//                                note = mNoteManager.findNote(id);
                                 mNoteManager.deleteNote(id);
                             } else {
                                 return false;
                             }
                         }
                         mListView.clearChoices();
-
 
                         mListView.post(new Runnable() {
                             @Override
@@ -221,9 +189,7 @@ public class MainActivity extends BaseActivity {
                             }
                         });
 
-                        for (Note item1 : mNoteManager.findAll(mLoggedUser.getId(), 1)) {
-                            Log.e("222", "note " + item1.getmTitle());
-                        }
+
 
                         mode.finish();
                         return true;
@@ -285,7 +251,6 @@ public class MainActivity extends BaseActivity {
                 mNoteAdapter.filter(newText);
                 return true;
             }
-
         });
 
         return true;
@@ -413,13 +378,11 @@ public class MainActivity extends BaseActivity {
 
         private void bind(ViewHolderItem holder, Note note) {
             Picture picture;
-            boolean weather = mForecastDao.ifExistForecastForNote(note.getmId());
+            boolean weather = mNoteManager.ifExistForecast(note.getmId());
 
-            Long id = mPictureDao.findPictureByNoteId(note.getmId());
 
-            if (id != null) {
-                picture = mPictureDao.findPictureById(id);
-
+            if (note.getmId() != null) {
+                picture = mNoteManager.findPicute(note.getmId());
             } else {
                 picture = null;
             }
@@ -469,7 +432,6 @@ public class MainActivity extends BaseActivity {
             return convertView;
         }
 
-
         public void filter(String text) {
             text = text.toLowerCase();
             List<Note> searchResult = new ArrayList<>();
@@ -478,14 +440,13 @@ public class MainActivity extends BaseActivity {
                     if (note.getmTitle().contains(text)) {
                         searchResult.add(note);
                     }
-                    setList(searchResult);
                 }
+                setList(searchResult);
             } else {
-                setList(mNotesList);
+                setList(mNoteManager.findAll(mLoggedUser.getId(), 1));
             }
             notifyDataSetChanged();
         }
-
     }
 }
 

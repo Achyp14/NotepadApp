@@ -1,6 +1,5 @@
 package com.example.achypur.notepadapp.UI;
 
-import android.Manifest;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
@@ -11,11 +10,8 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.location.Address;
-import android.location.Criteria;
 import android.location.Geocoder;
 import android.location.Location;
-import android.location.LocationListener;
-import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -30,7 +26,6 @@ import android.text.SpannableStringBuilder;
 import android.text.Spanned;
 import android.text.TextWatcher;
 import android.text.method.LinkMovementMethod;
-import android.util.Log;
 import android.util.Patterns;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -49,18 +44,12 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.achypur.notepadapp.Application.NoteApplication;
-import com.example.achypur.notepadapp.DAO.CoordinateDao;
 import com.example.achypur.notepadapp.DAO.ForecastDao;
-import com.example.achypur.notepadapp.DAO.PictureDao;
-import com.example.achypur.notepadapp.DAO.TagDao;
-import com.example.achypur.notepadapp.DAO.TagOfNotesDao;
-import com.example.achypur.notepadapp.Entities.Picture;
 import com.example.achypur.notepadapp.JsonObjects.Forecast;
 import com.example.achypur.notepadapp.JsonObjects.ForecastFetcher;
 import com.example.achypur.notepadapp.JsonObjects.Rain;
 import com.example.achypur.notepadapp.Managers.AccountManager;
 import com.example.achypur.notepadapp.Managers.NoteManager;
-import com.example.achypur.notepadapp.Managers.TagManager;
 import com.example.achypur.notepadapp.Spannable.EmailClickableSpan;
 import com.example.achypur.notepadapp.Entities.Coordinate;
 import com.example.achypur.notepadapp.Entities.Note;
@@ -69,11 +58,9 @@ import com.example.achypur.notepadapp.Entities.User;
 import com.example.achypur.notepadapp.R;
 import com.example.achypur.notepadapp.Spannable.PhoneCLickableSpan;
 import com.example.achypur.notepadapp.Spannable.UrlClickableSpan;
-import com.example.achypur.notepadapp.Util.DataBaseUtil;
 import com.example.achypur.tagview.TagView;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -96,10 +83,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
-import java.util.TimeZone;
 import java.util.concurrent.ExecutionException;
 
 public class NoteActivity extends AppCompatActivity {
@@ -108,38 +93,29 @@ public class NoteActivity extends AppCompatActivity {
     private final static String REVISE_MODE = "MODE";
     private final static int UPLOAD_KEY = 1;
 
-    CoordinateDao mCoordinateDao;
-    TagOfNotesDao mTagOfNotesDao;
     Note mNote = null;
-    TagDao mTagDao;
-    HashMap<String, String> mCurrentUser;
-    LocationManager mLocationManager;
     SupportMapFragment mMapFragment;
     Menu mMenu;
     TagView mTagView;
     List<Tag> mCurrentAddTagsList = new ArrayList<>();
     List<Tag> mTagsList = new ArrayList<>();
     List<Tag> mCurrentRemoveTagsList = new ArrayList<>();
-    DataBaseUtil mDataBaseUtil;
     List<byte[]> mUriList = new ArrayList<>();
     List<byte[]> mCurrentAddPictures = new ArrayList<>();
     List<byte[]> mCurrentRemovePictures = new ArrayList<>();
     GridViewAdapter mGridViewAdapter;
-    PictureDao mPictureDao;
     GridView mGridView;
     User mLoggedUser;
     boolean mReviseMode = false;
-    Long mLocation;
+    Long mLocation = (long) 0;
     Forecast mForecast;
     LinearLayout mForecastLayout;
-    ForecastDao mForecastDao;
     GoogleApiClient mGoogleApiClient;
-    Location mLastLocation;
-    LocationRequest mLocationRequest;
+    Location mLastLocation = null;
 
     AccountManager mAccountManager;
     NoteManager mNoteManager;
-    TagManager mTagManager;
+    NoteApplication noteApplication = new NoteApplication();
 
 
     @Override
@@ -149,35 +125,16 @@ public class NoteActivity extends AppCompatActivity {
         setContentView(R.layout.activity_note);
         Toolbar toolbar = (Toolbar) findViewById(R.id.my_toolbar);
         setSupportActionBar(toolbar);
+
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
             getSupportActionBar().setDisplayShowTitleEnabled(false);
         }
 
-        mAccountManager = NoteApplication.getsAccountManager();
+//        mAccountManager = noteApplication.getsAccountManager();
         mAccountManager.createUserRepository();
-        mNoteManager = NoteApplication.getsNoteManager();
+//        mNoteManager = noteApplication.getsNoteManager();
         mNoteManager.createNoteRepo();
-        mTagManager = NoteApplication.getsTagManager();
-//        mTagManager.createTagRepo();
-
-
-        mCoordinateDao = new CoordinateDao(this);
-        mTagOfNotesDao = new TagOfNotesDao(this);
-        mPictureDao = new PictureDao(this);
-        mTagDao = new TagDao(this);
-        mForecastDao = new ForecastDao(this);
-
-        try {
-            mCoordinateDao.open();
-            mTagOfNotesDao.open();
-            mPictureDao.open();
-            mForecastDao.open();
-            mTagDao.open();
-        } catch (SQLException ex) {
-            ex.printStackTrace();
-        }
-
 
         mLoggedUser = mAccountManager.findUserById(mAccountManager.findUserId(mAccountManager.retrieveLogin()));
 
@@ -193,14 +150,12 @@ public class NoteActivity extends AppCompatActivity {
 
         Calendar calendar = Calendar.getInstance(Locale.getDefault());
         final Date currentLocalTime = calendar.getTime();
-        Log.e("Achyp", "185|NoteActivity::onCreate: " + currentLocalTime.toString());
         View line = findViewById(R.id.line);
         final DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault());
         time.setText("Created at " + dateFormat.format(currentLocalTime));
         save.setEnabled(false);
         LinearLayout buttonLayout = (LinearLayout) findViewById(R.id.buttons);
         mGridView = (GridView) findViewById(R.id.note_edit_pictures);
-        mDataBaseUtil = new DataBaseUtil(mTagOfNotesDao, mTagView, mTagDao, mNote);
         TextWatcher watcher = new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
@@ -296,8 +251,8 @@ public class NoteActivity extends AppCompatActivity {
                 ex.printStackTrace();
             }
 
-            if (mForecastDao.ifExistForecastForNote(mNote.getmId())) {
-                mForecast = mForecastDao.forecastEntityToForecast(mNote.getmId());
+            if (mNoteManager.ifExistForecast(mNote.getmId())) {
+                mForecast = mNoteManager.findForecast(mNote.getmId());
             } else {
                 mForecast = null;
             }
@@ -309,14 +264,13 @@ public class NoteActivity extends AppCompatActivity {
             title.setText(mNote.getmTitle());
 
             if (mNote.getmLocation() != 0) {
+                mLocation = mNote.getmLocation();
                 mMapFragment.getView().setVisibility(View.VISIBLE);
                 mMapFragment.getMapAsync(new OnMapReadyCallback() {
                     @Override
                     public void onMapReady(GoogleMap googleMap) {
-                        Coordinate coordinate = mCoordinateDao.getCoordinateById(mNote.getmLocation());
-                        final LatLng currentPosition = new LatLng(coordinate.getLatitude(), coordinate.getLongtitude());
-                        googleMap.addMarker(new MarkerOptions().position(currentPosition));
-                        googleMap.moveCamera(CameraUpdateFactory.newLatLng(currentPosition));
+                        googleMap.addMarker(new MarkerOptions().position(mNoteManager.findCurrentPosition(mNote.getmLocation())));
+                        googleMap.moveCamera(CameraUpdateFactory.newLatLng(mNoteManager.findCurrentPosition(mNote.getmLocation())));
                         googleMap.animateCamera(CameraUpdateFactory.zoomTo(8), 2000, null);
                     }
                 });
@@ -334,15 +288,10 @@ public class NoteActivity extends AppCompatActivity {
                 tags.setVisibility(View.GONE);
             }
 
-            mUriList = mPictureDao.getAllPicture(mNote.getmId());
+            mUriList = mNoteManager.findAllPictureForCurrentNote(mNote.getmId());
             mGridViewAdapter.setList(mUriList);
-            mTagsList = mDataBaseUtil.showAllTags(mNote.getmId(), mTagsList);
-            List<String> tagContentList = new ArrayList<>();
-            List<Tag> tagList = mTagDao.findAllTag();
-            for (Tag tag : tagList) {
-                tagContentList.add(tag.getmTag());
-            }
-            ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, tagContentList);
+            mTagView.setList(mNoteManager.findAllTagForCurrentNote(mNote.getmId()));
+            ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, mNoteManager.showAllTag());
             mTagView.setAdapter(arrayAdapter);
             mGridView.setAdapter(mGridViewAdapter);
         }
@@ -385,9 +334,12 @@ public class NoteActivity extends AppCompatActivity {
                     mNote.setmTitle(title.getText().toString().trim());
                     mNote.setmContent(content.getText().toString().trim());
                     mNote.setmModifiedDate(dateFormat.format(currentLocalTime));
+                    mNote.setmLocation(mLocation);
                     mNoteManager.updateNote(mNote);
-                    if (!mForecastDao.ifExistForecastForNote(mNote.getmId()) && mForecast != null) {
-                        mForecastDao.createForecast(mForecast, mNote.getmId());
+                    if (mForecast != null) {
+                        mNoteManager.createForecast(mForecast, mNote.getmId());
+                    } else {
+                        mNoteManager.removeForecast(mNote.getmId());
                     }
                     startActivity(createIntentForReviseNote(NoteActivity.this, mNote.getmId(), true));
                     finish();
@@ -400,39 +352,23 @@ public class NoteActivity extends AppCompatActivity {
                     finish();
                 }
 
-                mDataBaseUtil.setmNote(mNote);
                 if (!mCurrentAddTagsList.isEmpty()) {
-                    mDataBaseUtil.createTagInDb(mCurrentAddTagsList);
+                    mNoteManager.createTags(mCurrentAddTagsList, mNote.getmId(), mNote.getmUserId());
                 }
 
                 if (!mCurrentRemoveTagsList.isEmpty()) {
-                    mDataBaseUtil.deleteTagFromDb(mCurrentRemoveTagsList);
+                    mNoteManager.deleteTags(mCurrentRemoveTagsList, mNote.getmId());
                 }
 
                 if (!mCurrentAddPictures.isEmpty()) {
                     for (int i = 0; i < mCurrentAddPictures.size(); i++) {
-                        Picture current = mPictureDao.createPicture(mCurrentAddPictures.get(i), mNote.getmId());
+                        mNoteManager.createPicture(mCurrentAddPictures.get(i), mNote.getmId());
                     }
                 }
 
                 if (!mCurrentRemovePictures.isEmpty()) {
-                    for (int i = 0; i < mCurrentRemovePictures.size(); i++) {
-                        List<byte[]> pictureList = mPictureDao.getAllPicture(mNote.getmId());
-                        List<Long> idList = mPictureDao.getAllPictureId(mNote.getmId());
-                        for (byte[] item : pictureList) {
-                            if (Arrays.equals(item, mCurrentRemovePictures.get(i))) {
-                                int position = pictureList.indexOf(item);
-                                Long id = idList.get(position);
-                                mPictureDao.deletePictureById(id);
-                            }
-                        }
-                    }
+                    mNoteManager.deletePicture(mCurrentRemovePictures, mNote.getmId());
                 }
-
-
-                mPictureDao.close();
-                mTagOfNotesDao.close();
-                mCoordinateDao.close();
             }
         });
 
@@ -440,9 +376,6 @@ public class NoteActivity extends AppCompatActivity {
             cancel.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    mPictureDao.close();
-                    mTagOfNotesDao.close();
-                    mCoordinateDao.close();
                     if (!isEditMode()) {
                         startActivity(new Intent(NoteActivity.this, MainActivity.class));
                         finish();
@@ -450,11 +383,8 @@ public class NoteActivity extends AppCompatActivity {
                         startActivity(createIntentForReviseNote(NoteActivity.this, mNote.getmId(), true));
                         finish();
                     }
-
                 }
             });
-
-
         }
 
         mTagView.setListener(new TagView.Listener() {
@@ -487,9 +417,8 @@ public class NoteActivity extends AppCompatActivity {
             }
         });
 
-
         buildGoogleApiClient();
-        if(mGoogleApiClient != null) {
+        if (mGoogleApiClient != null) {
             mGoogleApiClient.connect();
         }
 
@@ -559,7 +488,6 @@ public class NoteActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(final MenuItem item) {
         final AlertDialog.Builder aBuilder = new AlertDialog.Builder(this);
         final AlertDialog alertDialog;
-        Location location;
         switch (item.getItemId()) {
             case R.id.note_menu_check_shared:
                 if (!item.isChecked()) {
@@ -585,21 +513,12 @@ public class NoteActivity extends AppCompatActivity {
                     return true;
                 }
             case R.id.note_menu_location:
-                location = findingLocation();
-
-                if (location != null) {
-                    LatLng latLng = findingCoordinate(location);
-                    String city = findingCityName();
-                    if (city != null) {
-                        locationDialog(this, latLng, city);
-                        return true;
-                    }
-                    return true;
+                if (mLastLocation != null) {
+                    locationDialog(mLastLocation);
                 } else {
                     Toast.makeText(this, "Location not found", Toast.LENGTH_SHORT).show();
-                    return true;
                 }
-
+                return false;
             case R.id.note_menu_picture:
                 Intent getIntent = new Intent(Intent.ACTION_GET_CONTENT);
                 getIntent.setType("image/*");
@@ -618,26 +537,10 @@ public class NoteActivity extends AppCompatActivity {
                 return true;
 
             case R.id.note_menu_weather:
-                location = findingLocation();
-                if (location != null) {
-                    try {
-                        ForecastFetcher forecastFetcher = new ForecastFetcher();
-                        if (!forecastFetcher.isNetworkAvailable(this)) {
-                            Toast.makeText(this, "No internet connection", Toast.LENGTH_SHORT).show();
-                            return true;
-                        } else {
-                            Coordinate coordinate = new Coordinate(location.getLatitude(), location.getLongitude());
-                            mForecast = forecastFetcher.execute(coordinate).get();
-                            weatherDialog(this, mForecast.getmCity());
-                        }
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    } catch (ExecutionException e) {
-                        e.printStackTrace();
-                    }
+                if (mLastLocation != null) {
+                    weatherDialog(mLastLocation);
                 } else {
-                    Toast.makeText(this, "Weather not found", Toast.LENGTH_SHORT).show();
-                    return true;
+                    Toast.makeText(this, "Location not found", Toast.LENGTH_SHORT).show();
                 }
                 return true;
             case android.R.id.home:
@@ -646,6 +549,209 @@ public class NoteActivity extends AppCompatActivity {
                 return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    public void locationDialog(final Location location) {
+        final Dialog dialog = new Dialog(this);
+        dialog.setContentView(R.layout.layout_dialog);
+        final DialogHolder dialogHolder = new DialogHolder();
+
+        List<Address> address;
+        Geocoder geocoder = new Geocoder(this, Locale.getDefault());
+        try {
+            address = geocoder.getFromLocation(location.getLatitude(), location.getLongitude(), 2);
+        } catch (IOException ex) {
+            ex.printStackTrace();
+            Toast.makeText(this, "Location not found", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        dialogHolder.title = (TextView) dialog.findViewById(R.id.dialog_text);
+        dialogHolder.ok = (Button) dialog.findViewById(R.id.dialog_ok);
+        dialogHolder.cancel = (Button) dialog.findViewById(R.id.dialog_cancel);
+        dialogHolder.refresh = (ImageView) dialog.findViewById(R.id.dialog_refresh);
+        dialogHolder.remove = (Button) dialog.findViewById(R.id.dialog_remove);
+
+        dialogHolder.title.setText(address.get(0).getLocality());
+        dialogHolder.ok.setText("OK");
+        dialogHolder.cancel.setText("CANCEL");
+        dialogHolder.remove.setText("Remove");
+        dialogHolder.refresh.setVisibility(View.VISIBLE);
+
+        dialog.show();
+
+        String dialogTitle = "Current location";
+        dialog.setTitle(dialogTitle);
+
+        dialogHolder.ok.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (mLocation != 0) {
+                    dialog.dismiss();
+                } else {
+                    mLocation = mNoteManager.createLocation(location.getLatitude(), location.getLongitude());
+                    mMapFragment.getView().setVisibility(View.VISIBLE);
+                    mMapFragment.getMapAsync(new OnMapReadyCallback() {
+                        @Override
+                        public void onMapReady(GoogleMap googleMap) {
+                            LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
+                            googleMap.addMarker(new MarkerOptions().position(latLng));
+                            googleMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
+                            googleMap.animateCamera(CameraUpdateFactory.zoomTo(8), 2000, null);
+                            dialog.dismiss();
+                            mMenu.findItem(R.id.note_menu_location).setTitle("Edit Location");
+                        }
+                    });
+                }
+            }
+        });
+
+        dialogHolder.cancel.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+            }
+        });
+
+        dialogHolder.remove.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (mMapFragment.getView().getVisibility() != View.VISIBLE) {
+                    Toast.makeText(NoteActivity.this, "Nothing to remove", Toast.LENGTH_SHORT).show();
+                } else {
+                    mMapFragment.getView().setVisibility(View.INVISIBLE);
+                    mLocation = (long) 0;
+                    dialog.dismiss();
+                    mMenu.findItem(R.id.note_menu_location).setTitle("Add Location");
+                    invalidateOptionsMenu();
+                }
+            }
+        });
+
+        dialogHolder.refresh.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+                if (ContextCompat.checkSelfPermission(NoteActivity.this, android.Manifest.permission.ACCESS_FINE_LOCATION)
+                        != PackageManager.PERMISSION_GRANTED) {
+                    Toast.makeText(NoteActivity.this, "Location permissions required", Toast.LENGTH_SHORT).show();
+                }
+                mLastLocation = LocationServices.FusedLocationApi.getLastLocation(
+                        mGoogleApiClient);
+                mLocation = mNoteManager.createLocation(mLastLocation.getLatitude(), mLastLocation.getLongitude());
+                mNote.setmLocation(mLocation);
+                locationDialog(mLastLocation);
+                dialog.dismiss();
+            }
+        });
+    }
+
+    private void weatherDialog(final Location location) {
+        final Dialog dialog = new Dialog(this);
+        dialog.setContentView(R.layout.layout_dialog);
+        final DialogHolder dialogHolder = new DialogHolder();
+
+        List<Address> address;
+        Geocoder geocoder = new Geocoder(this, Locale.getDefault());
+        try {
+            address = geocoder.getFromLocation(location.getLatitude(), location.getLongitude(), 2);
+        } catch (IOException ex) {
+            ex.printStackTrace();
+            Toast.makeText(this, "Location not found", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        dialogHolder.title = (TextView) dialog.findViewById(R.id.dialog_text);
+        dialogHolder.ok = (Button) dialog.findViewById(R.id.dialog_ok);
+        dialogHolder.cancel = (Button) dialog.findViewById(R.id.dialog_cancel);
+        dialogHolder.refresh = (ImageView) dialog.findViewById(R.id.dialog_refresh);
+        dialogHolder.remove = (Button) dialog.findViewById(R.id.dialog_remove);
+
+        dialogHolder.title.setText(address.get(0).getLocality());
+        dialogHolder.ok.setText("OK");
+        dialogHolder.cancel.setText("CANCEL");
+        dialogHolder.remove.setText("Remove");
+        dialogHolder.refresh.setVisibility(View.VISIBLE);
+
+        dialog.show();
+
+        String dialogTitle = "Current location";
+        dialog.setTitle(dialogTitle);
+
+        dialogHolder.ok.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (mNoteManager.ifExistForecast(mNote.getmId())) {
+                    dialog.dismiss();
+                } else {
+                    ForecastFetcher forecastFetcher = new ForecastFetcher();
+                    try {
+                        if (forecastFetcher.isNetworkAvailable(NoteActivity.this)) {
+                            mForecast = forecastFetcher.execute(location).get();
+                            showForecastLayout(mForecastLayout);
+                            dialog.dismiss();
+                            mMenu.findItem(R.id.note_menu_weather).setTitle("Update weather");
+                        } else {
+                            Toast.makeText(NoteActivity.this, "No internet connection", Toast.LENGTH_SHORT).show();
+                            return;
+                        }
+                    } catch (InterruptedException ex) {
+                        ex.printStackTrace();
+                    } catch (ExecutionException ex) {
+                        ex.printStackTrace();
+                    }
+                }
+            }
+        });
+
+        dialogHolder.cancel.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+            }
+        });
+
+        dialogHolder.remove.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (mForecastLayout.getVisibility() != View.VISIBLE) {
+                    Toast.makeText(NoteActivity.this, "Nothing to remove", Toast.LENGTH_SHORT).show();
+                } else {
+                    mForecastLayout.setVisibility(View.GONE);
+                    mForecast = null;
+                    mMenu.findItem(R.id.note_menu_weather).setTitle("Add weather");
+                    dialog.dismiss();
+                }
+            }
+        });
+
+        dialogHolder.refresh.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+                if (ContextCompat.checkSelfPermission(NoteActivity.this, android.Manifest.permission.ACCESS_FINE_LOCATION)
+                        != PackageManager.PERMISSION_GRANTED) {
+                    Toast.makeText(NoteActivity.this, "Location permissions required", Toast.LENGTH_SHORT).show();
+                }
+                mLastLocation = LocationServices.FusedLocationApi.getLastLocation(
+                        mGoogleApiClient);
+
+                ForecastFetcher forecastFetcher = new ForecastFetcher();
+                try {
+                    mForecast = forecastFetcher.execute(mLastLocation).get();
+                    if (mForecast != null && mNoteManager.ifExistForecast(mNote.getmId())) {
+                        mForecast = mNoteManager.updateForecast(mForecast, mNote.getmId());
+                        showForecastLayout(mForecastLayout);
+                        weatherDialog(mLastLocation);
+                    }
+                } catch (ExecutionException ex) {
+                    ex.printStackTrace();
+                } catch (InterruptedException ex) {
+                    ex.printStackTrace();
+                }
+                dialog.dismiss();
+            }
+        });
     }
 
     private boolean isEditMode() {
@@ -690,236 +796,6 @@ public class NoteActivity extends AppCompatActivity {
         return intent;
     }
 
-    private Location findingLocation() {
-        return mLastLocation;
-    }
-
-    private LatLng findingCoordinate(Location location) {
-        if (location != null) {
-            if (mNote != null) {
-                mLocation = mCoordinateDao.createCoordinate(location.getLatitude(),
-                        location.getLongitude());
-
-                mNote.setmLocation(mLocation);
-            } else {
-                mLocation = mCoordinateDao.createCoordinate(location.getLatitude(),
-                        location.getLongitude());
-            }
-        }
-        try {
-            Coordinate coordinate;
-            if (mNote != null) {
-                coordinate = mCoordinateDao.getCoordinateById(mNote.getmLocation());
-            } else {
-                coordinate = mCoordinateDao.getCoordinateById(mLocation);
-            }
-            return new LatLng(coordinate.getLatitude(), coordinate.getLongtitude());
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            return null;
-        }
-
-    }
-
-    private String findingCityName() {
-        Coordinate coordinate;
-        if (mNote != null) {
-            coordinate = mCoordinateDao.getCoordinateById(mNote.getmLocation());
-        } else {
-            coordinate = mCoordinateDao.getCoordinateById(mLocation);
-        }
-        Geocoder geocoder = new Geocoder(NoteActivity.this, Locale.getDefault());
-        List<Address> address = null;
-        try {
-            Log.e("Achyp", "724|NoteActivity::findingCityName: " + geocoder + " " + Geocoder.isPresent());
-            address = geocoder.getFromLocation(coordinate.getLatitude(), coordinate.getLongtitude(), 100);
-        } catch (IOException e) {
-            if (address == null) {
-                Toast.makeText(this, "Location not found", Toast.LENGTH_SHORT).show();
-                mNote.setmLocation(Long.valueOf(0));
-                return null;
-            }
-        }
-        if (address.get(0).getLocality() != null) {
-            return address.get(0).getLocality();
-        } else {
-            return null;
-        }
-    }
-
-    private void locationDialog(Context context, final LatLng latLng, String city) {
-        final Dialog dialog = new Dialog(context);
-        dialog.setContentView(R.layout.layout_dialog);
-
-        final DialogHolder dialogHolder = new DialogHolder();
-
-        dialogHolder.title = (TextView) dialog.findViewById(R.id.dialog_text);
-        dialogHolder.ok = (Button) dialog.findViewById(R.id.dialog_ok);
-        dialogHolder.cancel = (Button) dialog.findViewById(R.id.dialog_cancel);
-        dialogHolder.refresh = (ImageView) dialog.findViewById(R.id.dialog_refresh);
-        dialogHolder.remove = (Button) dialog.findViewById(R.id.dialog_remove);
-
-        dialogHolder.title.setText(city);
-        dialogHolder.ok.setText("OK");
-        dialogHolder.cancel.setText("CANCEL");
-        dialogHolder.remove.setText("Remove");
-        dialogHolder.refresh.setVisibility(View.VISIBLE);
-
-        dialog.show();
-
-        String dialogTitle = "Current location";
-        dialog.setTitle(dialogTitle);
-
-        dialogHolder.ok.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                mMapFragment.getView().setVisibility(View.VISIBLE);
-                mMapFragment.getMapAsync(new OnMapReadyCallback() {
-                    @Override
-                    public void onMapReady(GoogleMap googleMap) {
-                        googleMap.addMarker(new MarkerOptions().position(latLng));
-                        googleMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
-                        googleMap.animateCamera(CameraUpdateFactory.zoomTo(10), 2000, null);
-                    }
-                });
-                dialog.dismiss();
-                mMenu.findItem(R.id.note_menu_location).setTitle("Edit Location");
-            }
-        });
-
-        dialogHolder.cancel.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                dialog.dismiss();
-            }
-        });
-
-        dialogHolder.refresh.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                dialog.dismiss();
-                Location location = findingLocation();
-                LatLng latLng = findingCoordinate(location);
-                String city = findingCityName();
-                locationDialog(NoteActivity.this, latLng, city);
-            }
-        });
-
-        dialogHolder.remove.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (mMapFragment.getView().getVisibility() != View.VISIBLE) {
-                    Toast.makeText(NoteActivity.this, "Nothing to remove", Toast.LENGTH_SHORT).show();
-                } else {
-                    mMapFragment.getView().setVisibility(View.INVISIBLE);
-                    mNote.setmLocation(Long.valueOf(0));
-                    mMenu.findItem(R.id.note_menu_location).setTitle("Add Location");
-                    dialog.dismiss();
-                }
-            }
-        });
-    }
-
-    private void weatherDialog(Context context, String city) {
-
-        final Dialog dialog = new Dialog(context);
-        dialog.setContentView(R.layout.layout_dialog);
-
-        final DialogHolder dialogHolder = new DialogHolder();
-
-        dialogHolder.title = (TextView) dialog.findViewById(R.id.dialog_text);
-        dialogHolder.ok = (Button) dialog.findViewById(R.id.dialog_ok);
-        dialogHolder.cancel = (Button) dialog.findViewById(R.id.dialog_cancel);
-        dialogHolder.refresh = (ImageView) dialog.findViewById(R.id.dialog_refresh);
-        dialogHolder.remove = (Button) dialog.findViewById(R.id.dialog_remove);
-
-        if (mForecastLayout.getVisibility() == View.VISIBLE) {
-            dialogHolder.refresh.setVisibility(View.VISIBLE);
-        }
-
-        dialogHolder.title.setText(city);
-        dialogHolder.ok.setText("OK");
-        dialogHolder.cancel.setText("CANCEL");
-        dialogHolder.remove.setText("Remove");
-        String dialogTitle = "Current location";
-        dialog.setTitle(dialogTitle);
-
-        dialog.show();
-
-        dialogHolder.ok.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Location location = findingLocation();
-                if (location != null) {
-                    Coordinate coordinate = new Coordinate(location.getLatitude(), location.getLongitude());
-                    ForecastFetcher forecastFetcher = new ForecastFetcher();
-                    try {
-                        mForecast = forecastFetcher.execute(coordinate).get();
-                        if (mForecast != null) {
-                            if (!mForecastDao.ifExistForecastForNote(mNote.getmId())) {
-                                showForecastLayout(mForecastLayout);
-                            } else {
-                                mForecast = mForecastDao.updateWeather(mForecast, mNote.getmId());
-                                showForecastLayout(mForecastLayout);
-                            }
-                        }
-                    } catch (ExecutionException ex) {
-                        ex.printStackTrace();
-                    } catch (InterruptedException ex) {
-                        ex.printStackTrace();
-                    }
-                }
-                dialog.dismiss();
-            }
-        });
-
-        dialogHolder.cancel.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                dialog.dismiss();
-            }
-        });
-
-        dialogHolder.refresh.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Location location = findingLocation();
-                Coordinate coordinate = new Coordinate(location.getLatitude(), location.getLongitude());
-                ForecastFetcher forecastFetcher = new ForecastFetcher();
-                try {
-                    mForecast = forecastFetcher.execute(coordinate).get();
-                    if (mForecast != null && mForecastDao.ifExistForecastForNote(mNote.getmId())) {
-                        mForecast = mForecastDao.updateWeather(mForecast, mNote.getmId());
-                        showForecastLayout(mForecastLayout);
-                        weatherDialog(NoteActivity.this, mForecast.getmCity());
-                    } else {
-                        Toast.makeText(NoteActivity.this, "Please, save changes", Toast.LENGTH_SHORT).show();
-                    }
-                } catch (ExecutionException ex) {
-                    ex.printStackTrace();
-                } catch (InterruptedException ex) {
-                    ex.printStackTrace();
-                }
-                dialog.dismiss();
-            }
-        });
-
-        dialogHolder.remove.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (mForecastLayout.getVisibility() != View.VISIBLE) {
-                    Toast.makeText(NoteActivity.this, "Nothing to remove", Toast.LENGTH_SHORT).show();
-                } else {
-                    mForecastLayout.setVisibility(View.GONE);
-                    mForecastDao.deleteForecast(mNote.getmId());
-                    mForecast = null;
-                    mMenu.findItem(R.id.note_menu_weather).setTitle("Add weather");
-                    dialog.dismiss();
-                }
-            }
-        });
-    }
-
 
     static class DialogHolder {
         TextView title;
@@ -950,22 +826,25 @@ public class NoteActivity extends AppCompatActivity {
             try {
                 InputStream iStream = getContentResolver().openInputStream(selectedImage);
                 byte[] inputData = getBytes(iStream);
+
+                boolean isExist = false;
                 if (!mUriList.isEmpty()) {
                     for (byte[] item : mUriList) {
-                        if (Arrays.equals(item, inputData)) {
-                            Toast.makeText(NoteActivity.this, "Picked picture already attached to current note", Toast.LENGTH_SHORT).show();
+                        if (Arrays.hashCode(item) != Arrays.hashCode(inputData)) {
+                            isExist = false;
                         } else {
-                            mUriList.add(inputData);
-                            mCurrentAddPictures.add(inputData);
-                            mGridViewAdapter.setList(mUriList);
-                            mGridViewAdapter.notifyDataSetChanged();
+                            isExist = true;
                         }
                     }
-                } else {
+                }
+
+                if (!isExist) {
                     mUriList.add(inputData);
                     mCurrentAddPictures.add(inputData);
                     mGridViewAdapter.setList(mUriList);
                     mGridViewAdapter.notifyDataSetChanged();
+                } else {
+                    Toast.makeText(NoteActivity.this, "Picked picture already attached to current note", Toast.LENGTH_SHORT).show();
                 }
 
             } catch (FileNotFoundException ex) {
@@ -1015,10 +894,9 @@ public class NoteActivity extends AppCompatActivity {
                 convertView.setTag(imageView);
             } else {
                 imageView = (ImageView) convertView.getTag();
-
             }
             byte[] uri = getItem(position);
-            imageView.setImageBitmap(getImage(uri));
+            imageView.setImageBitmap(Bitmap.createBitmap(getImage(uri)));
             imageView.setAdjustViewBounds(true);
             return convertView;
         }
@@ -1085,9 +963,6 @@ public class NoteActivity extends AppCompatActivity {
                         }
                         mLastLocation = LocationServices.FusedLocationApi.getLastLocation(
                                 mGoogleApiClient);
-                        if (mLastLocation != null) {
-                            Toast.makeText(NoteActivity.this, "Latitude:" + mLastLocation.getLatitude() + ", Longitude:" + mLastLocation.getLongitude(), Toast.LENGTH_LONG).show();
-                        }
                     }
 
                     @Override
@@ -1102,28 +977,4 @@ public class NoteActivity extends AppCompatActivity {
                 .addApi(LocationServices.API)
                 .build();
     }
-
-
-//    public void createLocationRequest() {
-//        mLocationRequest = new LocationRequest();
-//        mLocationRequest.setInterval(20000);
-//        mLocationRequest.setFastestInterval(5000);
-//        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-//        Log.e("Achyp", "1129|NoteActivity::createLocationRequest: " + mLastLocation);
-//    }
-//
-//    protected void startLocationUpdates() {
-//        if (ContextCompat.checkSelfPermission(NoteActivity.this, android.Manifest.permission.ACCESS_FINE_LOCATION)
-//                != PackageManager.PERMISSION_GRANTED) {
-//            Toast.makeText(NoteActivity.this, "Location permissions required", Toast.LENGTH_SHORT).show();
-//        }
-//        Log.e("Achyp", "1137|NoteActivity::createLocationRequest: " + mLastLocation);
-//        LocationServices.FusedLocationApi.requestLocationUpdates(
-//                mGoogleApiClient, mLocationRequest, new com.google.android.gms.location.LocationListener() {
-//                    @Override
-//                    public void onLocationChanged(Location location) {
-//                      mLastLocation = location;
-//                    }
-//                });
-//    }
 }

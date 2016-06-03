@@ -24,16 +24,12 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import com.example.achypur.notepadapp.Application.NoteApplication;
+import com.example.achypur.notepadapp.CustomView.PictureConvertor;
 import com.example.achypur.notepadapp.CustomView.ProfilePicture;
-import com.example.achypur.notepadapp.DAO.UserDao;
 import com.example.achypur.notepadapp.Entities.User;
 import com.example.achypur.notepadapp.Managers.AccountManager;
 import com.example.achypur.notepadapp.R;
-import com.example.achypur.notepadapp.Session.SessionManager;
-
-import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 
@@ -44,13 +40,12 @@ public class BaseActivity extends AppCompatActivity {
     private DrawerLayout mDrawerLayout;
     private ActionBarDrawerToggle mDrawerToggle;
     private ProfilePicture mProfilePicture;
-    private SessionManager mSession;
-//    private UserDao mUserDao;
     private User mLoggedUser;
-    HashMap<String, String> mCurrentUser = new HashMap<>();
     TextView mLogin;
     TextView mEmail;
     AccountManager mAccountManager;
+    PictureConvertor mPictureConvertor;
+    NoteApplication noteApplication = new NoteApplication();
 
 
     @Override
@@ -65,10 +60,11 @@ public class BaseActivity extends AppCompatActivity {
         NoteActivity n = new NoteActivity();
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayShowTitleEnabled(false);
-        mSession = new SessionManager(this);
         mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
-        mAccountManager = NoteApplication.getsAccountManager();
+//        mAccountManager = noteApplication.getsAccountManager();
         mAccountManager.createUserRepository();
+        mAccountManager.initLoginSession();
+        mPictureConvertor = PictureConvertor.getInstance();
 
         Bundle extras = getIntent().getExtras();
         if (extras != null && extras.containsKey("userId")) {
@@ -96,7 +92,7 @@ public class BaseActivity extends AppCompatActivity {
         }
 
         if (mLoggedUser.getImage() != null) {
-            mProfilePicture.setImageBitmap(byteToBitMap(mLoggedUser.getImage()));
+            mProfilePicture.setImageBitmap(mPictureConvertor.byteToBitMap(mLoggedUser.getImage()));
         } else {
             mProfilePicture.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.people));
         }
@@ -117,7 +113,7 @@ public class BaseActivity extends AppCompatActivity {
         navBarItemList.add(new Pair<String, View.OnClickListener>("Log out", new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mSession.logoutUser();
+                mAccountManager.logoutUser();
                 finish();
             }
         }));
@@ -149,7 +145,7 @@ public class BaseActivity extends AppCompatActivity {
         }
         mLogin.setText(mLoggedUser.getLogin());
         if(mLoggedUser.getImage() != null){
-            mProfilePicture.setImageBitmap(byteToBitMap(mLoggedUser.getImage()));
+            mProfilePicture.setImageBitmap(mPictureConvertor.byteToBitMap(mLoggedUser.getImage()));
         }
     }
 
@@ -224,10 +220,6 @@ public class BaseActivity extends AppCompatActivity {
 
             return convertView;
         }
-    }
-
-    public Bitmap byteToBitMap(byte[] image) {
-        return BitmapFactory.decodeByteArray(image, 0, image.length);
     }
 
     @Override

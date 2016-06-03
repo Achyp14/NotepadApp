@@ -2,6 +2,7 @@ package com.example.achypur.notepadapp.JsonObjects;
 
 import android.app.Activity;
 import android.content.Context;
+import android.location.Location;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
@@ -19,18 +20,18 @@ import java.io.Reader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
-public class ForecastFetcher extends AsyncTask<Coordinate, Void, Forecast> {
+public class ForecastFetcher extends AsyncTask<Location, Void, Forecast> {
 
     private final static String API_KEY = "4a9a966b470dff0a17f71d7526d05746";
 
     @Override
-    protected Forecast doInBackground(Coordinate... params) {
+    protected Forecast doInBackground(Location... params) {
 
         Forecast forecast = null;
         int i = 0;
-        for (Coordinate coordinate : params) {
+        for (Location location : params) {
             try {
-                forecast = readForecast(coordinate);
+                forecast = readForecast(location);
                 forecast.setIcon(readIcon(forecast, i));
             } catch (Exception e) {
                 e.printStackTrace();
@@ -51,10 +52,10 @@ public class ForecastFetcher extends AsyncTask<Coordinate, Void, Forecast> {
         return byteBuffer.toByteArray();
     }
 
-    private Forecast readForecast(Coordinate coordinate) {
+    private Forecast readForecast(Location location) {
         Forecast forecast = null;
         try {
-            URL url = new URL("http://api.openweathermap.org/data/2.5/weather?lat=" + coordinate.getLatitude() + "&lon=" + coordinate.getLongtitude() + "&appid=" + API_KEY);
+            URL url = new URL("http://api.openweathermap.org/data/2.5/weather?lat=" + location.getLatitude() + "&lon=" + location.getLongitude() + "&appid=" + API_KEY);
 
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("GET");

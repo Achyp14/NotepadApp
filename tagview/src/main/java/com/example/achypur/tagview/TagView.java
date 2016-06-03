@@ -228,7 +228,6 @@ public class TagView extends ViewGroup {
             public boolean onKey(View v, int keyCode, KeyEvent event) {
                 if (keyCode == KeyEvent.KEYCODE_ENTER && event.getAction() == KeyEvent.ACTION_UP) {
                     if (mListener != null) {
-                        Log.e("Achyp", "231|TagView::onKey: " + mAutoCompleteTextView.getText());
                         if (mAutoCompleteTextView.getText().toString().equals("")) {
                             Toast.makeText(getContext(), "Tag can't be empty", Toast.LENGTH_SHORT).show();
                             return false;

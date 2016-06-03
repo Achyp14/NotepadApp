@@ -2,31 +2,46 @@ package com.example.achypur.notepadapp.Application;
 
 
 import android.app.Application;
+import android.util.Log;
 
+import com.example.achypur.notepadapp.Component.AppComponent;
+import com.example.achypur.notepadapp.Component.DaggerAppComponent;
 import com.example.achypur.notepadapp.Managers.AccountManager;
 import com.example.achypur.notepadapp.Managers.NoteManager;
-import com.example.achypur.notepadapp.Managers.TagManager;
+import com.example.achypur.notepadapp.Module.ManagerModule;
+
+import javax.inject.Inject;
+
 
 public class NoteApplication extends Application {
-    private static AccountManager sAccountManager;
-    private static NoteManager sNoteManager;
-    private static TagManager sTagManager;
+
+    private AppComponent applicationComponent;
+
+    @Inject
+    AccountManager sAccountManager;
+
+    @Inject
+    NoteManager sNoteManager;
 
     @Override
     public void onCreate() {
         super.onCreate();
-        sAccountManager = new AccountManager(this);
-        sNoteManager = new NoteManager(this);
+
+        applicationComponent = DaggerAppComponent.builder().managerModule(new ManagerModule(this)).
+                build();
+
+        applicationComponent.inject(this);
+
+        sAccountManager.createUserRepository();
+
     }
 
-    public static AccountManager getsAccountManager() {
-        return sAccountManager;
-    }
-    public static NoteManager getsNoteManager() {
-        return sNoteManager;
+    public AppComponent component() {
+        return  applicationComponent;
     }
 
-    public static TagManager getsTagManager() {
-        return sTagManager;
+    public AccountManager getACc() {
+        return  sAccountManager;
     }
+
 }

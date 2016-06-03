@@ -1,22 +1,22 @@
 package com.example.achypur.notepadapp.Entities;
 
-public class TagofNotes {
+public class TagOfNotes {
     private Long mId;
     private Long mNotesId;
     private Long mTagId;
     private Long mUserId;
 
-    public TagofNotes() {
+    public TagOfNotes() {
     }
 
-    public TagofNotes(Long mId, Long mNotesId, Long mTagId, Long mUserId) {
+    public TagOfNotes(Long mId, Long mNotesId, Long mTagId, Long mUserId) {
         this.mId = mId;
         this.mNotesId = mNotesId;
         this.mTagId = mTagId;
         this.mUserId = mUserId;
     }
 
-    public TagofNotes(Long mNotesId, Long mTagId, Long mUserId) {
+    public TagOfNotes(Long mNotesId, Long mTagId, Long mUserId) {
         this(null, mNotesId, mTagId, mUserId);
     }
 

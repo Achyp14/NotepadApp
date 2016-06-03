@@ -41,13 +41,14 @@ public class ProfileActivity extends AppCompatActivity {
     ProfilePicture mProfilePicture;
     AccountManager mAccountManager;
     PictureConvertor mPictureConvertor;
+    NoteApplication noteApplication = new NoteApplication();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_profile);
 
-        mAccountManager = NoteApplication.getsAccountManager();
+//        mAccountManager = noteApplication.getsAccountManager();
         mAccountManager.createUserRepository();
         mPictureConvertor = PictureConvertor.getInstance();
 
