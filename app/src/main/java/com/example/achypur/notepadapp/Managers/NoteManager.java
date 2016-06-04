@@ -8,7 +8,7 @@ import com.example.achypur.notepadapp.Entities.Picture;
 import com.example.achypur.notepadapp.Entities.Tag;
 import com.example.achypur.notepadapp.JsonObjects.Forecast;
 import com.example.achypur.notepadapp.Repositories.NoteRepository;
-import com.example.achypur.notepadapp.RepositoriesImpl.NoteRepositoryImpl;
+import com.example.achypur.notepadapp.RepositoriesImpl.NoterepositoryImpl;
 import com.google.android.gms.maps.model.LatLng;
 
 import java.util.ArrayList;
@@ -27,7 +27,7 @@ public class NoteManager {
 
 
     public void createNoteRepo() {
-        mNoteRepository = new NoteRepositoryImpl(mContext);
+        mNoteRepository = new NoterepositoryImpl(mContext);
     }
 
     public List<Note> findAll(Long id, int status) {

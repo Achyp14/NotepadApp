@@ -24,6 +24,8 @@ import com.example.achypur.notepadapp.Component.ActivityComponent;
 import com.example.achypur.notepadapp.Component.AppComponent;
 import com.example.achypur.notepadapp.Component.DaggerActivityComponent;
 import com.example.achypur.notepadapp.Component.DaggerAppComponent;
+import com.example.achypur.notepadapp.Component.DaggerHomeComponent;
+import com.example.achypur.notepadapp.Component.HomeComponent;
 import com.example.achypur.notepadapp.Entities.User;
 import com.example.achypur.notepadapp.Managers.AccountManager;
 import com.example.achypur.notepadapp.Managers.NoteManager;
@@ -47,7 +49,7 @@ public class LoginActivity extends AppCompatActivity {
     @Inject
     AccountManager mAccountManager;
 
-    private ActivityComponent activityComponent;
+    private HomeComponent mHomeComponent;
     User mUser;
 
     @Override
@@ -58,8 +60,7 @@ public class LoginActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-        activityComponent = DaggerActivityComponent.builder().activityModule(new ActivityModule(this)).build();
-        activityComponent.inject(this);
+        component().inject(this);
 
         mAccountManager.createUserRepository();
         mAccountManager.initLoginSession();
@@ -189,13 +190,13 @@ public class LoginActivity extends AppCompatActivity {
                 .show();
     }
 
-
-    ActivityComponent component() {
-        if (activityComponent == null) {
-            activityComponent = DaggerActivityComponent.builder().activityModule(new ActivityModule(this)).build();
+    private HomeComponent component() {
+        if(mHomeComponent == null) {
+            mHomeComponent = DaggerHomeComponent.builder().appComponent(((NoteApplication) getApplication()).component()).activityModule(new ActivityModule(this)).build();
         }
-        return activityComponent;
+        return mHomeComponent;
     }
+
 
 }
 

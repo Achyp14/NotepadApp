@@ -13,14 +13,8 @@ package com.example.achypur.notepadapp.Component;
         import dagger.Component;
 
 @PerActivity
-@Singleton
-@Component(modules = ActivityModule.class)
+@Component(dependencies = AppComponent.class, modules = ActivityModule.class)
 public interface ActivityComponent {
-    void inject(Context context);
+    Activity activity();
 
-    Context context();
-
-    NoteManager noteManager();
-
-    AccountManager accountManager();
 }

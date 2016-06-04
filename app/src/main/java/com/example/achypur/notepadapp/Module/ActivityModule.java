@@ -14,29 +14,14 @@ import dagger.Provides;
 
 @Module
 public class ActivityModule {
+    private final Activity activity;
 
-    private final Context mContext;
-
-    public ActivityModule(Context context) {
-        mContext = context;
+    public ActivityModule(Activity activity) {
+        this.activity = activity;
     }
 
-    @Provides
-    @Singleton
-    Context context() {
-        return mContext;
+    @Provides @PerActivity Activity activity() {
+        return this.activity;
     }
 
-    @Provides
-    @Singleton
-    AccountManager provideAccountManager() {
-        return new AccountManager(mContext);
-    }
-
-
-    @Provides
-    @Singleton
-    NoteManager provideNoteManager() {
-        return new NoteManager(mContext);
-    }
 }

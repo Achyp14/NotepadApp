@@ -6,7 +6,7 @@ import com.example.achypur.notepadapp.Entities.ForecastEntity;
 import com.example.achypur.notepadapp.Entities.Note;
 import com.example.achypur.notepadapp.Entities.Picture;
 import com.example.achypur.notepadapp.Entities.Tag;
-import com.example.achypur.notepadapp.Entities.TagOfNotes;
+import com.example.achypur.notepadapp.Entities.TagofNotes;
 import com.example.achypur.notepadapp.JsonObjects.Forecast;
 
 import java.util.List;
@@ -24,7 +24,7 @@ public interface NoteRepository {
 
     List<Tag> showAllTag();
 
-    TagOfNotes createTagOfNotes(Long noteId, Long tagId, Long userId);
+    TagofNotes createTagOfNotes(Long noteId, Long tagId, Long userId);
 
     List<Long> findTagOfNoteIds(Long noteId);
 

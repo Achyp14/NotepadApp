@@ -44,12 +44,15 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.achypur.notepadapp.Application.NoteApplication;
+import com.example.achypur.notepadapp.Component.DaggerHomeComponent;
+import com.example.achypur.notepadapp.Component.HomeComponent;
 import com.example.achypur.notepadapp.DAO.ForecastDao;
 import com.example.achypur.notepadapp.JsonObjects.Forecast;
 import com.example.achypur.notepadapp.JsonObjects.ForecastFetcher;
 import com.example.achypur.notepadapp.JsonObjects.Rain;
 import com.example.achypur.notepadapp.Managers.AccountManager;
 import com.example.achypur.notepadapp.Managers.NoteManager;
+import com.example.achypur.notepadapp.Module.ActivityModule;
 import com.example.achypur.notepadapp.Spannable.EmailClickableSpan;
 import com.example.achypur.notepadapp.Entities.Coordinate;
 import com.example.achypur.notepadapp.Entities.Note;
@@ -87,6 +90,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.ExecutionException;
 
+import javax.inject.Inject;
+
 public class NoteActivity extends AppCompatActivity {
 
     private final static String NOTE_ID_KEY = "id";
@@ -113,9 +118,11 @@ public class NoteActivity extends AppCompatActivity {
     GoogleApiClient mGoogleApiClient;
     Location mLastLocation = null;
 
+    HomeComponent mHomeComponent;
+    @Inject
     AccountManager mAccountManager;
+    @Inject
     NoteManager mNoteManager;
-    NoteApplication noteApplication = new NoteApplication();
 
 
     @Override
@@ -131,9 +138,10 @@ public class NoteActivity extends AppCompatActivity {
             getSupportActionBar().setDisplayShowTitleEnabled(false);
         }
 
-//        mAccountManager = noteApplication.getsAccountManager();
+
+        component().inject(this);
+
         mAccountManager.createUserRepository();
-//        mNoteManager = noteApplication.getsNoteManager();
         mNoteManager.createNoteRepo();
 
         mLoggedUser = mAccountManager.findUserById(mAccountManager.findUserId(mAccountManager.retrieveLogin()));
@@ -976,5 +984,12 @@ public class NoteActivity extends AppCompatActivity {
                 })
                 .addApi(LocationServices.API)
                 .build();
+    }
+
+    private HomeComponent component() {
+        if(mHomeComponent == null) {
+            mHomeComponent = DaggerHomeComponent.builder().appComponent(((NoteApplication) getApplication()).component()).activityModule(new ActivityModule(this)).build();
+        }
+        return mHomeComponent;
     }
 }
