@@ -1,23 +1,17 @@
 package com.example.achypur.notepadapp.Component;
 
-import android.app.Application;
+import android.app.Activity;
 
-import com.example.achypur.notepadapp.Application.NoteApplication;
-import com.example.achypur.notepadapp.Managers.AccountManager;
-import com.example.achypur.notepadapp.Managers.NoteManager;
+import com.example.achypur.notepadapp.Module.ActivityModule;
 import com.example.achypur.notepadapp.Module.ManagerModule;
 
 import javax.inject.Singleton;
 import dagger.*;
 
 @Singleton
-@Component(modules = ManagerModule.class)
+@Component(modules = {ManagerModule.class, ActivityModule.class})
 public interface AppComponent {
 
-    void inject(NoteApplication application);
+    void inject(Activity activity);
 
-    Application application();
-
-    NoteManager noteManager();
-    AccountManager accountManager();
 }

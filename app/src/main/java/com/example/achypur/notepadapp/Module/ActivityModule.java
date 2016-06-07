@@ -1,6 +1,7 @@
 package com.example.achypur.notepadapp.Module;
 
 import android.app.Activity;
+import android.app.Application;
 import android.content.Context;
 
 import com.example.achypur.notepadapp.Managers.AccountManager;
@@ -15,28 +16,15 @@ import dagger.Provides;
 @Module
 public class ActivityModule {
 
-    private final Context mContext;
+    Application mApplication;
 
-    public ActivityModule(Context context) {
-        mContext = context;
+    public ActivityModule(Application application) {
+        mApplication = application;
     }
 
     @Provides
     @Singleton
-    Context context() {
-        return mContext;
-    }
-
-    @Provides
-    @Singleton
-    AccountManager provideAccountManager() {
-        return new AccountManager(mContext);
-    }
-
-
-    @Provides
-    @Singleton
-    NoteManager provideNoteManager() {
-        return new NoteManager(mContext);
+    Application providesApplication() {
+        return mApplication;
     }
 }

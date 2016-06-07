@@ -15,28 +15,16 @@ import dagger.Provides;
 @Module
 public class ManagerModule {
 
-    private Application mApplication;
-
-    public ManagerModule(Application application) {
-        mApplication = application;
-    }
-
     @Provides
     @Singleton
-    Application provideApplication() {
-        return mApplication;
-    }
-
-    @Provides
-    @Singleton
-    AccountManager provideAccountManager() {
-        return new AccountManager(mApplication);
+    AccountManager provideAccountManager(Context context) {
+        return new AccountManager(context);
     }
 
 
     @Provides
     @Singleton
-    NoteManager provideNoteManager() {
-        return new NoteManager(mApplication);
+    NoteManager provideNoteManager(Context context) {
+        return new NoteManager(context);
     }
 }

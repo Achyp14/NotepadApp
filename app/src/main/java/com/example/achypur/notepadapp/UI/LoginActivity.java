@@ -58,8 +58,10 @@ public class LoginActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-        activityComponent = DaggerActivityComponent.builder().activityModule(new ActivityModule(this)).build();
-        activityComponent.inject(this);
+//        activityComponent = DaggerActivityComponent.builder().activityModule(new ActivityModule(this)).build();
+//        activityComponent.inject(this);
+
+        ((NoteApplication) getApplication()).component().inject(this);
 
         mAccountManager.createUserRepository();
         mAccountManager.initLoginSession();
@@ -189,13 +191,13 @@ public class LoginActivity extends AppCompatActivity {
                 .show();
     }
 
-
-    ActivityComponent component() {
-        if (activityComponent == null) {
-            activityComponent = DaggerActivityComponent.builder().activityModule(new ActivityModule(this)).build();
-        }
-        return activityComponent;
-    }
+//
+//    ActivityComponent component() {
+//        if (activityComponent == null) {
+//            activityComponent = DaggerActivityComponent.builder().activityModule(new ActivityModule(this)).build();
+//        }
+//        return activityComponent;
+//    }
 
 }
 
