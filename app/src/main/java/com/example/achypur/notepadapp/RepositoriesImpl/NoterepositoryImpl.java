@@ -14,14 +14,14 @@ import com.example.achypur.notepadapp.Entities.ForecastEntity;
 import com.example.achypur.notepadapp.Entities.Note;
 import com.example.achypur.notepadapp.Entities.Picture;
 import com.example.achypur.notepadapp.Entities.Tag;
-import com.example.achypur.notepadapp.Entities.TagOfNotes;
+import com.example.achypur.notepadapp.Entities.TagofNotes;
 import com.example.achypur.notepadapp.JsonObjects.Forecast;
 import com.example.achypur.notepadapp.Repositories.NoteRepository;
 
 import java.sql.SQLException;
 import java.util.List;
 
-public class NoteRepositoryImpl implements NoteRepository {
+public class NoterepositoryImpl implements NoteRepository {
 
     private NoteDao mNoteDao;
     private TagDao mTagDao;
@@ -30,7 +30,7 @@ public class NoteRepositoryImpl implements NoteRepository {
     private CoordinateDao mCoordinateDao;
     private ForecastDao mForecastDao;
 
-    public NoteRepositoryImpl(Context context) {
+    public NoterepositoryImpl(Context context) {
         mNoteDao = new NoteDao(context);
         mTagDao = new TagDao(context);
         mTagOfNotesDao = new TagOfNotesDao(context);
@@ -80,7 +80,7 @@ public class NoteRepositoryImpl implements NoteRepository {
     }
 
     @Override
-    public TagOfNotes createTagOfNotes(Long noteId, Long tagId, Long userId) {
+    public TagofNotes createTagOfNotes(Long noteId, Long tagId, Long userId) {
         return mTagOfNotesDao.createTagOfNotes(noteId, tagId, userId);
     }
 

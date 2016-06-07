@@ -6,7 +6,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 
 import com.example.achypur.notepadapp.DBHelper.DataBaseHelper;
-import com.example.achypur.notepadapp.Entities.TagOfNotes;
+import com.example.achypur.notepadapp.Entities.TagofNotes;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -30,22 +30,22 @@ public class TagOfNotesDao {
         mDataBaseHelper.close();
     }
 
-    public TagOfNotes createTagOfNotes(Long noteId, Long tagId, Long userdId) {
+    public TagofNotes createTagOfNotes(Long noteId, Long tagId, Long userdId) {
 
-        TagOfNotes tagOfNotes = new TagOfNotes(noteId, tagId, userdId);
+        TagofNotes tagofNotes = new TagofNotes(noteId, tagId, userdId);
 
-        Long id = mSqLiteDatabase.insert(DataBaseHelper.TABLE_TAG_NOTES, null, getTagOfNotesContentValues(tagOfNotes));
+        Long id = mSqLiteDatabase.insert(DataBaseHelper.TABLE_TAG_NOTES, null, getTagOfNotesContentValues(tagofNotes));
 
-        tagOfNotes.setmId(id);
+        tagofNotes.setmId(id);
 
-        return tagOfNotes;
+        return tagofNotes;
     }
 
-    private ContentValues getTagOfNotesContentValues(TagOfNotes tagOfNotes) {
+    private ContentValues getTagOfNotesContentValues(TagofNotes tagofNotes) {
         final ContentValues contentValues = new ContentValues();
-        contentValues.put(DataBaseHelper.KEY_NOTE_ID, tagOfNotes.getmNotesId());
-        contentValues.put(DataBaseHelper.KEY_TAG_ID, tagOfNotes.getmTagId());
-        contentValues.put(DataBaseHelper.KEY_USER_ID, tagOfNotes.getmUserId());
+        contentValues.put(DataBaseHelper.KEY_NOTE_ID, tagofNotes.getmNotesId());
+        contentValues.put(DataBaseHelper.KEY_TAG_ID, tagofNotes.getmTagId());
+        contentValues.put(DataBaseHelper.KEY_USER_ID, tagofNotes.getmUserId());
         return contentValues;
     }
 
@@ -57,12 +57,12 @@ public class TagOfNotesDao {
 
     private List<Long> addTagOfNotesToCursor(Cursor cursor) {
         List<Long> idList = new ArrayList<>();
-        TagOfNotes tagOfNotes;
+        TagofNotes tagofNotes;
 
         if (cursor.moveToFirst()) {
             while (cursor.isAfterLast() == false) {
-                tagOfNotes = cursorToTagOfNotes(cursor);
-                idList.add(tagOfNotes.getmTagId()); // Get tag id
+                tagofNotes = cursorToTagOfNotes(cursor);
+                idList.add(tagofNotes.getmTagId()); // Get tag id
                 cursor.moveToNext();
             }
         }
@@ -70,8 +70,8 @@ public class TagOfNotesDao {
         return idList;
     }
 
-    private TagOfNotes cursorToTagOfNotes(Cursor cursor) {
-        return new TagOfNotes(
+    private TagofNotes cursorToTagOfNotes(Cursor cursor) {
+        return new TagofNotes(
                 cursor.getLong(0),
                 cursor.getLong(1),
                 cursor.getLong(2),

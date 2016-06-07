@@ -18,11 +18,14 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import com.example.achypur.notepadapp.Application.NoteApplication;
+import com.example.achypur.notepadapp.Component.DaggerHomeComponent;
+import com.example.achypur.notepadapp.Component.HomeComponent;
 import com.example.achypur.notepadapp.CustomView.PictureConvertor;
 import com.example.achypur.notepadapp.CustomView.ProfilePicture;
 import com.example.achypur.notepadapp.DAO.UserDao;
 import com.example.achypur.notepadapp.Entities.User;
 import com.example.achypur.notepadapp.Managers.AccountManager;
+import com.example.achypur.notepadapp.Module.ActivityModule;
 import com.example.achypur.notepadapp.R;
 import com.example.achypur.notepadapp.Session.SessionManager;
 
@@ -32,6 +35,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.sql.SQLException;
 
+import javax.inject.Inject;
+
 
 public class ProfileActivity extends AppCompatActivity {
 
@@ -39,16 +44,20 @@ public class ProfileActivity extends AppCompatActivity {
 
     User mCurrentUser = new User();
     ProfilePicture mProfilePicture;
+    @Inject
     AccountManager mAccountManager;
     PictureConvertor mPictureConvertor;
-    NoteApplication noteApplication = new NoteApplication();
+    HomeComponent mHomeComponent;
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_profile);
 
-//        mAccountManager = noteApplication.getsAccountManager();
+        component().inject(this);
+
         mAccountManager.createUserRepository();
         mPictureConvertor = PictureConvertor.getInstance();
 
@@ -208,5 +217,12 @@ public class ProfileActivity extends AppCompatActivity {
     @Override
     public void onBackPressed() {
         super.onBackPressed();
+    }
+
+    private HomeComponent component() {
+        if(mHomeComponent == null) {
+            mHomeComponent = DaggerHomeComponent.builder().appComponent(((NoteApplication) getApplication()).component()).activityModule(new ActivityModule(this)).build();
+        }
+        return mHomeComponent;
     }
 }

@@ -26,17 +26,22 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.achypur.notepadapp.Application.NoteApplication;
+import com.example.achypur.notepadapp.Component.DaggerHomeComponent;
+import com.example.achypur.notepadapp.Component.HomeComponent;
 import com.example.achypur.notepadapp.Entities.Note;
 import com.example.achypur.notepadapp.Entities.Picture;
 import com.example.achypur.notepadapp.Entities.User;
 import com.example.achypur.notepadapp.Managers.AccountManager;
 import com.example.achypur.notepadapp.Managers.NoteManager;
+import com.example.achypur.notepadapp.Module.ActivityModule;
 import com.example.achypur.notepadapp.R;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+
+import javax.inject.Inject;
 
 public class MainActivity extends BaseActivity {
 
@@ -46,20 +51,22 @@ public class MainActivity extends BaseActivity {
     SearchView mSearchView;
     List<Note> mNotesList;
 
+    @Inject
     AccountManager mAccountManager;
+    @Inject
     NoteManager mNoteManager;
-    NoteApplication noteApplication;
+
+    HomeComponent mHomeComponent;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        noteApplication = new NoteApplication();
-//        mAccountManager = noteApplication.getsAccountManager();
+        component().inject(this);
+
         mAccountManager.initLoginSession();
         mAccountManager.createUserRepository();
 
-//        mNoteManager = noteApplication.getsNoteManager();
         mNoteManager.createNoteRepo();
 
         Bundle extras = getIntent().getExtras();
@@ -447,6 +454,13 @@ public class MainActivity extends BaseActivity {
             }
             notifyDataSetChanged();
         }
+    }
+
+    private HomeComponent component() {
+        if(mHomeComponent == null) {
+            mHomeComponent = DaggerHomeComponent.builder().appComponent(((NoteApplication) getApplication()).component()).activityModule(new ActivityModule(this)).build();
+        }
+        return mHomeComponent;
     }
 }
 

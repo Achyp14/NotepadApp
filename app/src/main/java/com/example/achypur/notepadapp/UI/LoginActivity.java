@@ -24,6 +24,8 @@ import com.example.achypur.notepadapp.Component.ActivityComponent;
 import com.example.achypur.notepadapp.Component.AppComponent;
 import com.example.achypur.notepadapp.Component.DaggerActivityComponent;
 import com.example.achypur.notepadapp.Component.DaggerAppComponent;
+import com.example.achypur.notepadapp.Component.DaggerHomeComponent;
+import com.example.achypur.notepadapp.Component.HomeComponent;
 import com.example.achypur.notepadapp.Entities.User;
 import com.example.achypur.notepadapp.Managers.AccountManager;
 import com.example.achypur.notepadapp.Managers.NoteManager;
@@ -47,7 +49,7 @@ public class LoginActivity extends AppCompatActivity {
     @Inject
     AccountManager mAccountManager;
 
-    private ActivityComponent activityComponent;
+    private HomeComponent mHomeComponent;
     User mUser;
 
     @Override
@@ -58,10 +60,14 @@ public class LoginActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
+<<<<<<< HEAD
 //        activityComponent = DaggerActivityComponent.builder().activityModule(new ActivityModule(this)).build();
 //        activityComponent.inject(this);
 
         ((NoteApplication) getApplication()).component().inject(this);
+=======
+        component().inject(this);
+>>>>>>> 3a2fd3db704c1e80b34c80c775e74ed3b8794240
 
         mAccountManager.createUserRepository();
         mAccountManager.initLoginSession();
@@ -191,6 +197,7 @@ public class LoginActivity extends AppCompatActivity {
                 .show();
     }
 
+<<<<<<< HEAD
 //
 //    ActivityComponent component() {
 //        if (activityComponent == null) {
@@ -198,6 +205,15 @@ public class LoginActivity extends AppCompatActivity {
 //        }
 //        return activityComponent;
 //    }
+=======
+    private HomeComponent component() {
+        if(mHomeComponent == null) {
+            mHomeComponent = DaggerHomeComponent.builder().appComponent(((NoteApplication) getApplication()).component()).activityModule(new ActivityModule(this)).build();
+        }
+        return mHomeComponent;
+    }
+>>>>>>> 3a2fd3db704c1e80b34c80c775e74ed3b8794240
+
 
 }
 

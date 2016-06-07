@@ -24,13 +24,18 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import com.example.achypur.notepadapp.Application.NoteApplication;
+import com.example.achypur.notepadapp.Component.DaggerHomeComponent;
+import com.example.achypur.notepadapp.Component.HomeComponent;
 import com.example.achypur.notepadapp.CustomView.PictureConvertor;
 import com.example.achypur.notepadapp.CustomView.ProfilePicture;
 import com.example.achypur.notepadapp.Entities.User;
 import com.example.achypur.notepadapp.Managers.AccountManager;
+import com.example.achypur.notepadapp.Module.ActivityModule;
 import com.example.achypur.notepadapp.R;
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.inject.Inject;
 
 
 public class BaseActivity extends AppCompatActivity {
@@ -43,9 +48,11 @@ public class BaseActivity extends AppCompatActivity {
     private User mLoggedUser;
     TextView mLogin;
     TextView mEmail;
+    @Inject
     AccountManager mAccountManager;
     PictureConvertor mPictureConvertor;
-    NoteApplication noteApplication = new NoteApplication();
+
+    HomeComponent mHomeComponent;
 
 
     @Override
@@ -61,7 +68,9 @@ public class BaseActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayShowTitleEnabled(false);
         mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
-//        mAccountManager = noteApplication.getsAccountManager();
+
+        component().inject(this);
+
         mAccountManager.createUserRepository();
         mAccountManager.initLoginSession();
         mPictureConvertor = PictureConvertor.getInstance();
@@ -225,6 +234,13 @@ public class BaseActivity extends AppCompatActivity {
     @Override
     public void onBackPressed() {
         super.onBackPressed();
+    }
+
+    private HomeComponent component() {
+        if(mHomeComponent == null) {
+            mHomeComponent = DaggerHomeComponent.builder().appComponent(((NoteApplication) getApplication()).component()).activityModule(new ActivityModule(this)).build();
+        }
+        return mHomeComponent;
     }
 
 

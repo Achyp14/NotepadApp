@@ -15,7 +15,9 @@ import dagger.Provides;
 
 @Module
 public class ActivityModule {
+    private final Activity activity;
 
+<<<<<<< HEAD
     Application mApplication;
 
     public ActivityModule(Application application) {
@@ -27,4 +29,14 @@ public class ActivityModule {
     Application providesApplication() {
         return mApplication;
     }
+=======
+    public ActivityModule(Activity activity) {
+        this.activity = activity;
+    }
+
+    @Provides @PerActivity Activity activity() {
+        return this.activity;
+    }
+
+>>>>>>> 3a2fd3db704c1e80b34c80c775e74ed3b8794240
 }
