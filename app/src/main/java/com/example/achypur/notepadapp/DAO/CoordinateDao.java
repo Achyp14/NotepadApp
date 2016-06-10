@@ -1,13 +1,12 @@
-package com.example.achypur.notepadapp.DAO;
+package com.example.achypur.notepadapp.dao;
 
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.util.Log;
 
-import com.example.achypur.notepadapp.DBHelper.DataBaseHelper;
-import com.example.achypur.notepadapp.Entities.Coordinate;
+import com.example.achypur.notepadapp.dbhelper.DataBaseHelper;
+import com.example.achypur.notepadapp.entities.Coordinate;
 
 import java.sql.SQLException;
 

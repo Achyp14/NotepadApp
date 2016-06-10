@@ -1,4 +1,4 @@
-package com.example.achypur.notepadapp.CustomView;
+package com.example.achypur.notepadapp.view;
 
 import android.content.Context;
 import android.content.res.TypedArray;
@@ -7,21 +7,18 @@ import android.graphics.BitmapShader;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
-import android.graphics.PorterDuff;
-import android.graphics.PorterDuffXfermode;
-import android.graphics.Rect;
-import android.graphics.RectF;
 import android.graphics.Shader;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.widget.ImageView;
 
 import com.example.achypur.notepadapp.R;
 
 public class ProfilePicture extends ImageView {
 
+
+    private static final float DEFAULT_BORDER_SIZE = 100.0f;
     private int mBorderSize;
 
     public int getBorderSize() {
@@ -41,7 +38,7 @@ public class ProfilePicture extends ImageView {
 
         TypedArray typedArray = context.obtainStyledAttributes(attrs, R.styleable.ProfilePicture, 0, 0);
         try {
-            setBorderSize((int) typedArray.getDimension(R.styleable.ProfilePicture_borderSize, 100.0f));
+            setBorderSize((int) typedArray.getDimension(R.styleable.ProfilePicture_borderSize, DEFAULT_BORDER_SIZE));
         } catch (Exception ex) {
             ex.printStackTrace();
         } finally {
@@ -65,9 +62,6 @@ public class ProfilePicture extends ImageView {
         if (getWidth() == 0 || getHeight() == 0) {
             return;
         }
-
-        Bitmap bitmap = ((BitmapDrawable) drawable).getBitmap();
-
 
         Paint paint = new Paint();
         paint.setStyle(Paint.Style.STROKE);
@@ -95,19 +89,6 @@ public class ProfilePicture extends ImageView {
             currentBitmap = bitmap.copy(Bitmap.Config.ARGB_8888, true);
         }
         return currentBitmap;
-    }
-
-
-    public Bitmap drawBorder(Bitmap bitmap, int borderSize) {
-        Bitmap currentBitMap = bitmap.copy(Bitmap.Config.ARGB_8888, true);
-        Paint paint = new Paint();
-        Canvas canvas = new Canvas(currentBitMap);
-        paint.setStyle(Paint.Style.STROKE);
-        paint.setColor(Color.WHITE);
-        paint.setStrokeWidth(getBorderSize());
-        canvas.drawCircle(currentBitMap.getWidth() / 2, currentBitMap.getHeight() / 2, currentBitMap.getWidth() / 2 - getBorderSize() / 2, paint);
-
-        return currentBitMap;
     }
 
     public Bitmap drawCroppedImage(Bitmap bitmap) {

@@ -1,19 +1,18 @@
-package com.example.achypur.notepadapp.DAO;
+package com.example.achypur.notepadapp.dao;
 
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.util.Log;
 
-import com.example.achypur.notepadapp.DBHelper.DataBaseHelper;
-import com.example.achypur.notepadapp.Entities.ForecastEntity;
-import com.example.achypur.notepadapp.JsonObjects.Forecast;
-import com.example.achypur.notepadapp.JsonObjects.Main;
-import com.example.achypur.notepadapp.JsonObjects.OtherInform;
-import com.example.achypur.notepadapp.JsonObjects.Rain;
-import com.example.achypur.notepadapp.JsonObjects.Weather;
-import com.example.achypur.notepadapp.JsonObjects.Wind;
+import com.example.achypur.notepadapp.dbhelper.DataBaseHelper;
+import com.example.achypur.notepadapp.entities.ForecastEntity;
+import com.example.achypur.notepadapp.jsonobjects.Forecast;
+import com.example.achypur.notepadapp.jsonobjects.Main;
+import com.example.achypur.notepadapp.jsonobjects.OtherInform;
+import com.example.achypur.notepadapp.jsonobjects.Rain;
+import com.example.achypur.notepadapp.jsonobjects.Weather;
+import com.example.achypur.notepadapp.jsonobjects.Wind;
 
 import java.sql.SQLException;
 import java.util.ArrayList;

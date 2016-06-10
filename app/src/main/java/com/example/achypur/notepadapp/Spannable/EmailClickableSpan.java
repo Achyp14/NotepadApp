@@ -1,11 +1,10 @@
-package com.example.achypur.notepadapp.Spannable;
+package com.example.achypur.notepadapp.spannable;
 
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.text.TextPaint;
 import android.text.style.ClickableSpan;
-import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
@@ -14,6 +13,7 @@ public class EmailClickableSpan extends ClickableSpan {
 
     Context mContext;
     String mEmail;
+    
 
     public EmailClickableSpan(Context context, String email) {
         super();
@@ -39,5 +39,9 @@ public class EmailClickableSpan extends ClickableSpan {
     @Override
     public void updateDrawState(TextPaint ds) {
         ds.setColor(Color.BLUE);
+
+
     }
+
+
 }

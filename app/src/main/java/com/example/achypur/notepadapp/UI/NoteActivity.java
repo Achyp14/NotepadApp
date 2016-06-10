@@ -1,5 +1,6 @@
-package com.example.achypur.notepadapp.UI;
+package com.example.achypur.notepadapp.ui;
 
+import android.Manifest;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
@@ -26,12 +27,14 @@ import android.text.SpannableStringBuilder;
 import android.text.Spanned;
 import android.text.TextWatcher;
 import android.text.method.LinkMovementMethod;
+import android.util.Log;
 import android.util.Patterns;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
@@ -43,35 +46,37 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.achypur.notepadapp.Application.NoteApplication;
-import com.example.achypur.notepadapp.Component.DaggerHomeComponent;
-import com.example.achypur.notepadapp.Component.HomeComponent;
-import com.example.achypur.notepadapp.DAO.ForecastDao;
-import com.example.achypur.notepadapp.JsonObjects.Forecast;
-import com.example.achypur.notepadapp.JsonObjects.ForecastFetcher;
-import com.example.achypur.notepadapp.JsonObjects.Rain;
-import com.example.achypur.notepadapp.Managers.AccountManager;
-import com.example.achypur.notepadapp.Managers.NoteManager;
-import com.example.achypur.notepadapp.Module.ActivityModule;
-import com.example.achypur.notepadapp.Spannable.EmailClickableSpan;
-import com.example.achypur.notepadapp.Entities.Coordinate;
-import com.example.achypur.notepadapp.Entities.Note;
-import com.example.achypur.notepadapp.Entities.Tag;
-import com.example.achypur.notepadapp.Entities.User;
+import com.example.achypur.notepadapp.NoteApplication;
+import com.example.achypur.notepadapp.component.DaggerHomeComponent;
+import com.example.achypur.notepadapp.component.HomeComponent;
+import com.example.achypur.notepadapp.jsonobjects.Forecast;
+import com.example.achypur.notepadapp.jsonobjects.ForecastFetcher;
+import com.example.achypur.notepadapp.jsonobjects.Rain;
+import com.example.achypur.notepadapp.managers.AccountManager;
+import com.example.achypur.notepadapp.managers.NoteManager;
+import com.example.achypur.notepadapp.module.ActivityModule;
+import com.example.achypur.notepadapp.spannable.EmailClickableSpan;
+import com.example.achypur.notepadapp.entities.Note;
+import com.example.achypur.notepadapp.entities.Tag;
+import com.example.achypur.notepadapp.entities.User;
 import com.example.achypur.notepadapp.R;
-import com.example.achypur.notepadapp.Spannable.PhoneCLickableSpan;
-import com.example.achypur.notepadapp.Spannable.UrlClickableSpan;
+import com.example.achypur.notepadapp.spannable.PhoneCLickableSpan;
+import com.example.achypur.notepadapp.spannable.UrlClickableSpan;
+import com.example.achypur.notepadapp.view.PictureConvertor;
 import com.example.achypur.tagview.TagView;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -79,11 +84,10 @@ import java.io.InputStream;
 import java.io.Reader;
 import java.io.StreamTokenizer;
 import java.io.StringReader;
-import java.sql.SQLException;
+import java.nio.ByteBuffer;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -105,10 +109,10 @@ public class NoteActivity extends AppCompatActivity {
     List<Tag> mCurrentAddTagsList = new ArrayList<>();
     List<Tag> mTagsList = new ArrayList<>();
     List<Tag> mCurrentRemoveTagsList = new ArrayList<>();
-    List<byte[]> mUriList = new ArrayList<>();
-    List<byte[]> mCurrentAddPictures = new ArrayList<>();
-    List<byte[]> mCurrentRemovePictures = new ArrayList<>();
-    GridViewAdapter mGridViewAdapter;
+    List<Bitmap> mImgList = new ArrayList<>();
+    List<Bitmap> mCurrentAddPictures = new ArrayList<>();
+    List<Bitmap> mCurrentRemovePictures = new ArrayList<>();
+    ImageGridAdapter mImageGridAdapter;
     GridView mGridView;
     User mLoggedUser;
     boolean mReviseMode = false;
@@ -117,6 +121,7 @@ public class NoteActivity extends AppCompatActivity {
     LinearLayout mForecastLayout;
     GoogleApiClient mGoogleApiClient;
     Location mLastLocation = null;
+    PictureConvertor mPictureConvertor;
 
     HomeComponent mHomeComponent;
     @Inject
@@ -145,9 +150,9 @@ public class NoteActivity extends AppCompatActivity {
         mNoteManager.createNoteRepo();
 
         mLoggedUser = mAccountManager.findUserById(mAccountManager.findUserId(mAccountManager.retrieveLogin()));
-
+        mPictureConvertor = PictureConvertor.getInstance();
         mTagView = (TagView) findViewById(R.id.tag_grid);
-        mGridViewAdapter = new GridViewAdapter(this);
+        mImageGridAdapter = new ImageGridAdapter(this);
         final EditText title = (EditText) findViewById(R.id.note_edit_title);
         final EditText content = (EditText) findViewById(R.id.note_edit_content);
         final TextView time = (TextView) findViewById(R.id.note_edit_time);
@@ -207,6 +212,19 @@ public class NoteActivity extends AppCompatActivity {
             streamTokenizer.wordChars(':', ':');
             streamTokenizer.ordinaryChar(' ');
 
+            if (content != null) {
+                content.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+                    @Override
+                    public void onFocusChange(View v, boolean hasFocus) {
+                        if (hasFocus) {
+                            content.setMovementMethod(null);
+                            content.setTextColor(Color.BLACK);
+                            InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+                            imm.showSoftInput(content, InputMethodManager.SHOW_IMPLICIT);
+                        }
+                    }
+                });
+            }
 
             SpannableStringBuilder builder = new SpannableStringBuilder("");
 
@@ -252,8 +270,9 @@ public class NoteActivity extends AppCompatActivity {
                             builder.append(sp);
                             break;
                     }
-                    content.setText(builder);
                     content.setMovementMethod(LinkMovementMethod.getInstance());
+                    content.setText(builder);
+
                 }
             } catch (IOException ex) {
                 ex.printStackTrace();
@@ -278,8 +297,8 @@ public class NoteActivity extends AppCompatActivity {
                     @Override
                     public void onMapReady(GoogleMap googleMap) {
                         googleMap.addMarker(new MarkerOptions().position(mNoteManager.findCurrentPosition(mNote.getmLocation())));
-                        googleMap.moveCamera(CameraUpdateFactory.newLatLng(mNoteManager.findCurrentPosition(mNote.getmLocation())));
-                        googleMap.animateCamera(CameraUpdateFactory.zoomTo(8), 2000, null);
+                        CameraPosition cameraPosition = new CameraPosition.Builder().target(mNoteManager.findCurrentPosition(mNote.getmLocation())).zoom(10).build();
+                        googleMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
                     }
                 });
             }
@@ -296,12 +315,14 @@ public class NoteActivity extends AppCompatActivity {
                 tags.setVisibility(View.GONE);
             }
 
-            mUriList = mNoteManager.findAllPictureForCurrentNote(mNote.getmId());
-            mGridViewAdapter.setList(mUriList);
-            mTagView.setList(mNoteManager.findAllTagForCurrentNote(mNote.getmId()));
+            mImgList = mNoteManager.findAllPictureForCurrentNote(mNote.getmId());
+            mImageGridAdapter.setExistingImagesList(mImgList);
+
+            mTagView.setList(mNoteManager.findAllTagValueForCurrentNote(mNote.getmId()));
             ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, mNoteManager.showAllTag());
             mTagView.setAdapter(arrayAdapter);
-            mGridView.setAdapter(mGridViewAdapter);
+            mTagsList = mNoteManager.findAllTagForCurrentNote(mNote.getmId());
+            mGridView.setAdapter(mImageGridAdapter);
         }
 
         if (mGridView.isLongClickable()) {
@@ -309,13 +330,14 @@ public class NoteActivity extends AppCompatActivity {
                 @Override
                 public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
                     final DecorAdapter decorAdapter = new DecorAdapter(NoteActivity.this);
-                    decorAdapter.setAdapter(mGridViewAdapter);
+                    decorAdapter.setAdapter(mImageGridAdapter);
                     decorAdapter.setListener(new DecorAdapter.Listener() {
                         @Override
                         public void onRemoveClicked(int position) {
-                            mCurrentRemovePictures.add(mUriList.get(position));
-                            mUriList.remove(position);
-                            mGridViewAdapter.setList(mUriList);
+//                            mCurrentRemovePictures.add(mImgList.get(position));
+//                            mImgList.remove(position);
+//                            mImageGridAdapter.setList(mImgList);
+//                            mCurrentRemovePictures.add()
                         }
                     });
                     mGridView.setAdapter(decorAdapter);
@@ -328,8 +350,8 @@ public class NoteActivity extends AppCompatActivity {
             @Override
             public void onFocusChange(View v, boolean hasFocus) {
                 if (!hasFocus) {
-                    mGridView.setAdapter(mGridViewAdapter);
-                    mGridViewAdapter.notifyDataSetChanged();
+                    mGridView.setAdapter(mImageGridAdapter);
+                    mImageGridAdapter.notifyDataSetChanged();
                 }
             }
         });
@@ -338,44 +360,53 @@ public class NoteActivity extends AppCompatActivity {
         save.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (isEditMode()) {
-                    mNote.setmTitle(title.getText().toString().trim());
-                    mNote.setmContent(content.getText().toString().trim());
-                    mNote.setmModifiedDate(dateFormat.format(currentLocalTime));
-                    mNote.setmLocation(mLocation);
-                    mNoteManager.updateNote(mNote);
-                    if (mForecast != null) {
-                        mNoteManager.createForecast(mForecast, mNote.getmId());
+                try {
+                    if (isEditMode()) {
+                        mNote.setmTitle(title.getText().toString().trim());
+                        mNote.setmContent(content.getText().toString().trim());
+                        mNote.setmModifiedDate(dateFormat.format(currentLocalTime));
+                        mNote.setmLocation(mLocation);
+                        mNoteManager.updateNote(mNote);
+                        if (mForecast != null) {
+                            mNoteManager.createForecast(mForecast, mNote.getmId());
+                        } else {
+                            mNoteManager.removeForecast(mNote.getmId());
+                        }
+                        startActivity(createIntentForReviseNote(NoteActivity.this, mNote.getmId(), true));
+                        finish();
                     } else {
-                        mNoteManager.removeForecast(mNote.getmId());
+                        mNote = mNoteManager.createNote(title.getText().toString().trim(),
+                                content.getText().toString().trim(), mLoggedUser.getId(),
+                                dateFormat.format(currentLocalTime),
+                                dateFormat.format(currentLocalTime), false, mLocation);
+                        startActivity(intent);
+                        finish();
                     }
-                    startActivity(createIntentForReviseNote(NoteActivity.this, mNote.getmId(), true));
-                    finish();
-                } else {
-                    mNote = mNoteManager.createNote(title.getText().toString().trim(),
-                            content.getText().toString().trim(), mLoggedUser.getId(),
-                            dateFormat.format(currentLocalTime),
-                            dateFormat.format(currentLocalTime), false, mLocation);
-                    startActivity(intent);
-                    finish();
-                }
 
-                if (!mCurrentAddTagsList.isEmpty()) {
-                    mNoteManager.createTags(mCurrentAddTagsList, mNote.getmId(), mNote.getmUserId());
-                }
-
-                if (!mCurrentRemoveTagsList.isEmpty()) {
-                    mNoteManager.deleteTags(mCurrentRemoveTagsList, mNote.getmId());
-                }
-
-                if (!mCurrentAddPictures.isEmpty()) {
-                    for (int i = 0; i < mCurrentAddPictures.size(); i++) {
-                        mNoteManager.createPicture(mCurrentAddPictures.get(i), mNote.getmId());
+                    if (!mCurrentAddTagsList.isEmpty()) {
+                        mNoteManager.createTags(mCurrentAddTagsList, mNote.getmId(), mNote.getmUserId());
                     }
-                }
 
-                if (!mCurrentRemovePictures.isEmpty()) {
-                    mNoteManager.deletePicture(mCurrentRemovePictures, mNote.getmId());
+                    if (!mCurrentRemoveTagsList.isEmpty()) {
+                        mNoteManager.deleteTags(mCurrentRemoveTagsList, mNote.getmId());
+                    }
+
+                    if (!mCurrentAddPictures.isEmpty()) {
+                        for (int i = 0; i < mCurrentAddPictures.size(); i++) {
+                            mNoteManager.createPicture(mCurrentAddPictures.get(i), mNote.getmId());
+                        }
+                    }
+
+//                if (!mCurrentRemovePictures.isEmpty()) {
+//                    mNoteManager.deletePicture(mCurrentRemovePictures, mNote.getmId());
+//                }
+                } finally {
+                    mNoteManager.closeTag();
+                    mNoteManager.closeTagOfNotes();
+                    mNoteManager.closePicture();
+                    mNoteManager.closeCoordinate();
+                    mNoteManager.closeForecast();
+                    mNoteManager.closeNote();
                 }
             }
         });
@@ -384,6 +415,13 @@ public class NoteActivity extends AppCompatActivity {
             cancel.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
+                    mNoteManager.closeTag();
+                    mNoteManager.closeTagOfNotes();
+                    mNoteManager.closePicture();
+                    mNoteManager.closeCoordinate();
+                    mNoteManager.closeForecast();
+                    mNoteManager.closeNote();
+
                     if (!isEditMode()) {
                         startActivity(new Intent(NoteActivity.this, MainActivity.class));
                         finish();
@@ -521,12 +559,8 @@ public class NoteActivity extends AppCompatActivity {
                     return true;
                 }
             case R.id.note_menu_location:
-                if (mLastLocation != null) {
-                    locationDialog(mLastLocation);
-                } else {
-                    Toast.makeText(this, "Location not found", Toast.LENGTH_SHORT).show();
-                }
-                return false;
+                locationDialog(mLastLocation);
+                return true;
             case R.id.note_menu_picture:
                 Intent getIntent = new Intent(Intent.ACTION_GET_CONTENT);
                 getIntent.setType("image/*");
@@ -545,11 +579,7 @@ public class NoteActivity extends AppCompatActivity {
                 return true;
 
             case R.id.note_menu_weather:
-                if (mLastLocation != null) {
-                    weatherDialog(mLastLocation);
-                } else {
-                    Toast.makeText(this, "Location not found", Toast.LENGTH_SHORT).show();
-                }
+                weatherDialog(mLastLocation);
                 return true;
             case android.R.id.home:
                 startActivity(new Intent(this, MainActivity.class));
@@ -563,24 +593,28 @@ public class NoteActivity extends AppCompatActivity {
         final Dialog dialog = new Dialog(this);
         dialog.setContentView(R.layout.layout_dialog);
         final DialogHolder dialogHolder = new DialogHolder();
-
-        List<Address> address;
-        Geocoder geocoder = new Geocoder(this, Locale.getDefault());
-        try {
-            address = geocoder.getFromLocation(location.getLatitude(), location.getLongitude(), 2);
-        } catch (IOException ex) {
-            ex.printStackTrace();
-            Toast.makeText(this, "Location not found", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
         dialogHolder.title = (TextView) dialog.findViewById(R.id.dialog_text);
         dialogHolder.ok = (Button) dialog.findViewById(R.id.dialog_ok);
         dialogHolder.cancel = (Button) dialog.findViewById(R.id.dialog_cancel);
         dialogHolder.refresh = (ImageView) dialog.findViewById(R.id.dialog_refresh);
         dialogHolder.remove = (Button) dialog.findViewById(R.id.dialog_remove);
 
-        dialogHolder.title.setText(address.get(0).getLocality());
+        List<Address> address;
+        Geocoder geocoder = new Geocoder(this, Locale.getDefault());
+        try {
+            if (location != null) {
+                address = geocoder.getFromLocation(location.getLatitude(), location.getLongitude(), 2);
+                dialogHolder.title.setText(address.get(0).getLocality());
+            } else {
+                String massage = "Not found";
+                dialogHolder.title.setText(massage);
+            }
+        } catch (IOException ex) {
+            ex.printStackTrace();
+            Toast.makeText(this, "No internet connection", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         dialogHolder.ok.setText("OK");
         dialogHolder.cancel.setText("CANCEL");
         dialogHolder.remove.setText("Remove");
@@ -604,8 +638,8 @@ public class NoteActivity extends AppCompatActivity {
                         public void onMapReady(GoogleMap googleMap) {
                             LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
                             googleMap.addMarker(new MarkerOptions().position(latLng));
-                            googleMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
-                            googleMap.animateCamera(CameraUpdateFactory.zoomTo(8), 2000, null);
+                            CameraPosition cameraPosition = new CameraPosition.Builder().target(latLng).zoom(10).build();
+                            googleMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
                             dialog.dismiss();
                             mMenu.findItem(R.id.note_menu_location).setTitle("Edit Location");
                         }
@@ -658,24 +692,28 @@ public class NoteActivity extends AppCompatActivity {
         final Dialog dialog = new Dialog(this);
         dialog.setContentView(R.layout.layout_dialog);
         final DialogHolder dialogHolder = new DialogHolder();
-
-        List<Address> address;
-        Geocoder geocoder = new Geocoder(this, Locale.getDefault());
-        try {
-            address = geocoder.getFromLocation(location.getLatitude(), location.getLongitude(), 2);
-        } catch (IOException ex) {
-            ex.printStackTrace();
-            Toast.makeText(this, "Location not found", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
         dialogHolder.title = (TextView) dialog.findViewById(R.id.dialog_text);
         dialogHolder.ok = (Button) dialog.findViewById(R.id.dialog_ok);
         dialogHolder.cancel = (Button) dialog.findViewById(R.id.dialog_cancel);
         dialogHolder.refresh = (ImageView) dialog.findViewById(R.id.dialog_refresh);
         dialogHolder.remove = (Button) dialog.findViewById(R.id.dialog_remove);
 
-        dialogHolder.title.setText(address.get(0).getLocality());
+        List<Address> address;
+        Geocoder geocoder = new Geocoder(this, Locale.getDefault());
+        try {
+            if (location != null) {
+                address = geocoder.getFromLocation(location.getLatitude(), location.getLongitude(), 2);
+                dialogHolder.title.setText(address.get(0).getLocality());
+            } else {
+                String massage = "Not found";
+                dialogHolder.title.setText(massage);
+            }
+        } catch (IOException ex) {
+            ex.printStackTrace();
+            Toast.makeText(this, "No internet connection", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         dialogHolder.ok.setText("OK");
         dialogHolder.cancel.setText("CANCEL");
         dialogHolder.remove.setText("Remove");
@@ -833,28 +871,12 @@ public class NoteActivity extends AppCompatActivity {
 
             try {
                 InputStream iStream = getContentResolver().openInputStream(selectedImage);
-                byte[] inputData = getBytes(iStream);
-
-                boolean isExist = false;
-                if (!mUriList.isEmpty()) {
-                    for (byte[] item : mUriList) {
-                        if (Arrays.hashCode(item) != Arrays.hashCode(inputData)) {
-                            isExist = false;
-                        } else {
-                            isExist = true;
-                        }
-                    }
-                }
-
-                if (!isExist) {
-                    mUriList.add(inputData);
-                    mCurrentAddPictures.add(inputData);
-                    mGridViewAdapter.setList(mUriList);
-                    mGridViewAdapter.notifyDataSetChanged();
-                } else {
-                    Toast.makeText(NoteActivity.this, "Picked picture already attached to current note", Toast.LENGTH_SHORT).show();
-                }
-
+                Bitmap theImage = BitmapFactory.decodeStream(iStream);
+                ByteArrayOutputStream out = new ByteArrayOutputStream();
+                theImage.compress(Bitmap.CompressFormat.JPEG, 0, out);
+                Bitmap bit = BitmapFactory.decodeStream(new ByteArrayInputStream(out.toByteArray()));
+                mCurrentAddPictures.add(bit);
+                mImageGridAdapter.setAddedImagesList(mCurrentAddPictures);
             } catch (FileNotFoundException ex) {
                 ex.printStackTrace();
             } catch (IOException ex) {
@@ -864,32 +886,44 @@ public class NoteActivity extends AppCompatActivity {
         }
     }
 
-    class GridViewAdapter extends BaseAdapter {
+    class ImageGridAdapter extends BaseAdapter {
         LayoutInflater mLayoutInflater;
-        List<byte[]> uriList;
+        List<Bitmap> loadedImages = new ArrayList<>();
+        List<Bitmap> addedImages = new ArrayList<>();
 
-        public GridViewAdapter(Context context) {
+        public ImageGridAdapter(Context context) {
             mLayoutInflater = LayoutInflater.from(context);
         }
 
-        public void setList(List<byte[]> list) {
-            uriList = list;
+        public void setExistingImagesList(List<Bitmap> list) {
+            loadedImages = list;
+            notifyDataSetChanged();
+        }
+
+        public void setAddedImagesList(List<Bitmap> list) {
+            addedImages = list;
             notifyDataSetChanged();
         }
 
         @Override
         public int getCount() {
-            return uriList.size();
+            return loadedImages.size() + addedImages.size();
         }
 
         @Override
-        public byte[] getItem(int position) {
-            return uriList.get(position);
+        public Bitmap getItem(int position) {
+            if (position >= loadedImages.size()) {
+                for (int i = 0; i < addedImages.size(); i++) {
+                    return addedImages.get(i);
+                }
+            }
+
+            return loadedImages.get(position);
         }
 
         @Override
         public long getItemId(int position) {
-            return uriList.indexOf(uriList.get(position));
+            return position;
         }
 
 
@@ -903,24 +937,11 @@ public class NoteActivity extends AppCompatActivity {
             } else {
                 imageView = (ImageView) convertView.getTag();
             }
-            byte[] uri = getItem(position);
-            imageView.setImageBitmap(Bitmap.createBitmap(getImage(uri)));
+            Bitmap bm = getItem(position);
+            imageView.setImageBitmap(bm);
             imageView.setAdjustViewBounds(true);
             return convertView;
         }
-
-    }
-
-    public byte[] getBytes(InputStream inputStream) throws IOException {
-        ByteArrayOutputStream byteBuffer = new ByteArrayOutputStream();
-        int bufferSize = 1024;
-        byte[] buffer = new byte[bufferSize];
-
-        int len = 0;
-        while ((len = inputStream.read(buffer)) != -1) {
-            byteBuffer.write(buffer, 0, len);
-        }
-        return byteBuffer.toByteArray();
     }
 
     public Bitmap getImage(byte[] image) {
@@ -931,8 +952,9 @@ public class NoteActivity extends AppCompatActivity {
     public void onBackPressed() {
         if (isEditMode()) {
             startActivity(createIntentForReviseNote(NoteActivity.this, mNote.getmId(), true));
-        } else {
-            super.onBackPressed();
+        }
+        if (isReviseMode()) {
+            startActivity(new Intent(this, MainActivity.class));
         }
     }
 
@@ -965,12 +987,21 @@ public class NoteActivity extends AppCompatActivity {
                 .addConnectionCallbacks(new GoogleApiClient.ConnectionCallbacks() {
                     @Override
                     public void onConnected(@Nullable Bundle bundle) {
-                        if (ContextCompat.checkSelfPermission(NoteActivity.this, android.Manifest.permission.ACCESS_FINE_LOCATION)
+                        if (ContextCompat.checkSelfPermission(NoteActivity.this, Manifest.permission.ACCESS_FINE_LOCATION)
                                 != PackageManager.PERMISSION_GRANTED) {
                             Toast.makeText(NoteActivity.this, "Location permissions required", Toast.LENGTH_SHORT).show();
                         }
                         mLastLocation = LocationServices.FusedLocationApi.getLastLocation(
                                 mGoogleApiClient);
+
+                        if (mLastLocation == null) {
+                            LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, null, new LocationListener() {
+                                @Override
+                                public void onLocationChanged(Location location) {
+                                    mLastLocation = location;
+                                }
+                            });
+                        }
                     }
 
                     @Override
@@ -980,6 +1011,7 @@ public class NoteActivity extends AppCompatActivity {
                 .addOnConnectionFailedListener(new GoogleApiClient.OnConnectionFailedListener() {
                     @Override
                     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+                        Log.e("Achyp", "985|NoteActivity::onConnectionFailed: ");
                     }
                 })
                 .addApi(LocationServices.API)
@@ -987,9 +1019,11 @@ public class NoteActivity extends AppCompatActivity {
     }
 
     private HomeComponent component() {
-        if(mHomeComponent == null) {
+        if (mHomeComponent == null) {
             mHomeComponent = DaggerHomeComponent.builder().appComponent(((NoteApplication) getApplication()).component()).activityModule(new ActivityModule(this)).build();
         }
         return mHomeComponent;
     }
+
+
 }

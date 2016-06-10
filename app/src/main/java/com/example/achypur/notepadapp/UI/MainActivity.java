@@ -1,4 +1,4 @@
-package com.example.achypur.notepadapp.UI;
+package com.example.achypur.notepadapp.ui;
 
 import android.app.AlertDialog;
 import android.app.SearchManager;
@@ -11,6 +11,7 @@ import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.widget.SearchView;
+import android.util.Log;
 import android.util.SparseBooleanArray;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -25,15 +26,15 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.achypur.notepadapp.Application.NoteApplication;
-import com.example.achypur.notepadapp.Component.DaggerHomeComponent;
-import com.example.achypur.notepadapp.Component.HomeComponent;
-import com.example.achypur.notepadapp.Entities.Note;
-import com.example.achypur.notepadapp.Entities.Picture;
-import com.example.achypur.notepadapp.Entities.User;
-import com.example.achypur.notepadapp.Managers.AccountManager;
-import com.example.achypur.notepadapp.Managers.NoteManager;
-import com.example.achypur.notepadapp.Module.ActivityModule;
+import com.example.achypur.notepadapp.NoteApplication;
+import com.example.achypur.notepadapp.component.DaggerHomeComponent;
+import com.example.achypur.notepadapp.component.HomeComponent;
+import com.example.achypur.notepadapp.entities.Note;
+import com.example.achypur.notepadapp.entities.Picture;
+import com.example.achypur.notepadapp.entities.User;
+import com.example.achypur.notepadapp.managers.AccountManager;
+import com.example.achypur.notepadapp.managers.NoteManager;
+import com.example.achypur.notepadapp.module.ActivityModule;
 import com.example.achypur.notepadapp.R;
 
 import java.util.ArrayList;
@@ -173,14 +174,12 @@ public class MainActivity extends BaseActivity {
                             int key = selectedItems.keyAt(i);
                             if (selectedItems.get(key)) {
                                 ids[i] = mListView.getItemIdAtPosition(key);
-//                                mNotesList.remove(selectedItems.keyAt(i));
                             }
                         }
                         if (selectedItems.size() == 0)
                             return false;
                         for (long id : ids) {
                             if (id != 0) {
-//                                note = mNoteManager.findNote(id);
                                 mNoteManager.deleteNote(id);
                             } else {
                                 return false;
@@ -283,6 +282,7 @@ public class MainActivity extends BaseActivity {
                     }
                 });
                 mNoteAdapter.setList(noteList);
+                mListView.setAdapter(mNoteAdapter);
                 return true;
             case R.id.item_add_note:
                 Intent intent = NoteActivity.createIntentForAddNote(this);
@@ -350,9 +350,11 @@ public class MainActivity extends BaseActivity {
                 return true;
 
             boolean enabled = getItem(position).getmUserId() == mLoggedUser.getId();
+
             if (!enabled) {
                 Toast.makeText(MainActivity.this, "You can change only your notes", Toast.LENGTH_SHORT).show();
             }
+            Log.e("Achyp", "355|NoteListAdapter::isEnabled: " + enabled);
 
             return enabled;
         }
@@ -389,7 +391,7 @@ public class MainActivity extends BaseActivity {
 
 
             if (note.getmId() != null) {
-                picture = mNoteManager.findPicute(note.getmId());
+                picture = mNoteManager.findPicture(note.getmId());
             } else {
                 picture = null;
             }
@@ -461,6 +463,11 @@ public class MainActivity extends BaseActivity {
             mHomeComponent = DaggerHomeComponent.builder().appComponent(((NoteApplication) getApplication()).component()).activityModule(new ActivityModule(this)).build();
         }
         return mHomeComponent;
+    }
+
+    @Override
+    public void onBackPressed() {
+        return;
     }
 }
 

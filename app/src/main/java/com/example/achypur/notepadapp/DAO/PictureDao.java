@@ -1,17 +1,14 @@
-package com.example.achypur.notepadapp.DAO;
+package com.example.achypur.notepadapp.dao;
 
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.util.Base64;
 import android.util.Log;
 
-import com.example.achypur.notepadapp.DBHelper.DataBaseHelper;
-import com.example.achypur.notepadapp.Entities.Note;
-import com.example.achypur.notepadapp.Entities.Picture;
+import com.example.achypur.notepadapp.dbhelper.DataBaseHelper;
+import com.example.achypur.notepadapp.entities.Picture;
 
-import java.io.UnsupportedEncodingException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -39,7 +36,7 @@ public class PictureDao {
     private ContentValues getPictureContentValues(Picture picture) {
         final ContentValues contentValues = new ContentValues();
         contentValues.put(DataBaseHelper.KEY_PICTURE, picture.getByteArray());
-        contentValues.put(DataBaseHelper.KEY_NOTE_ID, picture.getmTagId());
+        contentValues.put(DataBaseHelper.KEY_NOTE_ID, picture.getmNoteId());
         return contentValues;
     }
 
@@ -51,12 +48,16 @@ public class PictureDao {
         Picture picture = new Picture(bytes, noteId);
         Long id = mSqLiteDatabase.insert(DataBaseHelper.TABLE_TAG_PICTURE, null, getPictureContentValues(picture));
         picture.setmId(id);
+
+        Log.e("Achyp", "53|PictureDao::createPicture: " + findPictureById(id).getByteArray().length);
         return picture;
     }
 
     public List<byte[]> getAllPicture(Long id) {
         Cursor cursor = mSqLiteDatabase.rawQuery("select * from " +
                 DataBaseHelper.TABLE_TAG_PICTURE + " where note_id = ? ", new String[]{String.valueOf(id)});
+
+        Log.e("Achyp", "61|PictureDao::getAllPicture: picture count" + cursor.getCount());
         return addPictureToList(cursor);
     }
 
@@ -107,6 +108,8 @@ public class PictureDao {
     public Picture findPictureById(Long id) {
         Cursor cursor = mSqLiteDatabase.rawQuery("select * from " + DataBaseHelper.TABLE_TAG_PICTURE + " where id = ?", new String[]{id.toString()});
         cursor.moveToFirst();
+
+        Log.e("Achyp", "117|PictureDao::findPictureById: " + cursor.getCount());
         return cursorToPicture(cursor);
     }
 

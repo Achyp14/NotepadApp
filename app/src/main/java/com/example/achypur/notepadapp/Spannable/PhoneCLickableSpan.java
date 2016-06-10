@@ -1,4 +1,4 @@
-package com.example.achypur.notepadapp.Spannable;
+package com.example.achypur.notepadapp.spannable;
 
 
 import android.Manifest;

@@ -1,6 +1,6 @@
-package com.example.achypur.notepadapp.Repositories;
+package com.example.achypur.notepadapp.repositories;
 
-import com.example.achypur.notepadapp.Entities.User;
+import com.example.achypur.notepadapp.entities.User;
 
 import java.util.List;
 
@@ -19,4 +19,6 @@ public interface UserRepository {
     List<User> findAll();
 
     void updateUser(Long id, String login, String name, String email, String password, byte[] image);
+
+    void close();
 }

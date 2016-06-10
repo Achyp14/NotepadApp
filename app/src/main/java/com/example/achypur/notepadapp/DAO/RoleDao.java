@@ -1,10 +1,10 @@
-package com.example.achypur.notepadapp.DAO;
+package com.example.achypur.notepadapp.dao;
 
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 
-import com.example.achypur.notepadapp.DBHelper.DataBaseHelper;
+import com.example.achypur.notepadapp.dbhelper.DataBaseHelper;
 
 import java.sql.SQLException;
 

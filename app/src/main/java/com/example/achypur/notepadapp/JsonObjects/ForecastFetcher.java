@@ -1,14 +1,11 @@
-package com.example.achypur.notepadapp.JsonObjects;
+package com.example.achypur.notepadapp.jsonobjects;
 
-import android.app.Activity;
 import android.content.Context;
 import android.location.Location;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
-import android.util.Log;
 
-import com.example.achypur.notepadapp.Entities.Coordinate;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 

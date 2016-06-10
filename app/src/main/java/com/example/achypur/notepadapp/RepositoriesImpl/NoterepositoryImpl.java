@@ -1,22 +1,22 @@
-package com.example.achypur.notepadapp.RepositoriesImpl;
+package com.example.achypur.notepadapp.repositoriesimpl;
 
 
 import android.content.Context;
 
-import com.example.achypur.notepadapp.DAO.CoordinateDao;
-import com.example.achypur.notepadapp.DAO.ForecastDao;
-import com.example.achypur.notepadapp.DAO.NoteDao;
-import com.example.achypur.notepadapp.DAO.PictureDao;
-import com.example.achypur.notepadapp.DAO.TagDao;
-import com.example.achypur.notepadapp.DAO.TagOfNotesDao;
-import com.example.achypur.notepadapp.Entities.Coordinate;
-import com.example.achypur.notepadapp.Entities.ForecastEntity;
-import com.example.achypur.notepadapp.Entities.Note;
-import com.example.achypur.notepadapp.Entities.Picture;
-import com.example.achypur.notepadapp.Entities.Tag;
-import com.example.achypur.notepadapp.Entities.TagofNotes;
-import com.example.achypur.notepadapp.JsonObjects.Forecast;
-import com.example.achypur.notepadapp.Repositories.NoteRepository;
+import com.example.achypur.notepadapp.dao.CoordinateDao;
+import com.example.achypur.notepadapp.dao.ForecastDao;
+import com.example.achypur.notepadapp.dao.NoteDao;
+import com.example.achypur.notepadapp.dao.PictureDao;
+import com.example.achypur.notepadapp.dao.TagDao;
+import com.example.achypur.notepadapp.dao.TagOfNotesDao;
+import com.example.achypur.notepadapp.entities.Coordinate;
+import com.example.achypur.notepadapp.entities.ForecastEntity;
+import com.example.achypur.notepadapp.entities.Note;
+import com.example.achypur.notepadapp.entities.Picture;
+import com.example.achypur.notepadapp.entities.Tag;
+import com.example.achypur.notepadapp.entities.TagofNotes;
+import com.example.achypur.notepadapp.jsonobjects.Forecast;
+import com.example.achypur.notepadapp.repositories.NoteRepository;
 
 import java.sql.SQLException;
 import java.util.List;
@@ -177,5 +177,35 @@ public class NoterepositoryImpl implements NoteRepository {
     @Override
     public void deleteForecast(Long noteId) {
         mForecastDao.deleteForecast(noteId);
+    }
+
+    @Override
+    public void noteClose() {
+        mNoteDao.close();
+    }
+
+    @Override
+    public void pictureClose() {
+        mPictureDao.close();
+    }
+
+    @Override
+    public void tagClose() {
+        mTagDao.close();
+    }
+
+    @Override
+    public void forecastClose() {
+        mForecastDao.close();
+    }
+
+    @Override
+    public void coordinateClose() {
+        mCoordinateDao.close();
+    }
+
+    @Override
+    public void tagOfNotesClose() {
+        mTagOfNotesDao.close();
     }
 }

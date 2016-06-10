@@ -1,16 +1,15 @@
-package com.example.achypur.notepadapp.Managers;
+package com.example.achypur.notepadapp.managers;
 
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 
-import com.example.achypur.notepadapp.Entities.User;
-import com.example.achypur.notepadapp.Repositories.UserRepository;
-import com.example.achypur.notepadapp.RepositoriesImpl.UserRepositoryImpl;
-import com.example.achypur.notepadapp.UI.LoginActivity;
+import com.example.achypur.notepadapp.entities.User;
+import com.example.achypur.notepadapp.repositories.UserRepository;
+import com.example.achypur.notepadapp.repositoriesimpl.UserRepositoryImpl;
+import com.example.achypur.notepadapp.ui.LoginActivity;
 
 import java.util.List;
-
 
 public class AccountManager {
 
@@ -25,7 +24,6 @@ public class AccountManager {
     public static final String KEY_LOGIN = "login";
     public static final String KEY_PASSWORD = "password";
 
-    public static final String KEY_ID = "id";
 
     private static AccountManager instance;
     private UserRepository mUserRepository;

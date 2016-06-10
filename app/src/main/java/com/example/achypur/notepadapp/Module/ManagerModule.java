@@ -1,11 +1,9 @@
-package com.example.achypur.notepadapp.Module;
+package com.example.achypur.notepadapp.module;
 
 import android.app.Application;
-import android.content.Context;
 
-import com.example.achypur.notepadapp.Application.NoteApplication;
-import com.example.achypur.notepadapp.Managers.AccountManager;
-import com.example.achypur.notepadapp.Managers.NoteManager;
+import com.example.achypur.notepadapp.managers.AccountManager;
+import com.example.achypur.notepadapp.managers.NoteManager;
 
 import javax.inject.Singleton;
 
@@ -14,17 +12,28 @@ import dagger.Provides;
 
 @Module
 public class ManagerModule {
+    private Application mApplication;
+
+    public ManagerModule(Application application) {
+        mApplication = application;
+    }
 
     @Provides
     @Singleton
-    AccountManager provideAccountManager(Context context) {
-        return new AccountManager(context);
+    Application provideApplication() {
+        return mApplication;
+    }
+
+    @Provides
+    @Singleton
+    AccountManager provideAccountManager() {
+        return new AccountManager(mApplication);
     }
 
 
     @Provides
     @Singleton
-    NoteManager provideNoteManager(Context context) {
-        return new NoteManager(context);
+    NoteManager provideNoteManager() {
+        return new NoteManager(mApplication);
     }
 }

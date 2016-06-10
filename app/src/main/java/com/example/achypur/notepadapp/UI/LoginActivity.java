@@ -1,36 +1,28 @@
-package com.example.achypur.notepadapp.UI;
+package com.example.achypur.notepadapp.ui;
 
 import android.Manifest;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.database.CursorIndexOutOfBoundsException;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.text.SpannableString;
 import android.text.style.UnderlineSpan;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.achypur.notepadapp.Application.NoteApplication;
-import com.example.achypur.notepadapp.Component.ActivityComponent;
-import com.example.achypur.notepadapp.Component.AppComponent;
-import com.example.achypur.notepadapp.Component.DaggerActivityComponent;
-import com.example.achypur.notepadapp.Component.DaggerAppComponent;
-import com.example.achypur.notepadapp.Component.DaggerHomeComponent;
-import com.example.achypur.notepadapp.Component.HomeComponent;
-import com.example.achypur.notepadapp.Entities.User;
-import com.example.achypur.notepadapp.Managers.AccountManager;
-import com.example.achypur.notepadapp.Managers.NoteManager;
-import com.example.achypur.notepadapp.Module.ActivityModule;
-import com.example.achypur.notepadapp.Module.ManagerModule;
+import com.example.achypur.notepadapp.NoteApplication;
+import com.example.achypur.notepadapp.component.DaggerHomeComponent;
+import com.example.achypur.notepadapp.component.HomeComponent;
+import com.example.achypur.notepadapp.entities.User;
+import com.example.achypur.notepadapp.managers.AccountManager;
+import com.example.achypur.notepadapp.module.ActivityModule;
 import com.example.achypur.notepadapp.R;
 
 import java.util.ArrayList;
@@ -59,15 +51,7 @@ public class LoginActivity extends AppCompatActivity {
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
-
-<<<<<<< HEAD
-//        activityComponent = DaggerActivityComponent.builder().activityModule(new ActivityModule(this)).build();
-//        activityComponent.inject(this);
-
-        ((NoteApplication) getApplication()).component().inject(this);
-=======
         component().inject(this);
->>>>>>> 3a2fd3db704c1e80b34c80c775e74ed3b8794240
 
         mAccountManager.createUserRepository();
         mAccountManager.initLoginSession();
@@ -197,22 +181,12 @@ public class LoginActivity extends AppCompatActivity {
                 .show();
     }
 
-<<<<<<< HEAD
-//
-//    ActivityComponent component() {
-//        if (activityComponent == null) {
-//            activityComponent = DaggerActivityComponent.builder().activityModule(new ActivityModule(this)).build();
-//        }
-//        return activityComponent;
-//    }
-=======
     private HomeComponent component() {
         if(mHomeComponent == null) {
             mHomeComponent = DaggerHomeComponent.builder().appComponent(((NoteApplication) getApplication()).component()).activityModule(new ActivityModule(this)).build();
         }
         return mHomeComponent;
     }
->>>>>>> 3a2fd3db704c1e80b34c80c775e74ed3b8794240
 
 
 }

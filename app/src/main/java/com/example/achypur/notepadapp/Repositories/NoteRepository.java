@@ -1,13 +1,13 @@
-package com.example.achypur.notepadapp.Repositories;
+package com.example.achypur.notepadapp.repositories;
 
 
-import com.example.achypur.notepadapp.Entities.Coordinate;
-import com.example.achypur.notepadapp.Entities.ForecastEntity;
-import com.example.achypur.notepadapp.Entities.Note;
-import com.example.achypur.notepadapp.Entities.Picture;
-import com.example.achypur.notepadapp.Entities.Tag;
-import com.example.achypur.notepadapp.Entities.TagofNotes;
-import com.example.achypur.notepadapp.JsonObjects.Forecast;
+import com.example.achypur.notepadapp.entities.Coordinate;
+import com.example.achypur.notepadapp.entities.ForecastEntity;
+import com.example.achypur.notepadapp.entities.Note;
+import com.example.achypur.notepadapp.entities.Picture;
+import com.example.achypur.notepadapp.entities.Tag;
+import com.example.achypur.notepadapp.entities.TagofNotes;
+import com.example.achypur.notepadapp.jsonobjects.Forecast;
 
 import java.util.List;
 
@@ -63,5 +63,17 @@ public interface NoteRepository {
     Forecast updateForecast(Forecast forecast, Long noteId);
 
     void deleteForecast(Long noteId);
+
+    void noteClose();
+
+    void pictureClose();
+
+    void tagClose();
+
+    void forecastClose();
+
+    void coordinateClose();
+
+    void tagOfNotesClose();
 
 }

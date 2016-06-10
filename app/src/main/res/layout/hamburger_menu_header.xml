@@ -8,7 +8,7 @@
     android:padding="@dimen/ham_menu_header_padding">
 
 
-    <com.example.achypur.notepadapp.CustomView.ProfilePicture
+    <com.example.achypur.notepadapp.view.ProfilePicture
         xmlns:customNS="http://schemas.android.com/apk/res/com.example.achypur.notepadapp"
         android:id="@+id/hamburger_header_profile_picture"
         android:layout_width="@dimen/profile_custom_picture_width"

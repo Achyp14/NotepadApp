@@ -1,4 +1,4 @@
-package com.example.achypur.notepadapp.CustomView;
+package com.example.achypur.notepadapp.view;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;

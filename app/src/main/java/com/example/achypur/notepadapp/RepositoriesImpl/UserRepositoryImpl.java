@@ -1,10 +1,10 @@
-package com.example.achypur.notepadapp.RepositoriesImpl;
+package com.example.achypur.notepadapp.repositoriesimpl;
 
 import android.content.Context;
 
-import com.example.achypur.notepadapp.DAO.UserDao;
-import com.example.achypur.notepadapp.Entities.User;
-import com.example.achypur.notepadapp.Repositories.UserRepository;
+import com.example.achypur.notepadapp.dao.UserDao;
+import com.example.achypur.notepadapp.entities.User;
+import com.example.achypur.notepadapp.repositories.UserRepository;
 
 import java.sql.SQLException;
 import java.util.List;
@@ -51,5 +51,10 @@ public class UserRepositoryImpl implements UserRepository {
     public void updateUser(Long id, String name, String login, String email, String password, byte[] image) {
         User user = new User(id, name, login, email, password, null, image);
         mUserDao.updateUser(user);
+    }
+
+    @Override
+    public void close() {
+        mUserDao.close();
     }
 }

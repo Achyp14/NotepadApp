@@ -1,4 +1,4 @@
-package com.example.achypur.notepadapp.JsonObjects;
+package com.example.achypur.notepadapp.jsonobjects;
 
 
 import com.google.gson.annotations.SerializedName;

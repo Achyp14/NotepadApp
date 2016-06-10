@@ -1,16 +1,21 @@
-package com.example.achypur.notepadapp.Managers;
+package com.example.achypur.notepadapp.managers;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.util.Log;
 
-import com.example.achypur.notepadapp.Entities.Coordinate;
-import com.example.achypur.notepadapp.Entities.Note;
-import com.example.achypur.notepadapp.Entities.Picture;
-import com.example.achypur.notepadapp.Entities.Tag;
-import com.example.achypur.notepadapp.JsonObjects.Forecast;
-import com.example.achypur.notepadapp.Repositories.NoteRepository;
-import com.example.achypur.notepadapp.RepositoriesImpl.NoterepositoryImpl;
+import com.example.achypur.notepadapp.entities.Coordinate;
+import com.example.achypur.notepadapp.entities.Note;
+import com.example.achypur.notepadapp.entities.Picture;
+import com.example.achypur.notepadapp.entities.Tag;
+import com.example.achypur.notepadapp.jsonobjects.Forecast;
+import com.example.achypur.notepadapp.repositories.NoteRepository;
+import com.example.achypur.notepadapp.repositoriesimpl.NoterepositoryImpl;
+import com.example.achypur.notepadapp.view.PictureConvertor;
 import com.google.android.gms.maps.model.LatLng;
 
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -20,9 +25,11 @@ public class NoteManager {
     private NoteRepository mNoteRepository;
     Context mContext;
     Note mNote;
+    PictureConvertor mPictureConvertor;
 
     public NoteManager(Context context) {
         mContext = context;
+        mPictureConvertor = PictureConvertor.getInstance();
     }
 
 
@@ -51,7 +58,7 @@ public class NoteManager {
         return mNote;
     }
 
-    public List<String> findAllTagForCurrentNote(Long noteId) {
+    public List<String> findAllTagValueForCurrentNote(Long noteId) {
         List<Long> idList = mNoteRepository.findTagOfNoteIds(noteId);
         List<Tag> tagList = mNoteRepository.findTagsById(idList);
 
@@ -63,11 +70,16 @@ public class NoteManager {
         return contentList;
     }
 
+    public List<Tag> findAllTagForCurrentNote(Long noteId) {
+        List<Long> idList = mNoteRepository.findTagOfNoteIds(noteId);
+        return mNoteRepository.findTagsById(idList);
+    }
+
     public void createTags(List<Tag> tagList, Long noteId, Long userId) {
         for (Tag tag : tagList) {
             Tag item = mNoteRepository.findTagByValue(tag.getmTag());
             if (item != null) {
-                mNoteRepository.createTagOfNotes(noteId, tag.getmId(), userId);
+                mNoteRepository.createTagOfNotes(noteId, item.getmId(), userId);
             } else {
                 item = mNoteRepository.createTag(tag.getmTag());
                 mNoteRepository.createTagOfNotes(noteId, item.getmId(), userId);
@@ -92,8 +104,10 @@ public class NoteManager {
         return tags;
     }
 
-    public void createPicture(byte[] image, Long noteId) {
-        mNoteRepository.createPicture(image, noteId);
+    public void createPicture(Bitmap image, Long noteId) {
+        ByteBuffer byteBuffer = ByteBuffer.allocate(image.getByteCount());
+        byte[] bytes = byteBuffer.array();
+        mNoteRepository.createPicture(bytes, noteId);
     }
 
     public void deletePicture(List<byte[]> images, Long noteId) {
@@ -110,8 +124,15 @@ public class NoteManager {
         }
     }
 
-    public List<byte[]> findAllPictureForCurrentNote(Long noteId) {
-        return mNoteRepository.findAllPictureForCurrentNote(noteId);
+    public List<Bitmap> findAllPictureForCurrentNote(Long noteId) {
+        List<byte[]> bytes = mNoteRepository.findAllPictureForCurrentNote(noteId);
+        List<Bitmap> bitmapList = new ArrayList<>();
+
+        for (byte[] image : bytes) {
+            bitmapList.add(mPictureConvertor.byteToBitMap(image));
+        }
+
+        return bitmapList;
     }
 
     public LatLng findCurrentPosition(Long noteLocation) {
@@ -123,9 +144,6 @@ public class NoteManager {
         return mNoteRepository.createCoordinateInDb(latitude, longtitude);
     }
 
-    public void removeLocation(Long id) {
-        mNoteRepository.deleteCoordinate(id);
-    }
 
     public boolean ifExistForecast(Long noteId) {
         return mNoteRepository.isExistForecastForNote(noteId);
@@ -147,12 +165,32 @@ public class NoteManager {
         return mNoteRepository.updateForecast(forecast, noteId);
     }
 
-    public Picture findPicute(Long noteId) {
+    public Picture findPicture(Long noteId) {
         Long id = mNoteRepository.findPictureByNoteId(noteId);
         if (id != null) {
-            return  mNoteRepository.findPicture(id);
+            return mNoteRepository.findPicture(id);
         } else {
             return null;
         }
     }
+
+    public void closeNote() {
+        mNoteRepository.noteClose();
+    }
+    public void closeForecast() {
+        mNoteRepository.forecastClose();
+    }
+    public void closeCoordinate() {
+        mNoteRepository.coordinateClose();
+    }
+    public void closePicture() {
+        mNoteRepository.pictureClose();
+    }
+    public void closeTag() {
+        mNoteRepository.tagClose();
+    }
+    public void closeTagOfNotes() {
+        mNoteRepository.tagOfNotesClose();
+    }
+
 }

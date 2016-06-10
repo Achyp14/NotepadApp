@@ -1,4 +1,4 @@
-package com.example.achypur.notepadapp.UI;
+package com.example.achypur.notepadapp.ui;
 
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -13,14 +13,14 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 
-import com.example.achypur.notepadapp.Component.DaggerHomeComponent;
-import com.example.achypur.notepadapp.Component.HomeComponent;
-import com.example.achypur.notepadapp.CustomView.PictureConvertor;
-import com.example.achypur.notepadapp.CustomView.ProfilePicture;
-import com.example.achypur.notepadapp.Entities.User;
-import com.example.achypur.notepadapp.Managers.AccountManager;
-import com.example.achypur.notepadapp.Application.NoteApplication;
-import com.example.achypur.notepadapp.Module.ActivityModule;
+import com.example.achypur.notepadapp.component.DaggerHomeComponent;
+import com.example.achypur.notepadapp.component.HomeComponent;
+import com.example.achypur.notepadapp.view.PictureConvertor;
+import com.example.achypur.notepadapp.view.ProfilePicture;
+import com.example.achypur.notepadapp.entities.User;
+import com.example.achypur.notepadapp.managers.AccountManager;
+import com.example.achypur.notepadapp.NoteApplication;
+import com.example.achypur.notepadapp.module.ActivityModule;
 import com.example.achypur.notepadapp.R;
 
 import java.io.FileNotFoundException;

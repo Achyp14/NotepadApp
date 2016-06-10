@@ -5,7 +5,7 @@
     android:layout_height="match_parent"
     android:background="@color/colorPlatinum"
     android:orientation="vertical"
-    tools:context=".UI.MainActivity">
+    tools:context=".ui.MainActivity">
 
     <ListView
         android:id="@+id/note_list"

@@ -1,4 +1,4 @@
-package com.example.achypur.notepadapp.Entities;
+package com.example.achypur.notepadapp.entities;
 
 public class Role {
     private  Long mId;

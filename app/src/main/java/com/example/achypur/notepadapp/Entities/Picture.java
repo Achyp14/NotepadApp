@@ -1,4 +1,4 @@
-package com.example.achypur.notepadapp.Entities;
+package com.example.achypur.notepadapp.entities;
 
 /**
  * Created by achypur on 07.04.2016.
@@ -6,17 +6,17 @@ package com.example.achypur.notepadapp.Entities;
 public class Picture {
     Long mId;
     byte[] mByteArray;
-    Long mTagId;
+    Long mNoteId;
 
     public Picture(Long Id, byte[] byteArray, Long tagId) {
         mByteArray = byteArray;
         mId = Id;
-        mTagId = tagId;
+        mNoteId = tagId;
     }
 
 
-    public Picture(byte[] byteArray, Long tagId) {
-        this(null, byteArray, tagId);
+    public Picture(byte[] byteArray, Long noteId) {
+        this(null, byteArray, noteId);
     }
 
     public byte[] getByteArray() {
@@ -35,11 +35,11 @@ public class Picture {
         this.mId = mId;
     }
 
-    public Long getmTagId() {
-        return mTagId;
+    public Long getmNoteId() {
+        return mNoteId;
     }
 
-    public void setmTagId(Long mTagId) {
-        this.mTagId = mTagId;
+    public void setmNoteId(Long mNoteId) {
+        this.mNoteId = mNoteId;
     }
 }

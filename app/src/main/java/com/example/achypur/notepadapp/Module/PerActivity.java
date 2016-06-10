@@ -1,4 +1,4 @@
-package com.example.achypur.notepadapp;
+package com.example.achypur.notepadapp.module;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;

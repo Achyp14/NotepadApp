@@ -5,7 +5,7 @@
     android:id="@+id/relative1"
     android:layout_height="match_parent"
     android:background="#A7FFEB"
-    tools:context=".UI.LoginActivity">
+    tools:context=".ui.LoginActivity">
 
     <LinearLayout
         android:layout_above="@+id/hide_view"

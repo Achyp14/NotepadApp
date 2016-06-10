@@ -1,4 +1,4 @@
-package com.example.achypur.notepadapp.Spannable;
+package com.example.achypur.notepadapp.spannable;
 
 import android.content.Context;
 import android.content.Intent;
@@ -29,7 +29,7 @@ public class UrlClickableSpan extends ClickableSpan{
         try {
             mContext.startActivity(browserIntent);
         } catch (android.content.ActivityNotFoundException ex) {
-            Toast.makeText(mContext, "Hello", Toast.LENGTH_SHORT).show();
+            Toast.makeText(mContext, "Application not found", Toast.LENGTH_SHORT).show();
         }
 
     }

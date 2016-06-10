@@ -7,7 +7,7 @@
     android:layout_centerHorizontal="true"
     android:background="#D1D0CE"
     android:orientation="vertical"
-    tools:context=".UI.NoteActivity">
+    tools:context=".ui.NoteActivity">
 
     <android.support.v7.widget.Toolbar
         android:id="@+id/my_toolbar"
@@ -40,6 +40,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginLeft="@dimen/note_title_margin_left"
+                    android:inputType="textNoSuggestions"
                     android:hint="@string/title"
                     android:singleLine="true" />
 
@@ -52,7 +53,7 @@
                     android:background="@android:color/transparent"
                     android:gravity="top"
                     android:hint="@string/content"
-                    android:inputType="textMultiLine"
+                    android:inputType="textMultiLine|textNoSuggestions"
                     android:minHeight="@dimen/note_content_min_height" />
             </LinearLayout>
 
@@ -82,7 +83,7 @@
             <GridView
                 android:id="@+id/note_edit_pictures"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
                 android:layout_margin="@dimen/note_grid_view_margin"
                 android:columnWidth="@dimen/note_grid_view_column_width"
                 android:gravity="center"
@@ -125,7 +126,7 @@
                     android:layout_marginRight="10dp"
                     android:layout_weight="1"
                     android:orientation="vertical"
-                    android:weightSum="1">
+                    android:weightSum="1.1">
 
                     <TextView
                         android:id="@+id/forecast_description"
@@ -139,7 +140,7 @@
                         android:id="@+id/forecast_city"
                         android:layout_width="wrap_content"
                         android:layout_height="0dp"
-                        android:layout_weight="0.3"
+                        android:layout_weight="0.4"
                         android:text="City"
                         android:layout_marginBottom="@dimen/note_button_divider_margin_bottom"
                         android:textSize="14sp" />
@@ -159,7 +160,7 @@
                     android:layout_marginLeft="10dp"
                     android:gravity="end"
                     android:orientation="vertical"
-                    android:weightSum="1">
+                    android:weightSum="1.1">
 
                     <TextView
                         android:id="@+id/forecast_temp"
@@ -174,7 +175,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="0dp"
                         android:layout_marginBottom="@dimen/note_button_divider_margin_bottom"
-                        android:layout_weight="0.3">
+                        android:layout_weight="0.4">
 
                         <TextView
                             android:id="@+id/forecast_wind"

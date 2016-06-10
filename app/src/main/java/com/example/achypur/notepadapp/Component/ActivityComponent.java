@@ -1,15 +1,12 @@
-package com.example.achypur.notepadapp.Component;
+package com.example.achypur.notepadapp.component;
 
 
 import android.app.Activity;
 
-import com.example.achypur.notepadapp.Module.ActivityModule;
-import com.example.achypur.notepadapp.PerActivity;
-
-import javax.inject.Singleton;
+import com.example.achypur.notepadapp.module.ActivityModule;
+import com.example.achypur.notepadapp.module.PerActivity;
 
 import dagger.Component;
-
 
 
 @PerActivity

@@ -5,9 +5,9 @@
     android:layout_height="match_parent"
     android:background="#A7FFEB"
     android:padding="@dimen/sign_up_parent_layout_padding"
-    tools:context=".UI.SignUpActivity">
+    tools:context=".ui.SignUpActivity">
 
-        <com.example.achypur.notepadapp.CustomView.ProfilePicture
+        <com.example.achypur.notepadapp.view.ProfilePicture
             xmlns:customNS="http://schemas.android.com/apk/res/com.example.achypur.notepadapp"
             android:layout_centerHorizontal="true"
             android:id="@+id/sign_up_image"
