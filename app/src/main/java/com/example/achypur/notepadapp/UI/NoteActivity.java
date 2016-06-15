@@ -959,27 +959,27 @@ public class NoteActivity extends AppCompatActivity {
     }
 
     private void showForecastLayout(View view) {
-        view.setVisibility(View.VISIBLE);
-        TextView city = (TextView) view.findViewById(R.id.forecast_city);
-        TextView temp = (TextView) view.findViewById(R.id.forecast_temp);
-        TextView description = (TextView) view.findViewById(R.id.forecast_description);
-        TextView wind = (TextView) view.findViewById(R.id.forecast_wind);
-        TextView rain = (TextView) view.findViewById(R.id.forecast_rain);
-        ImageView iconWeather = (ImageView) view.findViewById(R.id.forecast_icon);
-
-        city.setText(mForecast.getmCity() + ", " + mForecast.getmOtherInform().getmCountry());
-        temp.setText(String.valueOf(mForecast.getmMain().getmTemperature()) + " C°");
-        iconWeather.setImageBitmap(getImage(mForecast.getIcon()));
-        description.setText(mForecast.getmWeather().get(0).getmDescription());
-        wind.setText(String.valueOf("w: " + mForecast.getmWind().getSpeed()) + " m/s");
-        if (mForecast.getmRain() != null) {
-            rain.setText(String.valueOf("r: " + mForecast.getmRain().getmCount()) + " mm");
-        } else {
-            Rain rainWeather = new Rain();
-            rainWeather.setmCount(0.0);
-            mForecast.setmRain(rainWeather);
-            rain.setText("r: " + String.valueOf(mForecast.getmRain().getmCount()));
-        }
+//        view.setVisibility(View.VISIBLE);
+//        TextView city = (TextView) view.findViewById(R.id.forecast_city);
+//        TextView temp = (TextView) view.findViewById(R.id.forecast_temp);
+//        TextView description = (TextView) view.findViewById(R.id.forecast_description);
+//        TextView wind = (TextView) view.findViewById(R.id.forecast_wind);
+//        TextView rain = (TextView) view.findViewById(R.id.forecast_rain);
+//        ImageView iconWeather = (ImageView) view.findViewById(R.id.forecast_icon);
+//
+//        city.setText(mForecast.getmCity() + ", " + mForecast.getmOtherInform().getmCountry());
+//        temp.setText(String.valueOf(mForecast.getmMain().getmTemperature()) + " C°");
+//        iconWeather.setImageBitmap(getImage(mForecast.getIcon()));
+//        description.setText(mForecast.getmWeather().get(0).getmDescription());
+//        wind.setText(String.valueOf("w: " + mForecast.getmWind().getSpeed()) + " m/s");
+//        if (mForecast.getmRain() != null) {
+//            rain.setText(String.valueOf("r: " + mForecast.getmRain().getmCount()) + " mm");
+//        } else {
+//            Rain rainWeather = new Rain();
+//            rainWeather.setmCount(0.0);
+//            mForecast.setmRain(rainWeather);
+//            rain.setText("r: " + String.valueOf(mForecast.getmRain().getmCount()));
+//        }
     }
 
     private void buildGoogleApiClient() {

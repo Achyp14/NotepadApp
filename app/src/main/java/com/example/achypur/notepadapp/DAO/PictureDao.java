@@ -41,7 +41,7 @@ public class PictureDao {
     }
 
     private Picture cursorToPicture(Cursor cursor) {
-        return new Picture(cursor.getLong(0), cursor.getBlob(1), cursor.getLong(2));
+        return new Picture(cursor.getLong(0), cursor.getInt(1), cursor.getLong(2));
     }
 
     public Picture createPicture(byte[] bytes, Long noteId) {

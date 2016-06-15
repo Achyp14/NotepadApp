@@ -2,8 +2,6 @@ package com.example.achypur.notepadapp.managers;
 
 import android.content.Context;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.util.Log;
 
 import com.example.achypur.notepadapp.entities.Coordinate;
 import com.example.achypur.notepadapp.entities.Note;

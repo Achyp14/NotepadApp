@@ -6,7 +6,6 @@ import android.database.sqlite.SQLiteOpenHelper;
 
 public class DataBaseHelper extends SQLiteOpenHelper {
 
-    private static final String LOG = "DataBaseHelper";
     private static final int DATABASE_VERSION = 10;
     private static final String DATABASE_NAME = "notepad.db";
 
@@ -36,7 +35,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     public static final String KEY_CREATED_DATE = "date_of_creation";
     public static final String KEY_MODIFIED_DATE = "date_of_last_modified";
     public static final String KEY_POLICY_STATUS = "policy";
-    public static final String KEY_LOCAION = "coordinates_id";
+    public static final String KEY_LOCATION = "coordinates_id";
 
     /*
         Roles table - column names
@@ -98,7 +97,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             KEY_ID + " integer primary key autoincrement," + KEY_TITLE + " text not null," +
             KEY_CONTENT + " text not null," + KEY_USER + " integer not null," +
             KEY_CREATED_DATE + " datetime," + KEY_MODIFIED_DATE + " datetime," +
-            KEY_POLICY_STATUS + " integer," + KEY_LOCAION + " integer" + ")";
+            KEY_POLICY_STATUS + " integer," + KEY_LOCATION + " integer" + ")";
 
     private static final String CREATE_TABLE_ROLE = "create table " + TABLE_ROLE + "(" +
             KEY_ID + " integer primary key autoincrement," + KEY_ROLE + " text not null" + ")";
@@ -117,7 +116,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
 
     public static final String CREATE_TABLE_TAG_PICTURE = "create table " +
             TABLE_TAG_PICTURE + "(" + KEY_ID + " integer primary key autoincrement," + KEY_PICTURE +
-            " blob,"  + KEY_NOTE_ID + " integer not null" + ")";
+            " integer,"  + KEY_NOTE_ID + " integer not null" + ")";
 
     public static final String CREATE_TABLE_FORECAST = "create table " +
             TABLE_FORECAST + "(" + KEY_ID + " integer primary key autoincrement," +  KEY_NOTE_ID + " integer not null," +  KEY_ICON +

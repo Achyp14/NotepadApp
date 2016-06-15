@@ -39,7 +39,7 @@ public class NoteDao {
         contentValues.put(DataBaseHelper.KEY_CREATED_DATE, note.getmCreatedDate());
         contentValues.put(DataBaseHelper.KEY_MODIFIED_DATE, note.getmModifiedDate());
         contentValues.put(DataBaseHelper.KEY_POLICY_STATUS, note.getmPolicyStatus());
-        contentValues.put(DataBaseHelper.KEY_LOCAION, note.getmLocation());
+        contentValues.put(DataBaseHelper.KEY_LOCATION, note.getmLocation());
 
         return contentValues;
     }

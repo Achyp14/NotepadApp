@@ -37,6 +37,7 @@ public class NoteRepositoryImpl implements NoteRepository {
         mPictureDao = new PictureDao(context);
         mCoordinateDao = new CoordinateDao(context);
         mForecastDao = new ForecastDao(context);
+
         try {
             mNoteDao.open();
             mTagDao.open();
