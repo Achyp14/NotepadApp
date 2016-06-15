@@ -11,7 +11,7 @@ import com.example.achypur.notepadapp.entities.Picture;
 import com.example.achypur.notepadapp.entities.Tag;
 import com.example.achypur.notepadapp.jsonobjects.Forecast;
 import com.example.achypur.notepadapp.repositories.NoteRepository;
-import com.example.achypur.notepadapp.repositoriesimpl.NoterepositoryImpl;
+import com.example.achypur.notepadapp.repositoriesimpl.NoteRepositoryImpl;
 import com.example.achypur.notepadapp.view.PictureConvertor;
 import com.google.android.gms.maps.model.LatLng;
 
@@ -34,7 +34,7 @@ public class NoteManager {
 
 
     public void createNoteRepo() {
-        mNoteRepository = new NoterepositoryImpl(mContext);
+        mNoteRepository = new NoteRepositoryImpl(mContext);
     }
 
     public List<Note> findAll(Long id, int status) {

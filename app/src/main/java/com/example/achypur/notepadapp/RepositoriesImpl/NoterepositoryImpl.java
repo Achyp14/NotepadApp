@@ -21,7 +21,7 @@ import com.example.achypur.notepadapp.repositories.NoteRepository;
 import java.sql.SQLException;
 import java.util.List;
 
-public class NoterepositoryImpl implements NoteRepository {
+public class NoteRepositoryImpl implements NoteRepository {
 
     private NoteDao mNoteDao;
     private TagDao mTagDao;
@@ -30,7 +30,7 @@ public class NoterepositoryImpl implements NoteRepository {
     private CoordinateDao mCoordinateDao;
     private ForecastDao mForecastDao;
 
-    public NoterepositoryImpl(Context context) {
+    public NoteRepositoryImpl(Context context) {
         mNoteDao = new NoteDao(context);
         mTagDao = new TagDao(context);
         mTagOfNotesDao = new TagOfNotesDao(context);
