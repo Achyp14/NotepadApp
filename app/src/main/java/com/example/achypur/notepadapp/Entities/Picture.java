@@ -1,37 +1,42 @@
 package com.example.achypur.notepadapp.entities;
 
-/**
- * Created by achypur on 07.04.2016.
- */
 public class Picture {
     Long mId;
-    byte[] mByteArray;
+    Integer mHash;
     Long mNoteId;
 
-    public Picture(Long Id, byte[] byteArray, Long tagId) {
-        mByteArray = byteArray;
+    public Picture(Long Id, Integer hash, Long tagId) {
+        mHash = hash;
         mId = Id;
         mNoteId = tagId;
     }
 
 
-    public Picture(byte[] byteArray, Long noteId) {
-        this(null, byteArray, noteId);
+    public Long getmId() {
+        return mId;
     }
 
-    public byte[] getByteArray() {
-        return mByteArray;
+    public void setmId(Long mId) {
+        this.mId = mId;
     }
 
-    public void setByteArray(byte[] byteArray) {
-        this.mByteArray = byteArray;
+    public Picture(Integer hash, Long noteId) {
+        this(null, hash, noteId);
     }
 
-    public Long getmNoteId() {
+    public Integer getHash() {
+        return mHash;
+    }
+
+    public void setHash(Integer hash) {
+        this.mHash = hash;
+    }
+
+    public Long getNoteId() {
         return mNoteId;
     }
 
-    public void setmNoteId(Long mNoteId) {
+    public void setNoteId(Long mNoteId) {
         this.mNoteId = mNoteId;
     }
 }

@@ -111,12 +111,12 @@ public class NoteRepositoryImpl implements NoteRepository {
     }
 
     @Override
-    public Picture createPicture(byte[] image, Long noteId) {
+    public Picture createPicture(Integer image, Long noteId) {
         return mPictureDao.createPicture(image, noteId);
     }
 
     @Override
-    public List<byte[]> findAllPictureForCurrentNote(Long noteId) {
+    public List<Integer> findAllPictureForCurrentNote(Long noteId) {
         return mPictureDao.getAllPicture(noteId);
     }
 

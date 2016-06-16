@@ -17,6 +17,8 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -46,6 +48,8 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.achypur.notepadapp.BitmapDecoder;
+import com.example.achypur.notepadapp.ForecastFragment;
 import com.example.achypur.notepadapp.NoteApplication;
 import com.example.achypur.notepadapp.component.DaggerHomeComponent;
 import com.example.achypur.notepadapp.component.HomeComponent;
@@ -158,7 +162,8 @@ public class NoteActivity extends AppCompatActivity {
         final TextView time = (TextView) findViewById(R.id.note_edit_time);
         final Button save = (Button) findViewById(R.id.note_button_submit);
         final Button cancel = (Button) findViewById(R.id.note_button_cancel);
-        mForecastLayout = (LinearLayout) findViewById(R.id.forecast_layout);
+//        mForecastLayout = (LinearLayout) findViewById(R.id.forecast_layout);
+
         TextView tags = (TextView) findViewById(R.id.note_edit_tag);
 
         Calendar calendar = Calendar.getInstance(Locale.getDefault());
@@ -334,10 +339,9 @@ public class NoteActivity extends AppCompatActivity {
                     decorAdapter.setListener(new DecorAdapter.Listener() {
                         @Override
                         public void onRemoveClicked(int position) {
-//                            mCurrentRemovePictures.add(mImgList.get(position));
-//                            mImgList.remove(position);
-//                            mImageGridAdapter.setList(mImgList);
-//                            mCurrentRemovePictures.add()
+                            mCurrentRemovePictures.add(mImgList.get(position));
+                            mImgList.remove(position);
+                            mImageGridAdapter.setExistingImagesList(mImgList);
                         }
                     });
                     mGridView.setAdapter(decorAdapter);
@@ -397,9 +401,9 @@ public class NoteActivity extends AppCompatActivity {
                         }
                     }
 
-//                if (!mCurrentRemovePictures.isEmpty()) {
-//                    mNoteManager.deletePicture(mCurrentRemovePictures, mNote.getmId());
-//                }
+                if (!mCurrentRemovePictures.isEmpty()) {
+                    mNoteManager.deletePicture(mCurrentRemovePictures, mNote.getmId());
+                }
                 } finally {
                     mNoteManager.closeTag();
                     mNoteManager.closeTagOfNotes();
@@ -490,9 +494,9 @@ public class NoteActivity extends AppCompatActivity {
                 menu.findItem(R.id.note_menu_check_shared).setChecked(true);
             }
 
-            if (mForecastLayout.getVisibility() == View.VISIBLE) {
-                menu.findItem(R.id.note_menu_weather).setTitle("Update weather");
-            }
+//            if (mForecastLayout.getVisibility() == View.VISIBLE) {
+//                menu.findItem(R.id.note_menu_weather).setTitle("Update weather");
+//            }
         }
 
         if (isReviseMode()) {
@@ -871,18 +875,12 @@ public class NoteActivity extends AppCompatActivity {
 
             try {
                 InputStream iStream = getContentResolver().openInputStream(selectedImage);
-                Bitmap theImage = BitmapFactory.decodeStream(iStream);
-                ByteArrayOutputStream out = new ByteArrayOutputStream();
-                theImage.compress(Bitmap.CompressFormat.JPEG, 0, out);
-                Bitmap bit = BitmapFactory.decodeStream(new ByteArrayInputStream(out.toByteArray()));
-                mCurrentAddPictures.add(bit);
+                BitmapDecoder bitmapDecoder = new BitmapDecoder();
+                mCurrentAddPictures.add(bitmapDecoder.execute(iStream).get());
                 mImageGridAdapter.setAddedImagesList(mCurrentAddPictures);
-            } catch (FileNotFoundException ex) {
-                ex.printStackTrace();
-            } catch (IOException ex) {
+            } catch (InterruptedException | FileNotFoundException | ExecutionException ex) {
                 ex.printStackTrace();
             }
-
         }
     }
 
@@ -943,11 +941,7 @@ public class NoteActivity extends AppCompatActivity {
             return convertView;
         }
     }
-
-    public Bitmap getImage(byte[] image) {
-        return BitmapFactory.decodeByteArray(image, 0, image.length);
-    }
-
+    
     @Override
     public void onBackPressed() {
         if (isEditMode()) {

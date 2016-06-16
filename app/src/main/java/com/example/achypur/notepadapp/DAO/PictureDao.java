@@ -35,8 +35,8 @@ public class PictureDao {
 
     private ContentValues getPictureContentValues(Picture picture) {
         final ContentValues contentValues = new ContentValues();
-        contentValues.put(DataBaseHelper.KEY_PICTURE, picture.getByteArray());
-        contentValues.put(DataBaseHelper.KEY_NOTE_ID, picture.getmNoteId());
+        contentValues.put(DataBaseHelper.KEY_PICTURE, picture.getHash());
+        contentValues.put(DataBaseHelper.KEY_NOTE_ID, picture.getNoteId());
         return contentValues;
     }
 
@@ -44,30 +44,28 @@ public class PictureDao {
         return new Picture(cursor.getLong(0), cursor.getInt(1), cursor.getLong(2));
     }
 
-    public Picture createPicture(byte[] bytes, Long noteId) {
-        Picture picture = new Picture(bytes, noteId);
+    public Picture createPicture(Integer hash, Long noteId) {
+        Picture picture = new Picture(hash, noteId);
         Long id = mSqLiteDatabase.insert(DataBaseHelper.TABLE_TAG_PICTURE, null, getPictureContentValues(picture));
         picture.setmId(id);
 
-        Log.e("Achyp", "53|PictureDao::createPicture: " + findPictureById(id).getByteArray().length);
         return picture;
     }
 
-    public List<byte[]> getAllPicture(Long id) {
+    public List<Integer> getAllPicture(Long id) {
         Cursor cursor = mSqLiteDatabase.rawQuery("select * from " +
                 DataBaseHelper.TABLE_TAG_PICTURE + " where note_id = ? ", new String[]{String.valueOf(id)});
 
-        Log.e("Achyp", "61|PictureDao::getAllPicture: picture count" + cursor.getCount());
         return addPictureToList(cursor);
     }
 
-    public List<byte[]> addPictureToList(Cursor cursor) {
-        List<byte[]> pictureList = new ArrayList<>();
+    public List<Integer> addPictureToList(Cursor cursor) {
+        List<Integer> pictureList = new ArrayList<>();
         Picture picture;
         if (cursor.moveToFirst()) {
             while (!cursor.isAfterLast()) {
                 picture = cursorToPicture(cursor);
-                pictureList.add(picture.getByteArray());
+                pictureList.add(picture.getHash());
                 cursor.moveToNext();
             }
         }

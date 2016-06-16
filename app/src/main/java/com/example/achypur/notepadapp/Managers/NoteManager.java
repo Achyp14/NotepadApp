@@ -1,8 +1,10 @@
 package com.example.achypur.notepadapp.managers;
 
 import android.content.Context;
+import android.content.ContextWrapper;
 import android.graphics.Bitmap;
 
+import com.example.achypur.notepadapp.BitmapDecoder;
 import com.example.achypur.notepadapp.entities.Coordinate;
 import com.example.achypur.notepadapp.entities.Note;
 import com.example.achypur.notepadapp.entities.Picture;
@@ -13,10 +15,16 @@ import com.example.achypur.notepadapp.repositoriesimpl.NoteRepositoryImpl;
 import com.example.achypur.notepadapp.view.PictureConvertor;
 import com.google.android.gms.maps.model.LatLng;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 public class NoteManager {
 
@@ -103,18 +111,17 @@ public class NoteManager {
     }
 
     public void createPicture(Bitmap image, Long noteId) {
-        ByteBuffer byteBuffer = ByteBuffer.allocate(image.getByteCount());
-        byte[] bytes = byteBuffer.array();
-        mNoteRepository.createPicture(bytes, noteId);
+        mNoteRepository.createPicture(image.hashCode(), noteId);
+        saveToInternalStorage(image, directory());
     }
 
-    public void deletePicture(List<byte[]> images, Long noteId) {
+    public void deletePicture(List<Bitmap> images, Long noteId) {
         for (int i = 0; i < images.size(); i++) {
-            List<byte[]> pictureList = mNoteRepository.findAllPictureForCurrentNote(noteId);
+            List<Integer> hashList = mNoteRepository.findAllPictureForCurrentNote(noteId);
             List<Long> idList = mNoteRepository.findAllPicturesIdForCurrentNote(noteId);
-            for (byte[] item : pictureList) {
-                if (Arrays.equals(item, images.get(i))) {
-                    int position = pictureList.indexOf(item);
+            for (Integer item : hashList) {
+                if (item.equals(images.get(i).hashCode())) {
+                    int position = hashList.indexOf(item);
                     Long id = idList.get(position);
                     mNoteRepository.deletePictureById(id);
                 }
@@ -123,11 +130,11 @@ public class NoteManager {
     }
 
     public List<Bitmap> findAllPictureForCurrentNote(Long noteId) {
-        List<byte[]> bytes = mNoteRepository.findAllPictureForCurrentNote(noteId);
+        List<Integer> bytes = mNoteRepository.findAllPictureForCurrentNote(noteId);
         List<Bitmap> bitmapList = new ArrayList<>();
 
-        for (byte[] image : bytes) {
-            bitmapList.add(mPictureConvertor.byteToBitMap(image));
+        for (Integer image : bytes) {
+            bitmapList.add(loadImageFromStorage(directory(), image.hashCode()));
         }
 
         return bitmapList;
@@ -175,20 +182,63 @@ public class NoteManager {
     public void closeNote() {
         mNoteRepository.noteClose();
     }
+
     public void closeForecast() {
         mNoteRepository.forecastClose();
     }
+
     public void closeCoordinate() {
         mNoteRepository.coordinateClose();
     }
+
     public void closePicture() {
         mNoteRepository.pictureClose();
     }
+
     public void closeTag() {
         mNoteRepository.tagClose();
     }
+
     public void closeTagOfNotes() {
         mNoteRepository.tagOfNotesClose();
+    }
+
+    private void saveToInternalStorage(Bitmap bitmapImage, String directory) {
+        File fileName = new File(directory, bitmapImage.hashCode() + ".jpg");
+
+        FileOutputStream fos = null;
+        try {
+            fos = new FileOutputStream(fileName);
+            bitmapImage.compress(Bitmap.CompressFormat.JPEG, 100, fos);
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if (fos != null) {
+                try {
+                    fos.close();
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
+            }
+        }
+    }
+
+    private Bitmap loadImageFromStorage(String path, Integer hash) {
+        try {
+            File f = new File(path, hash + ".jpg");
+            BitmapDecoder bitmapDecoder = new BitmapDecoder();
+            return bitmapDecoder.execute(new FileInputStream(f)).get();
+
+        } catch (InterruptedException | FileNotFoundException | ExecutionException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    private String directory() {
+        ContextWrapper cw = new ContextWrapper(mContext);
+        File directory = cw.getDir("imageDir", Context.MODE_PRIVATE);
+        return directory.getAbsolutePath();
     }
 
 }

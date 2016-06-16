@@ -36,9 +36,9 @@ public interface NoteRepository {
 
     Tag createTag(String content);
 
-    Picture createPicture(byte[] image, Long noteId);
+    Picture createPicture(Integer image, Long noteId);
 
-    List<byte[]> findAllPictureForCurrentNote(Long noteId);
+    List<Integer> findAllPictureForCurrentNote(Long noteId);
 
     Long findPictureByNoteId(Long noteId);
 
